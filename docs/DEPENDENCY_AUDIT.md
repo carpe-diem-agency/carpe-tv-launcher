@@ -35,8 +35,12 @@ Apache-2.0 option is used.
 
 The basic launcher works without Shizuku; local ADB pairing and the optional
 system-access wizard are what pull in `libadb-android`, SPAKE2, Conscrypt and
-Bouncy Castle. Removing that wizard from a future baseline would reduce the
-dependency surface, but that is a product decision and is not done here.
+Bouncy Castle. The owner chose to keep this wizard inside the first public APK
+so sleep and approved system actions remain available from one app. Shizuku
+setup stays optional for ordinary launch and app browsing. The unsigned release
+APK is about 16 MiB on disk; the four packaged SPAKE2 native binaries total
+134,364 bytes before ZIP overhead. This product choice does not clear the
+LGPL distribution gate below.
 
 [LGPL-3.0 section 4](https://www.gnu.org/licenses/lgpl-3.0.html#section4)
 requires more than notices for a combined work: depending on the chosen route,

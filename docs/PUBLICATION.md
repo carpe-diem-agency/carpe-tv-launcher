@@ -40,7 +40,9 @@
       `spake2-android` 2.2.1 transitive component, including native-library
       source and relinking obligations. Bundled license text alone is not clearance.
       The bundled component notice is available in Settings → About; this does
-      not resolve the LGPL-3.0 section 4 release gate.
+      not resolve the LGPL-3.0 section 4 release gate. The owner chose to keep
+      the optional Shizuku wizard in the first public APK, so this gate cannot
+      be deferred by omitting that dependency.
 - [ ] Review agency branding, third-party font/tooling notices and app trademarks.
 - [ ] Replace device-specific screenshots where appropriate; confirm visible app list.
 - [x] Separate the public application ID (`agency.carpediem.tv`) from the personal build.
