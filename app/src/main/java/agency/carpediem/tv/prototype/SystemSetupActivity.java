@@ -164,7 +164,7 @@ public final class SystemSetupActivity extends Activity {
                     });
                 }
                 return paired;
-            });
+            }, getResources().getConfiguration().getLocales().get(0));
             showQr(server.address());
         } catch (IOException | com.google.zxing.WriterException error) {
             Log.w(TAG, "Local pairing page unavailable: " + error.getClass().getSimpleName());

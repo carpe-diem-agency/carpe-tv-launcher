@@ -14,6 +14,7 @@ import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Collections;
+import java.util.Locale;
 
 /** One-time LAN form for entering the Android pairing code from a phone. */
 final class LocalPairingServer implements Closeable {
@@ -24,12 +25,14 @@ final class LocalPairingServer implements Closeable {
     private final String token;
     private final String address;
     private final Receiver receiver;
+    private final boolean ukrainian;
     private final Thread thread;
     private volatile boolean closed;
     private int failedAttempts;
 
-    LocalPairingServer(Receiver receiver) throws IOException {
+    LocalPairingServer(Receiver receiver, Locale locale) throws IOException {
         this.receiver = receiver;
+        ukrainian = "uk".equals(locale.getLanguage());
         InetAddress local = wifiAddress();
         listener = new ServerSocket(0, 4, local);
         listener.setSoTimeout(1000);
@@ -98,8 +101,10 @@ final class LocalPairingServer implements Closeable {
             }
         }
         if (!hostOk) { respond(client, 400, "Invalid host"); return; }
-        if (method.equals("GET")) { respond(client, 200, page("Enter the six-digit code shown on your TV.")); return; }
-        if (length != 11) { respond(client, 400, page("Enter exactly six digits.")); return; }
+        if (method.equals("GET")) { respond(client, 200, page(ukrainian
+                ? "Введи шестизначний код, який показує Android на телевізорі."
+                : "Enter the six-digit code Android shows on your TV.")); return; }
+        if (length != 11) { respond(client, 400, page(ukrainian ? "Введи рівно шість цифр." : "Enter exactly six digits.")); return; }
         byte[] body = new byte[length];
         for (int offset = 0; offset < body.length;) {
             int count = input.read(body, offset, body.length - offset);
@@ -107,14 +112,15 @@ final class LocalPairingServer implements Closeable {
             offset += count;
         }
         String text = new String(body, StandardCharsets.US_ASCII);
-        if (!text.matches("code=[0-9]{6}")) { respond(client, 400, page("Enter exactly six digits.")); return; }
+        if (!text.matches("code=[0-9]{6}")) { respond(client, 400, page(ukrainian ? "Введи рівно шість цифр." : "Enter exactly six digits.")); return; }
         boolean success = receiver.pair(text.substring(5));
         if (!success) failedAttempts++;
         boolean exhausted = failedAttempts >= MAX_FAILED_ATTEMPTS;
         respond(client, success ? 200 : 409, page(success
-                ? "Paired. You can return to your TV."
-                : exhausted ? "Too many attempts. Restart pairing on your TV to try again."
-                : "Pairing failed or the TV code has expired. Check the code and try again."));
+                ? ukrainian ? "Підключено. Повернися до телевізора." : "Paired. Return to your TV."
+                : exhausted ? ukrainian ? "Забагато спроб. Почни підключення на телевізорі знову." : "Too many attempts. Restart pairing on your TV."
+                : ukrainian ? "Код не підійшов або його час минув. Перевір код на телевізорі й спробуй ще раз."
+                        : "Pairing failed or the TV code expired. Check the code and try again."));
         if (success || exhausted) close();
     }
 
@@ -129,14 +135,15 @@ final class LocalPairingServer implements Closeable {
         throw new IOException("Header too long");
     }
 
-    private static String page(String message) {
-        return "<!doctype html><html lang=en><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
-                + "<title>Carpe TV pairing</title><style>body{font:18px system-ui;background:#101b2c;color:#fff;"
+    private String page(String message) {
+        return "<!doctype html><html lang=" + (ukrainian ? "uk" : "en") + "><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
+                + "<title>Carpe TV</title><style>body{font:18px system-ui;background:#101b2c;color:#fff;"
                 + "max-width:32rem;margin:12vh auto;padding:1.5rem}input,button{font:inherit;padding:.8rem;border-radius:.7rem}"
                 + "input{width:11rem}button{background:#67a8ff;color:#061224;border:0;margin-left:.4rem}</style>"
                 + "<h1>Carpe TV</h1><p>" + message + "</p><form method=post><input name=code inputmode=numeric "
-                + "autocomplete=off pattern='[0-9]{6}' maxlength=6 required aria-label='Pairing code'>"
-                + "<button type=submit>Pair</button></form></html>";
+                + "autocomplete=off pattern='[0-9]{6}' maxlength=6 required aria-label='"
+                + (ukrainian ? "Код підключення" : "Pairing code") + "'>"
+                + "<button type=submit>" + (ukrainian ? "Підключити" : "Connect") + "</button></form></html>";
     }
 
     private static void respond(Socket client, int status, String body) throws IOException {
