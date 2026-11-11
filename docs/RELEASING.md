@@ -122,5 +122,10 @@ in parallel. The live APK download, Android installer, phone transfer, both
 languages and rollback link still need final release testing. If the release
 asset name changes, update the page, workflow check and instructions together.
 
+After a public release, `python3 scripts/release_downloads.py` reports GitHub's
+download count for the `carpe-tv.apk` asset. It does not identify devices or
+users, and repeat downloads count again; it is not an installation count. No
+launcher telemetry is needed for this report.
+
 For each update, increase versionCode and keep the same application ID and
 signing key. Do not use the debug key for a public release.
