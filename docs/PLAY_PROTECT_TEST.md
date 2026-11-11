@@ -68,3 +68,21 @@ The platform's `cmd package set-home-activity --user 0
 agency.carpediem.tv.publicpreview` returned **Success**, but a subsequent
 `resolve-activity` still selected `com.google.android.apps.tv.launcherx` for
 `MAIN` + `HOME`. This command therefore did not fix routing on the test stick.
+
+## Full Google TV package routing check · 2026-11-11
+
+With the isolated Carpe TV preview holding `ROLE_HOME`, the stick still resolved
+`MAIN` + `HOME` to Google TV (priority 2). We temporarily disabled the Google TV
+package inside a shell command with an automatic `EXIT` trap that restored it.
+During that brief interval, Home resolved to
+`com.google.android.tungsten.setupwraith/.RecoveryActivity` (priority 1), not
+Carpe TV's `HomeEntry` (priority 0). A final readback confirmed Google TV was
+enabled again (`enabled=1`) and resumed as the Home resolver. No physical Home
+key was pressed during this check. Disabling Google TV alone is therefore not
+an acceptable Home fix on this firmware, and the recovery package was left
+untouched.
+
+Android's manifest documentation also rules out raising the non-privileged
+`HomeEntry` intent-filter priority above these OEM candidates: requested
+positive priorities are capped at zero for non-privileged apps. See
+<https://developer.android.com/guide/topics/manifest/intent-filter-element#priority>.
