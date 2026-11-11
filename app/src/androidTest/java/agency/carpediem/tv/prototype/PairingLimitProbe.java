@@ -16,15 +16,22 @@ final class PairingLimitProbe {
             throw new IllegalStateException("Requires isolated preview package");
         try (LocalPairingServer server = new LocalPairingServer(code -> false, Locale.ENGLISH)) {
             URI uri = URI.create(server.address());
-            require(response(uri, "GET").contains("<html lang=en>"), "English form unavailable");
+            String english = response(uri, "GET");
+            require(english.contains("<html lang=en>") && english.contains("Developer options → Wireless debugging"),
+                    "English form or TV-code directions unavailable");
             for (int attempt = 1; attempt <= 5; attempt++)
                 require(status(uri, "POST") == 409, "Attempt " + attempt + " was not rejected");
             require(!reachable(uri), "Form remained available after five failures");
         }
         try (LocalPairingServer fresh = new LocalPairingServer(code -> false, Locale.forLanguageTag("uk"))) {
             String html = response(URI.create(fresh.address()), "GET");
-            require(html.contains("<html lang=uk>") && html.contains("Введи шестизначний код"),
-                    "Ukrainian form unavailable");
+            require(html.contains("<html lang=uk>") && html.contains("Параметри розробника → Налагодження через Wi-Fi"),
+                    "Ukrainian form or TV-code directions unavailable");
+        }
+        try (LocalPairingServer accepted = new LocalPairingServer(code -> true, Locale.forLanguageTag("uk"))) {
+            String page = response(URI.create(accepted.address()), "POST");
+            require(page.startsWith("HTTP/1.1 200") && page.contains("Повернися до телевізора") && !page.contains("<form"),
+                    "Successful pairing did not end with a clear return-to-TV screen");
         }
         result.putString("pairingLimit", "5 rejected; old session closed; fresh session reachable");
     }

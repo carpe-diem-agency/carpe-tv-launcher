@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,6 +37,8 @@ public final class SystemSetupActivity extends Activity {
     private LocalAdbDiscovery discovery;
     private LocalPairingServer server;
     private TextView status, address, codeExample;
+    private final TextView[] stepNumbers = new TextView[3];
+    private final TextView[] stepTitles = new TextView[3];
     private ImageView qr;
     private Button openSettings, startButton, grantButton;
     private Typeface font;
@@ -72,7 +75,10 @@ public final class SystemSetupActivity extends Activity {
         LinearLayout.LayoutParams explanationSize = new LinearLayout.LayoutParams(-1, -2);
         explanationSize.topMargin = dp(12);
         panel.addView(explanation, explanationSize);
-        panel.addView(label(getString(R.string.setup_phone_intro), 15, 0xffbdcce2));
+        TextView intro = label(getString(R.string.setup_phone_intro), 15, 0xffbdcce2);
+        intro.setPadding(0, dp(15), 0, dp(8));
+        panel.addView(intro);
+        addStepRow(panel);
         status = label("", 15, 0xffa8d6ff);
         status.setPadding(0, dp(8), 0, dp(8));
         panel.addView(status);
@@ -119,6 +125,48 @@ public final class SystemSetupActivity extends Activity {
         button.setOnClickListener(v -> action.run());
         return button;
     }
+    private void addStepRow(LinearLayout panel) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams rowSize = new LinearLayout.LayoutParams(-1, -2);
+        rowSize.topMargin = dp(8);
+        rowSize.bottomMargin = dp(8);
+        panel.addView(row, rowSize);
+        int[] titles = {R.string.setup_step_phone, R.string.setup_step_code, R.string.setup_step_ready};
+        for (int i = 0; i < titles.length; i++) {
+            LinearLayout item = new LinearLayout(this);
+            item.setOrientation(LinearLayout.VERTICAL);
+            item.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            item.setPadding(dp(12), dp(10), dp(12), dp(10));
+            LinearLayout.LayoutParams cell = new LinearLayout.LayoutParams(0, -2, 1f);
+            if (i > 0) cell.setMarginStart(dp(8));
+            row.addView(item, cell);
+            TextView number = label(String.valueOf(i + 1), 17, Color.WHITE);
+            number.setGravity(android.view.Gravity.CENTER);
+            item.addView(number, new LinearLayout.LayoutParams(dp(32), dp(32)));
+            TextView title = label(getString(titles[i]), 13, 0xffcbd8ec);
+            title.setPadding(0, dp(6), 0, 0);
+            item.addView(title);
+            stepNumbers[i] = number;
+            stepTitles[i] = title;
+        }
+        setStep(0);
+    }
+    private void setStep(int current) {
+        for (int i = 0; i < stepNumbers.length; i++) {
+            TextView number = stepNumbers[i];
+            TextView title = stepTitles[i];
+            if (number == null || title == null) continue;
+            boolean active = i == current;
+            boolean complete = i < current;
+            GradientDrawable disk = new GradientDrawable();
+            disk.setShape(GradientDrawable.OVAL);
+            disk.setColor(active ? 0xff3f83e9 : complete ? 0xff2f6659 : 0xff26364f);
+            number.setBackground(disk);
+            number.setTextColor(active || complete ? Color.WHITE : 0xffaebdd3);
+            title.setTextColor(active ? Color.WHITE : complete ? 0xffb9e5cc : 0xffaebdd3);
+        }
+    }
     private LinearLayout.LayoutParams buttonSize() {
         LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(-1, dp(48));
         size.topMargin = dp(10);
@@ -130,6 +178,7 @@ public final class SystemSetupActivity extends Activity {
         boolean ready = SystemAccess.ready();
         boolean running = SystemAccess.running();
         boolean pairing = server != null && !paired;
+        setStep(paired ? 2 : pairing ? 1 : 0);
         if (paired) { qr.setVisibility(View.GONE); address.setVisibility(View.GONE); }
         codeExample.setVisibility(pairing ? View.VISIBLE : View.GONE);
         openSettings.setVisibility(pairing ? View.VISIBLE : View.GONE);
@@ -140,6 +189,7 @@ public final class SystemSetupActivity extends Activity {
         grantButton.setEnabled(running && !ready);
         status.setText(ready ? R.string.system_access_ready
                 : running ? R.string.system_access_permission
+                : pairing ? R.string.setup_scan_first
                 : paired
                         ? R.string.setup_paired : R.string.shizuku_stopped_short);
     }
@@ -175,6 +225,7 @@ public final class SystemSetupActivity extends Activity {
             stopSession(); status.setText(R.string.setup_phone_unavailable); return;
         }
         busy = true;
+        setStep(1);
         status.setText(R.string.setup_scan_first);
         codeExample.setVisibility(View.VISIBLE);
         openSettings.setVisibility(View.VISIBLE);

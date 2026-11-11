@@ -120,7 +120,7 @@ final class LocalPairingServer implements Closeable {
                 ? ukrainian ? "Підключено. Повернися до телевізора." : "Paired. Return to your TV."
                 : exhausted ? ukrainian ? "Забагато спроб. Почни підключення на телевізорі знову." : "Too many attempts. Restart pairing on your TV."
                 : ukrainian ? "Код не підійшов або його час минув. Перевір код на телевізорі й спробуй ще раз."
-                        : "Pairing failed or the TV code expired. Check the code and try again."));
+                        : "Pairing failed or the TV code expired. Check the code and try again.", !success));
         if (success || exhausted) close();
     }
 
@@ -135,15 +135,27 @@ final class LocalPairingServer implements Closeable {
         throw new IOException("Header too long");
     }
 
-    private String page(String message) {
+    private String page(String message) { return page(message, true); }
+
+    private String page(String message, boolean showForm) {
         return "<!doctype html><html lang=" + (ukrainian ? "uk" : "en") + "><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
-                + "<title>Carpe TV</title><style>body{font:18px system-ui;background:#101b2c;color:#fff;"
-                + "max-width:32rem;margin:12vh auto;padding:1.5rem}input,button{font:inherit;padding:.8rem;border-radius:.7rem}"
-                + "input{width:11rem}button{background:#67a8ff;color:#061224;border:0;margin-left:.4rem}</style>"
-                + "<h1>Carpe TV</h1><p>" + message + "</p><form method=post><input name=code inputmode=numeric "
-                + "autocomplete=off pattern='[0-9]{6}' maxlength=6 required aria-label='"
+                + "<title>Carpe TV</title><style>*{box-sizing:border-box}body{font:17px/1.5 system-ui;background:#101b2c;color:#fff;"
+                + "max-width:34rem;margin:8vh auto;padding:1.5rem}h1{font-size:1.5rem}h2{font-size:1.2rem;margin-top:0}"
+                + ".card{background:#1a2b43;border:1px solid #416184;border-radius:1rem;padding:1.25rem}"
+                + ".path{color:#c8d8eb;font-size:.95rem}input,button{font:inherit;padding:.8rem;border-radius:.7rem}"
+                + "input{width:10rem;max-width:100%;background:#fff;color:#101b2c;border:0}"
+                + "button{background:#67a8ff;color:#061224;border:0;margin-left:.4rem}"
+                + "@media(max-width:24rem){button{margin:.7rem 0 0;width:100%}}</style>"
+                + "<h1>Carpe TV</h1><div class=card><h2>" + (showForm
+                ? ukrainian ? "Код із телевізора" : "Code from your TV"
+                : ukrainian ? "Готово" : "Done") + "</h2><p>" + message + "</p>"
+                + (showForm ? "<p class=path>" + (ukrainian
+                ? "На ТВ: Параметри розробника → Налагодження через Wi-Fi → Підключити пристрій за допомогою коду."
+                : "On TV: Developer options → Wireless debugging → Pair device with pairing code.")
+                + "</p><form method=post><input name=code inputmode=numeric autocomplete=off pattern='[0-9]{6}' maxlength=6 required aria-label='"
                 + (ukrainian ? "Код підключення" : "Pairing code") + "'>"
-                + "<button type=submit>" + (ukrainian ? "Підключити" : "Connect") + "</button></form></html>";
+                + "<button type=submit>" + (ukrainian ? "Підключити" : "Connect") + "</button></form>" : "")
+                + "</div></html>";
     }
 
     private static void respond(Socket client, int status, String body) throws IOException {
