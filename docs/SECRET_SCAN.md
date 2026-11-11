@@ -10,3 +10,9 @@ The clean-history source was subsequently published to the separate public
 `8124f35` using `gitleaks git . --redact`: **0 findings**. The redacted JSON
 report is kept outside the repository. This scan does not cover future
 commits or the final signed APK, so both must be checked again before release.
+
+On 2026-11-11, after the modified-library device check, Gitleaks 8.30.1
+rescanned the public repository at `63a460a` with `gitleaks git . --redact`.
+It covered all 25 reachable commits and found **0 leaks**. The redacted report
+remains outside the repository. The production-signed release APK does not yet
+exist, so its required artifact scan remains open.
