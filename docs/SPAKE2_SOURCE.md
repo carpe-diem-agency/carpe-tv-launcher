@@ -48,3 +48,10 @@ the dependency substitution path works for that AAR, but a modified library
 has not yet been built, installed, or run on a device. A rebuilt APK needs its
 own signing key; it cannot be installed as an update over an APK signed by a
 different key. Keep the signed-APK replacement and installation check open.
+
+The follow-up [GitHub Actions run #2](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42991685259)
+at commit `33552fc` also passed: after rebuilding the source AAR, the runner
+built an unsigned Carpe TV release APK with that AAR supplied through
+`-Pspake2Aar`. This verifies the source-to-APK build path on a clean runner.
+The resulting APK was not signed or installed, and this was the unmodified
+upstream source, so the device and modified-library checks remain open.

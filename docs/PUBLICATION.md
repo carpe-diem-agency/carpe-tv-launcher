@@ -40,6 +40,10 @@
       [run #1](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42990630242)
       passed and uploaded an AAR. This establishes source buildability, not
       binary equivalence or a working signed-APK relinking path.
+- [x] Build an unsigned Carpe TV APK with the source-built AAR on a clean runner;
+      [run #2](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42991685259)
+      passed. Signing, device installation and a modified-library replacement
+      still need verification.
 - [ ] Complete distribution review of libadb-android and its LGPL-3.0
       `spake2-android` 2.2.1 transitive component, including native-library
       source and relinking obligations. Bundled license text alone is not clearance.
