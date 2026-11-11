@@ -429,3 +429,10 @@ not prove native Android/Google TV compatibility with a mismatched density.
 
 - On MiTV-AFMU1, focusing a top action previously left the current page highlighted in the left rail. The isolated preview now clears that rail selection while the toolbar or Apps search has focus and restores it when focus returns to page content.
 - Saved the previous installed preview APK as `/private/tmp/carpe-publicpreview-before-focus-fix.apk`, then installed only the isolated preview. `HomeFocusProbe`, `SettingsFocusProbe` and `ReorderProbe` all passed on the stick. This change does not alter the unresolved OEM Home routing.
+
+### YouTube return route — 2026-11-11
+
+- On the installed `agency.carpediem.tv.publicpreview` 0.2.8, closed Carpe TV's idle screen, moved D-pad Right from the Home rail to the YouTube tile, and opened it with Select. Android reported YouTube's `MainActivity` as resumed.
+- One Back key exposed Aerial Views' dream activity; a second Back key resumed Google TV, not Carpe TV. This observation does not establish whether YouTube itself or the system dream caused the first Back transition, but it confirms that Back did not return directly to Carpe in this run.
+- Opening the existing Carpe TV task explicitly then focused the YouTube tile again. This verifies last-tile focus restoration when Carpe returns to the foreground, while the OEM Home routing remains unresolved. No system package, Home role or accessibility setting was changed during this test.
+- `HomeChoice.request()` no longer reports only “already selected” when Carpe holds the Home role but Android resolves Home to the stock launcher. The Device status uses the same generic route-conflict wording on different brands. CI `android` passed on draft PR #8 at commit `2412a6f`; this text fix has not been installed on the stick.
