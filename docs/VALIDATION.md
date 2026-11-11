@@ -260,3 +260,10 @@ not prove native Android/Google TV compatibility with a mismatched density.
 - The GitHub issue form now has Ukrainian and English field labels. Its YAML parses locally, and the QR target returns GitHub's login flow for a signed-out visitor. Scanning the QR with a phone and submitting an issue have not yet been checked on a device.
 - Back from the app library now restores the last focused Home tile rather than selecting the sidebar. The extended `HomeFocusProbe` passed this route on MiTV-AFMU1 in an isolated test package; this does not prove physical Home after leaving YouTube.
 - `FeedbackProbe` passed on the same stick: the GitHub Issue QR is present and described for accessibility, the TV-browser fallback is visible, and Back restores the previously focused Settings entry. A phone scan and actual issue submission remain to be checked.
+
+### Current visual and remote recheck — 2026-11-11
+
+- Built the isolated `agency.carpediem.tv.publicpreview` APK, verified its package name with `aapt`, and installed it without replacing the personal `agency.carpediem.tv.prototype` launcher. Captured Home, Apps and Settings directly from MiTV-AFMU1 at its 1920×1080 override and 320 dpi. The screenshots stayed local because the Apps view shows the owner's installed software.
+- D-pad Down moved from the Home rail to Apps and then Settings; each screen rendered without a loading placeholder. `HomeFocusProbe` passed again for the toolbar, Back, simulated Home return and focus after an app-list refresh.
+- Visual follow-up: the Settings detail column is dense at 1080p, and the next wallpaper card is cut off at the viewport edge. Check whether the carousel affordance and lower controls remain clear with a physical remote before using these screens as release imagery.
+- The isolated APK and runner were removed. Android still reports `agency.carpediem.tv.prototype` as the Home holder. Physical Home after returning from YouTube remains unverified for the public build.
