@@ -9,6 +9,7 @@ import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,16 +23,37 @@ final class HomeFocusProbe {
                 .edit().putBoolean("welcome_seen",true).commit();
         MainActivity screen=(MainActivity)test.startActivitySync(new Intent(test.getTargetContext(),MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK));
         SystemClock.sleep(1500);
-        List<View> tiles=new ArrayList<>();test.runOnMainSync(() -> collect((ViewGroup)screen.findViewById(R.id.content),tiles));
+        // The preceding probe may have left a cached Settings page in the task.
+        // Enter Home through the same rail path a viewer uses before checking it.
+        test.runOnMainSync(() -> screen.findViewById(R.id.nav_home).requestFocus());
+        SystemClock.sleep(350);
+        List<View> tiles=awaitFavorites(test,screen);
         require(tiles.size()>=2,"At least two favorites needed");
         for(int i=0;i<Math.min(5,tiles.size());i++) {
-            View tile=tiles.get(i);test.runOnMainSync(tile::requestFocus);
+            // App discovery can replace the grid after Activity startup. Resolve
+            // the tile from the currently attached page before each key test.
+            final int column=i;
+            View[] selected={null};
+            test.runOnMainSync(() -> {
+                List<View> current=new ArrayList<>();
+                collect((ViewGroup)screen.findViewById(R.id.content),current);
+                require(current.size()>column,"Favorite tile disappeared before focus check");
+                selected[0]=current.get(column);
+                require(selected[0].requestFocus(),"Cannot focus attached favorite tile " + column);
+                require(screen.getCurrentFocus()==selected[0],"Favorite focus lost before D-pad Up " + column);
+            });
+            View tile=selected[0];
+            test.runOnMainSync(() -> require(screen.findViewById(R.id.home_time)!=null
+                    && screen.findViewById(R.id.home_time).isShown(),
+                    "Home page hidden before D-pad Up from favorite " + column));
+            awaitWindowFocus(test,screen,"favorite " + column);
             int header = i == 0 ? R.id.home_power : i < 3 ? R.id.home_wifi
                     : i == 3 ? R.id.home_bluetooth : R.id.home_timer;
             key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,header);
             key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,header);
             key(test,KeyEvent.KEYCODE_DPAD_DOWN);focus(test,screen,tile.getId());
         }
+        tiles=awaitFavorites(test,screen);
         String homeTile = (String) tiles.get(Math.min(4, tiles.size() - 1)).getTag();
         test.runOnMainSync(() -> screen.findViewById(R.id.nav_apps).requestFocus());
         SystemClock.sleep(300);
@@ -146,7 +168,36 @@ final class HomeFocusProbe {
             else if(child instanceof ViewGroup) collect((ViewGroup)child,tiles);
         }
     }
+    private static List<View> awaitFavorites(Instrumentation test,MainActivity screen) {
+        List<View> tiles=new ArrayList<>();
+        long deadline=SystemClock.uptimeMillis()+10000;
+        do {
+            tiles.clear();
+            test.runOnMainSync(() -> collect((ViewGroup)screen.findViewById(R.id.content),tiles));
+            if(tiles.size()>=2) {
+                SystemClock.sleep(350);
+                List<View> stable=new ArrayList<>();
+                test.runOnMainSync(() -> collect((ViewGroup)screen.findViewById(R.id.content),stable));
+                if(stable.size()==tiles.size() && stable.get(0)==tiles.get(0)) return stable;
+            }
+            SystemClock.sleep(100);
+        } while(SystemClock.uptimeMillis()<deadline);
+        return tiles;
+    }
     private static void key(Instrumentation test,int key) {test.sendKeyDownUpSync(key);SystemClock.sleep(150);}
+    private static void awaitWindowFocus(Instrumentation test, Activity screen, String position) {
+        long deadline=SystemClock.uptimeMillis()+10000;
+        boolean[] focused={false};
+        do {
+            test.runOnMainSync(() -> focused[0]=screen.hasWindowFocus());
+            if(focused[0]) return;
+            SystemClock.sleep(100);
+        } while(SystemClock.uptimeMillis()<deadline);
+        AccessibilityNodeInfo active=test.getUiAutomation().getRootInActiveWindow();
+        String activePackage=active==null ? "none" : String.valueOf(active.getPackageName());
+        throw new AssertionError("Activity window not focused at " + position
+                + "; active window package=" + activePackage);
+    }
     private static void focus(Instrumentation test,Activity screen,int id) {
         int[] actual={View.NO_ID};boolean[] home={false};test.runOnMainSync(() -> {if(screen.getCurrentFocus()!=null)actual[0]=screen.getCurrentFocus().getId();View heading=screen.findViewById(R.id.home_time);home[0]=heading!=null&&heading.isShown();});
         require(actual[0]==id && home[0],"Unexpected focus "+actual[0]+" expected "+id+"; home="+home[0]);

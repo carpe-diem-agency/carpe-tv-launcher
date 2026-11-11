@@ -70,6 +70,12 @@
     <string name="home_unknown">"unknown"</string>
     <string name="home_prefix">"Selected Home: "</string>
     <string name="home_remote_check">"Test the remote Home button after selection: some devices still open the stock screen. Keep it enabled until return works."</string>
+    <string name="home_bridge_label">Carpe TV · Home button</string>
+    <string name="home_bridge_description">Optional service for devices that open Google TV despite selecting Carpe TV as Home. It observes only the Google TV window appearing, does not read screen contents or intercept buttons.</string>
+    <string name="home_bridge_enabled">Home assistance · on</string>
+    <string name="home_bridge_disabled">Home assistance · off</string>
+    <string name="home_bridge_action">Set up the Home button</string>
+    <string name="home_bridge_hint">If Home opens Google TV, find “Carpe TV · Home button” in Accessibility settings and turn it on. It works only while Carpe TV is the selected Home app. Turn it off there at any time.</string>
     <string name="welcome_title">Welcome to Carpe TV</string>
     <string name="welcome_message">Explore Carpe TV, then make it your Home screen when you’re ready. You can switch back in Settings.</string>
     <string name="welcome_explore">Explore first</string>
@@ -133,6 +139,7 @@
     <string name="search">"Search"</string>
     <string name="wifi">"Network and Wi-Fi"</string>
     <string name="wallpaper_blue">"Blue wallpaper"</string>
+    <string name="wallpaper_blue_motion">"Blue atmosphere · animated"</string>
     <string name="wallpaper_plain">"Dark wallpaper"</string>
     <string name="animations">"Animations"</string>
     <string name="app_name">"Carpe TV"</string>

@@ -116,6 +116,10 @@
       production-signed APK from the actual GitHub release link, without ADB.
       Test direct TV-browser download and a phone-to-TV transfer path separately;
       document the exact extra app, if that device needs one.
+- [ ] Recheck Play Protect with the new optional Home Accessibility service in
+      an ordinarily downloaded, production-signed APK. The earlier service-bearing
+      candidate was blocked; the service-free candidate installed. Do not publish
+      the new service until the ordinary installation path passes without bypasses.
 - [x] Repeat ordinary TV Bro installation with a newly signed local APK after
       removing the Accessibility Home bridge. The earlier signed 0.2.7 APK
       was blocked by Play Protect; the revised APK, signed with the same
@@ -145,7 +149,9 @@
       on one stick. A newer source-built release candidate measured 14 ms p95
       across 20 paced page cycles, while an unpaced stress run was markedly
       slower. Projected-screen visuals and other devices remain to be checked.
-- [ ] Review this checklist, README, support scope and Releases before publication.
+- [ ] Complete the [physical-remote user-flow acceptance](USER_FLOW_ACCEPTANCE.md)
+      on the exact published APK, then review this checklist, README, support
+      scope and Releases before publication.
 
 This checklist is preparation for a later public release, not a reason to stop
 private development. No workflow changes repository visibility automatically.

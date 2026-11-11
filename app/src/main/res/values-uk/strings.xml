@@ -70,6 +70,12 @@
     <string name="home_unknown">"не визначено"</string>
     <string name="home_prefix">"Вибраний Home: "</string>
     <string name="home_remote_check">"Перевір Home на пульті після вибору: деякі приставки все одно відкривають штатний екран. Не вимикай його, доки не перевіриш повернення."</string>
+    <string name="home_bridge_label">Carpe TV · кнопка Home</string>
+    <string name="home_bridge_description">Необов’язкова служба для приставок, які відкривають Google TV попри вибір Carpe TV головним екраном. Відстежує лише появу вікна Google TV, не читає вміст екрана й не перехоплює кнопки.</string>
+    <string name="home_bridge_enabled">Допомога для Home · увімкнена</string>
+    <string name="home_bridge_disabled">Допомога для Home · вимкнена</string>
+    <string name="home_bridge_action">Налаштувати кнопку Home</string>
+    <string name="home_bridge_hint">Якщо Home відкриває Google TV, знайди в спеціальних можливостях службу «Carpe TV · кнопка Home» та ввімкни її. Служба працює лише коли Carpe TV вибрано головним екраном. Її можна вимкнути там само.</string>
     <string name="welcome_title">Вітаємо в Carpe TV</string>
     <string name="welcome_message">Оглянь Carpe TV, а коли будеш готовий — зроби його головним екраном. Повернути попередній екран можна в налаштуваннях.</string>
     <string name="welcome_explore">Спершу оглянути</string>
@@ -133,6 +139,7 @@
     <string name="search">"Пошук"</string>
     <string name="wifi">"Мережа та Wi-Fi"</string>
     <string name="wallpaper_blue">"Синій фон"</string>
+    <string name="wallpaper_blue_motion">"Синя атмосфера · анімація"</string>
     <string name="wallpaper_plain">"Темний фон"</string>
     <string name="animations">"Анімації"</string>
     <string name="app_name">"Carpe TV"</string>

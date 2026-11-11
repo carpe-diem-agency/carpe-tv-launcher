@@ -58,9 +58,13 @@ app to bypass a signing mismatch. Debug APKs from different computers/CI may use
 2. Choose **Carpe TV** in Android Home selection.
 3. Open another app and press physical Home. Repeat after reboot.
 
-Some firmware ignores the standard Home choice. The public APK does not include
-an Accessibility service that intercepts Google TV. If Home does not work, keep
-the stock launcher enabled until a device-specific rollback path is verified.
+Some firmware ignores the standard Home choice. If Home opens Google TV, go to
+**Settings → Device → Set up the Home button** and enable **Carpe TV · Home button**
+in Android Accessibility settings. This optional service responds only when the
+Google TV window appears while Carpe TV is selected as Home; it does not read
+screen content. You can turn it off in the same place. Test Home from another app
+and after a reboot before disabling the stock launcher. On Xiaomi, Google TV may
+flash briefly before Carpe TV returns.
 
 ## 3. Connect Shizuku optional
 

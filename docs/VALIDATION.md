@@ -1,9 +1,10 @@
 # Validation baseline — 2026-11-03
 
 **Current public-source status (2026-11-11):** This file retains historical
-measurements of the personal/internal launcher. The public APK no longer
-contains the Accessibility Home bridge used in some checks below. For the
-current isolated public build and signed-candidate evidence, read
+measurements of the personal/internal launcher. The 0.2.8 public candidate
+did not contain the Accessibility Home bridge used in some checks below;
+the new optional bridge is still a feature-branch candidate. For the
+isolated public build and signed-candidate evidence, read
 [PERFORMANCE_CHECK.md](PERFORMANCE_CHECK.md) and
 [RELEASE_APK_DEVICE_TEST.md](RELEASE_APK_DEVICE_TEST.md). Neither the historical
 physical-Home check nor the personal app's post-reboot result proves that the
@@ -283,3 +284,9 @@ not prove native Android/Google TV compatibility with a mismatched density.
 - Launched YouTube from the preview Home tile. After an injected Home key event, Android resumed `com.google.android.apps.tv.launcherx/.home.HomeActivity`, not the selected preview. This confirms an OEM routing gap on this firmware. It does not establish the behavior of the physical remote, but it is sufficient to prevent claiming that choosing the Android Home role alone works on this stick.
 - Restored `agency.carpediem.tv.prototype` as the Home holder and its previously enabled Home bridge, verified the service bound with no crashed service, and brought the personal launcher to the foreground. No system package was disabled or removed. The isolated preview was then uninstalled so it no longer appears as a second Carpe TV in the Android Home picker; Home role and service were read back again.
 - Changed the Device warning to remain visible whenever Carpe TV holds the Home role, because `resolveActivity` and the role holder can both look correct while the OEM Home screen still appears. The warning asks users to test the remote before changing system packages.
+
+### Optional Home bridge and animated blue background — 2026-11-11
+
+- Added an opt-in Accessibility service limited to Google TV window-state events. Its XML does not request window content, and Carpe TV never enables it on its own. The Device page links to Android's Accessibility settings and reports the service state.
+- On MiTV-AFMU1, selected the isolated preview in Android's Home picker, temporarily enabled only its bridge, opened YouTube, then injected a Home key event. Android's top resumed activity returned to `agency.carpediem.tv.publicpreview/.MainActivity`. This is a device test of the injected-key route, not yet a physical remote or reboot test. The test script restored the personal Home role and service; the Home role was read back as `agency.carpediem.tv.prototype`.
+- Added “Blue atmosphere” as a separate wallpaper choice. It changes only the opacity of a translucent gradient over the static blue background, and stops while Carpe TV is paused or lacks window focus. It stores no video and downloads nothing. `assembleDebug` and `lintDebug` passed. The animated choice has not yet been visually checked on the stick because wireless ADB disconnected after the Home test.

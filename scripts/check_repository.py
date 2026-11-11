@@ -42,6 +42,15 @@ english = [e.attrib['name'] for e in ET.parse(root/'app/src/main/res/values/stri
 ukrainian = [e.attrib['name'] for e in ET.parse(root/'app/src/main/res/values-uk/strings.xml').getroot().findall('string')]
 if len(set(english)) != len(english) or len(set(ukrainian)) != len(ukrainian) or set(english) != set(ukrainian):
     errors.append('English/Ukrainian string coverage differs or has duplicate names')
+format_arg = re.compile(r'%(?:\d+\$)?[-#+ 0,(]*\d*(?:\.\d+)?[a-zA-Z]')
+def string_formats(path):
+    return {e.attrib['name']: sorted(format_arg.findall(''.join(e.itertext())))
+            for e in ET.parse(path).getroot().findall('string')}
+english_formats = string_formats(root/'app/src/main/res/values/strings.xml')
+ukrainian_formats = string_formats(root/'app/src/main/res/values-uk/strings.xml')
+for name in english_formats.keys() & ukrainian_formats.keys():
+    if english_formats[name] != ukrainian_formats[name]:
+        errors.append('English/Ukrainian format arguments differ: '+name)
 if not (root/'app/src/main/assets/licenses/Montserrat-OFL.txt').exists(): errors.append('Missing font license')
 if (root/'LICENSE').read_bytes() != (root/'app/src/main/assets/licenses/Apache-2.0.txt').read_bytes():
     errors.append('Repository license differs from bundled Apache-2.0 text')
