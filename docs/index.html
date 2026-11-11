@@ -168,8 +168,10 @@
     [hidden] { display: none !important; }
     @media (max-width: 850px) {
       .frame { gap: 44px; }
-      main { grid-template-columns: 1fr; gap: 46px; }
+      main { grid-template-columns: minmax(0, 1fr); gap: 46px; }
+      .intro, .steps { min-width: 0; }
       .intro { padding-top: 28px; }
+      .primary-actions { flex-wrap: wrap; }
       h1 { max-width: 15ch; }
       .lead { margin-bottom: 30px; }
       .showcase-grid { grid-template-columns: 1fr; }
