@@ -45,6 +45,8 @@ final class HomeFocusProbe {
             test.runOnMainSync(() -> require(screen.findViewById(R.id.home_time)!=null
                     && screen.findViewById(R.id.home_time).isShown(),
                     "Home page hidden before D-pad Up from favorite " + column));
+            test.runOnMainSync(() -> require(screen.hasWindowFocus(),
+                    "Activity window not focused before D-pad Up from favorite " + column));
             int header = i == 0 ? R.id.home_power : i < 3 ? R.id.home_wifi
                     : i == 3 ? R.id.home_bluetooth : R.id.home_timer;
             key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,header);
