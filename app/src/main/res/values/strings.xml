@@ -192,8 +192,8 @@
     <string name="audit_limit">Enabled does not mean running in the background. Select a row to manage the app.</string>
     <string name="system_access_setup">Set up system access</string>
     <string name="system_access_failed">Could not open Shizuku setup</string>
-    <string name="system_access_ready">Extra features enabled</string>
-    <string name="system_access_permission">Shizuku is running. Grant Carpe TV access.</string>
+    <string name="system_access_ready">System access enabled</string>
+    <string name="system_access_permission">Grant Carpe TV access in the Shizuku prompt.</string>
     <string name="system_access_off">Extra features are off. You can still view app status.</string>
     <string name="system_access_required">Enable extra features first. No changes made.</string>
     <string name="stock_restore">Enable Google TV and choose Home</string>
@@ -235,12 +235,12 @@
 <string name="bluetooth_settings_hint">Open Remotes &amp; accessories or Connected devices in system settings.</string>
 <string name="shizuku_open">Open Shizuku</string>
 <string name="shizuku_running_short">Extra features are starting</string>
-<string name="shizuku_stopped_short">Extra features are off</string>
+<string name="shizuku_stopped_short">System access is off</string>
 <string name="shizuku_start_hint">After restarting your TV, open Extra features and enable them again.</string>
 <string name="shizuku_grant">Grant Carpe TV access</string>
 <string name="setup_title">Extra features</string>
-<string name="setup_what_is_shizuku">Want to put your TV to sleep on a timer or manage system apps? These actions need Shizuku, a separate app that gives Carpe TV system access without root. Your Home screen and apps work without it.</string>
-<string name="setup_phone_intro">Install Shizuku on your TV. The first connection needs a phone on the same Wi-Fi network. After that, you can start it here with your remote.</string>
+<string name="setup_what_is_shizuku">System access lets the sleep timer work and lets you manage selected system apps. Your Home screen and apps work without it.</string>
+<string name="setup_phone_intro">For these actions, install Shizuku on your TV. It is a separate app that gives Carpe TV access without root. First setup needs a phone on the same Wi-Fi network; later, start access with your remote.</string>
 <string name="setup_code_example">Android shows six digits on your TV. Enter them on the Carpe TV page that opens when you scan the QR code with your phone. For example, 123456 is a sample, not your code.</string>
 <string name="setup_scan_first">Scan the QR code with your phone first. Then open Developer options → Wireless debugging → Pair using pairing code. Enter the TV code on your phone.</string>
 <string name="setup_phone_unavailable">Could not open the local pairing page. Check the TV Wi-Fi connection.</string>

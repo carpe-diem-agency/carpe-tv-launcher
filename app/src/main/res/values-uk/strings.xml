@@ -192,8 +192,8 @@
     <string name="audit_limit">«Увімкнено» не означає роботу у фоні. Оберіть рядок для керування.</string>
     <string name="system_access_setup">Налаштувати системний доступ</string>
     <string name="system_access_failed">Не вдалося відкрити налаштування Shizuku</string>
-    <string name="system_access_ready">Додаткові функції увімкнено</string>
-    <string name="system_access_permission">Shizuku працює. Підтвердь доступ Carpe TV.</string>
+    <string name="system_access_ready">Системний доступ увімкнено</string>
+    <string name="system_access_permission">Підтвердь доступ Carpe TV у запиті Shizuku.</string>
     <string name="system_access_off">Додаткові функції вимкнено. Стан програм можна переглядати.</string>
     <string name="system_access_required">Спершу увімкни додаткові функції. Нічого не змінено.</string>
     <string name="stock_restore">Увімкнути Google TV й вибрати Home</string>
@@ -235,12 +235,12 @@
 <string name="bluetooth_settings_hint">Відкрийте «Дистанційне керування й аксесуари» або «Підключені пристрої».</string>
 <string name="shizuku_open">Відкрити Shizuku</string>
 <string name="shizuku_running_short">Додаткові функції запускаються</string>
-<string name="shizuku_stopped_short">Додаткові функції вимкнено</string>
+<string name="shizuku_stopped_short">Системний доступ вимкнено</string>
 <string name="shizuku_start_hint">Після перезапуску приставки відкрий «Додаткові функції» й увімкни їх знову.</string>
 <string name="shizuku_grant">Надати доступ Carpe TV</string>
 <string name="setup_title">Додаткові функції</string>
-<string name="setup_what_is_shizuku">Хочеш присипляти приставку за таймером або керувати системними програмами? Для цих дій потрібен Shizuku — окремий застосунок, який надає Carpe TV системний доступ без root. Звичайний головний екран і запуск програм працюють без нього.</string>
-<string name="setup_phone_intro">Установи Shizuku на приставку. Для першого підключення знадобиться телефон у тій самій мережі Wi-Fi. Після цього запускатимеш його звідси пультом.</string>
+<string name="setup_what_is_shizuku">Системний доступ потрібен для таймера сну та керування окремими системними програмами. Головний екран і запуск програм працюють без нього.</string>
+<string name="setup_phone_intro">Для цих дій установи на приставку Shizuku — окремий застосунок, який дає Carpe TV доступ без root. Під час першого підключення потрібен телефон у тій самій мережі Wi-Fi. Далі запускати доступ можна пультом.</string>
 <string name="setup_code_example">Android покаже на ТВ шість цифр. Введи їх на сторінці Carpe TV, що відкриється після сканування QR-коду телефоном. Наприклад, 123456 — це зразок, не твій код.</string>
 <string name="setup_scan_first">Скануй QR-код телефоном. На ТВ відкрий «Налагодження через Wi-Fi» → «Підключити за кодом». Код із ТВ введи на сторінці телефона.</string>
 <string name="setup_phone_unavailable">Не вдалося відкрити локальну сторінку. Перевір Wi-Fi приставки.</string>
