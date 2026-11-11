@@ -1,0 +1,27 @@
+# Android / Gradle
+.gradle/
+**/build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+# Local credentials and signing material
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pem
+key.properties
+signing.properties
+# Device dumps, private integrations and build outputs
+*.apk
+*.aab
+*.apks
+*.log
+__pycache__/
+*.pyc
+backups/
+checkpoints/
+private/

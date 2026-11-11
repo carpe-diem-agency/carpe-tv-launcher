@@ -1,0 +1,49 @@
+name: Publish install page
+
+'on':
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ !github.event.repository.private && !github.event.release.prerelease && !github.event.release.draft }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Verify release files
+        env:
+          EVENT_PATH: ${{ github.event_path }}
+        run: |
+          jq -e '([.release.assets[].name] | index("carpe-tv.apk") != null and index("SHA256SUMS") != null and index("update.json") != null)' "$EVENT_PATH"
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare only the public install page
+        run: |
+          mkdir -p site/assets
+          cp docs/index.html site/index.html
+          cp docs/assets/wallpaper_alpine.jpg site/assets/wallpaper_alpine.jpg
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,21 @@
+name: Bug report
+description: Report a launcher problem without private data
+title: "[Bug] "
+body:
+  - type: textarea
+    id: device
+    attributes:
+      label: Device / Android version / launcher version
+      description: No serial numbers, IP addresses or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps, expected behavior and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshot or sanitized log

@@ -1,0 +1,16 @@
+<resources>
+    <color name="cd_background">#080F1E</color>
+    <color name="cd_sidebar">#101C33</color>
+    <color name="cd_surface">#192945</color>
+    <color name="cd_focus">#3869B4</color>
+    <color name="cd_text">#FFFFFF</color>
+    <dimen name="cd_safe_horizontal">40dp</dimen>
+    <dimen name="cd_safe_vertical">24dp</dimen>
+    <dimen name="cd_sidebar_width">72dp</dimen>
+    <dimen name="cd_nav_button">52dp</dimen>
+    <dimen name="cd_content_gap">24dp</dimen>
+    <dimen name="cd_content_inset">8dp</dimen>
+    <dimen name="cd_heading_size">32sp</dimen>
+    <dimen name="cd_header_height">56dp</dimen>
+    <dimen name="cd_control_height">52dp</dimen>
+</resources>

@@ -1,0 +1,19 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/cd_background">
+<ImageView android:id="@+id/scene_a" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:importantForAccessibility="no"/>
+<ImageView android:id="@+id/scene_b" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:alpha="0" android:importantForAccessibility="no"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="horizontal">
+    <LinearLayout android:id="@+id/sidebar" android:layout_width="@dimen/cd_sidebar_width" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="@dimen/cd_safe_vertical" android:paddingBottom="@dimen/cd_safe_vertical" android:background="#30101C33">
+        <ImageButton android:id="@+id/nav_home" android:nextFocusUp="@id/nav_home" android:nextFocusDown="@id/nav_apps" android:layout_width="@dimen/cd_nav_button" android:layout_height="@dimen/cd_nav_button" android:layout_marginTop="60dp" android:background="@drawable/nav_background" android:src="@drawable/ic_home" android:contentDescription="@string/home"/>
+        <ImageButton android:id="@+id/nav_apps" android:nextFocusUp="@id/nav_home" android:nextFocusDown="@id/nav_settings" android:layout_width="@dimen/cd_nav_button" android:layout_height="@dimen/cd_nav_button" android:layout_marginTop="18dp" android:background="@drawable/nav_background" android:src="@drawable/ic_apps" android:contentDescription="@string/all_apps"/>
+        <ImageButton android:id="@+id/nav_settings" android:nextFocusUp="@id/nav_apps" android:nextFocusDown="@id/nav_power" android:layout_width="@dimen/cd_nav_button" android:layout_height="@dimen/cd_nav_button" android:layout_marginTop="18dp" android:background="@drawable/nav_background" android:src="@drawable/ic_settings" android:contentDescription="@string/settings"/>
+        <ImageButton android:id="@+id/nav_power" android:nextFocusUp="@id/nav_settings" android:nextFocusDown="@id/nav_power" android:layout_width="@dimen/cd_nav_button" android:layout_height="@dimen/cd_nav_button" android:layout_marginTop="18dp" android:background="@drawable/nav_background" android:src="@drawable/ic_sleep_timer" android:contentDescription="@string/sleep_timer"/>
+        <Space android:layout_width="1dp" android:layout_height="0dp" android:layout_weight="1"/>
+        <ImageView android:layout_width="52dp" android:layout_height="52dp" android:layout_marginBottom="12dp" android:src="@drawable/carpediem_logo" android:tint="#B9C7DC" android:contentDescription="Carpe Diem Agency"/>
+<TextView android:id="@+id/launcher_version" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="4dp" android:textColor="#FFFFFF" android:alpha="0.25" android:textSize="10sp" android:focusable="false" android:importantForAccessibility="no"/>
+    </LinearLayout>
+    <FrameLayout android:id="@+id/content_host" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:layout_marginStart="@dimen/cd_content_gap" android:clipChildren="false" android:clipToPadding="false"><agency.carpediem.tv.prototype.PageContent android:id="@+id/content" android:layout_width="match_parent" android:layout_height="match_parent" android:paddingEnd="@dimen/cd_safe_horizontal" android:paddingTop="@dimen/cd_safe_vertical" android:paddingBottom="@dimen/cd_safe_vertical" android:orientation="vertical" android:clipChildren="false" android:clipToPadding="false"/></FrameLayout>
+
+</LinearLayout>
+
+
+</FrameLayout>

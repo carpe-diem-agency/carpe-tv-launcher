@@ -1,0 +1,175 @@
+# Navigation performance on the Xiaomi stick
+
+On 2026-11-11 an isolated `agency.carpediem.tv.publicpreview` debug APK was
+measured on MiTV-AFMU1 (Android TV 14, 1920×1080, 320 dpi) with HDMI output
+off. The test app and its instrumentation were removed afterward; the personal
+launcher remained installed and resumed its screensaver.
+
+The navigation probe passed focus-only sidebar switching, content entry and
+return, rapid D-pad input, and Home. In 867 sampled content-navigation frames,
+median total frame time was 11.57 ms and p95 was 19.00 ms. In 305 sampled
+frames during 36 normal and rapid page changes, median was 34.66 ms, p95 was
+61.52 ms, and maximum was 71.62 ms. The page-transition p95 draw and command
+stages were 19.41 ms and 18.38 ms respectively. These are instrumented debug
+build measurements; they do not prove release-build frame rate or visual
+smoothness on a projected screen.
+
+The first attempt failed because the newly installed isolated APK displayed
+first-run onboarding over the navigation probe. The probe now temporarily
+marks onboarding complete only for `.publicpreview` and restores that value
+afterward. A clean repeat passed. A short experiment using temporary hardware
+layers for the two page trees raised page-change p95 to 79.46 ms, so that
+change was reverted. The remaining page-transition cost should
+be reviewed visually with HDMI on and measured again in a signed release
+candidate before publication.
+
+An incoming-page-only transition was then tested on the same isolated device.
+The previous page is hidden before the new page fades from 72% to full opacity
+over 180 ms, so only one page tree is drawn during the transition. Two runs
+passed the D-pad probe. Page-change p95 was 54.14 ms and 54.49 ms; the first
+run had one 134.35 ms outlier, while the second maximum was 66.68 ms. The
+Home-focus regression also passed, including Settings-to-Power and restoring
+the last opened app tile. This variant is retained for a projected-screen
+visual review; the debug measurements alone do not establish final smoothness.
+An ADB screen recording with HDMI off showed the incoming page over the
+wallpaper without a black frame in the captured transition frames. The
+recording had a sparse frame stream during static content, so it cannot prove
+the full transition timing or projected image quality. The diagnostic recording
+is stored privately because it shows the owner's installed apps.
+
+## Bounded memory run
+
+The isolated preview remained in the foreground for 100 Home → Apps →
+Settings → Apps → Home D-pad cycles over 279 seconds. `dumpsys meminfo`
+reported 95,632 KB PSS at the start, then 112,064 / 112,466 / 112,314 /
+112,546 / 112,322 KB after 20 / 40 / 60 / 80 / 100 cycles. The process stayed
+alive and the final screen was Home. This suggests a stable warmed cache for
+this workload on one stick, but does not cover hours of use, wallpaper rotation
+or all optional integrations. Screenshots and raw samples remain in the private
+test checkpoint because they show installed apps.
+
+On 2026-11-11 the isolated wallpaper-gallery probe passed with HDMI off:
+five choices, D-pad gallery navigation, selection markers, asynchronous
+loading, rapid changes and restart persistence. Its first failures came from
+the probe reading `MainActivity.xml` while the Activity used its fully
+qualified preferences file. The corrected probe measured about 68.9 MB of
+native heap at the end of one run. This is a single endpoint, not a
+wallpaper-rotation memory trend. Recheck visually and measure memory over
+extended use on the final signed candidate.
+
+After the sidebar D-pad handler change, the isolated navigation probe passed
+focus-only sidebar switching, content entry/return, rapid input and Home.
+It collected 866 general frames (median 10.69 ms, p95 20.38 ms) and 303 page
+transition frames (median 19.55 ms, p95 54.70 ms, max 129.07 ms). These are
+debug-build timings with HDMI off, so projected-screen smoothness is still
+unverified.
+
+## Temporary signed release navigation run
+
+On 2026-11-11, a release APK signed with a disposable test key was installed
+under the public package ID beside the personal launcher. With HDMI output off,
+20 Home → Apps → Settings → Apps → Home D-pad cycles produced 1,045 frames in
+`dumpsys gfxinfo`: 110 janky frames (10.53%), median 21 ms, p90 32 ms,
+p95 34 ms, and p99 46 ms. Android attributed 109 frames to slow issue-draw
+commands and 7 to a slow UI thread. This is a full navigation workload, so its
+percentiles are not directly comparable with the debug page-only samples above.
+The result suggests that drawing cost still deserves projected-screen review;
+it does not establish perceived smoothness with the projector connected.
+
+The final Home screenshot was checked. The test package, script and temporary
+key were removed; the personal launcher was returned to the foreground and
+remained the Home holder. Raw `gfxinfo` stays in the private checkpoint because
+device details and installed-app information can appear in test artifacts.
+
+## Wallpaper drawing change awaiting projected review
+
+After this measurement, Apps and Settings wallpaper tints were moved to the
+background decode worker. Each page now draws one precomposed blurred bitmap
+instead of a blurred bitmap plus a full-screen tint layer during transitions.
+The Home wallpaper retains its adjustable tint. Both debug and release APKs
+built successfully, and screenshots of Home, Apps and Settings on the same
+stick showed the expected backgrounds. The isolated public package was then
+uninstalled; `agency.carpediem.tv.prototype` remained the Home role holder.
+This change has not yet been compared with a matched release-build navigation
+run or visually reviewed with HDMI output on, so no frame-rate improvement is
+claimed here.
+
+A matched release-build run was attempted with another disposable test key.
+The first-run action opened Android's Home-role chooser over the app; only 21
+launcher frames were recorded, so that sample was discarded. With the HDMI
+output off, subsequent screenshots of the chooser were black and the run was
+stopped rather than risk changing the default Home. The public test APK and
+script were removed, the personal launcher was resumed, and its Home role was
+confirmed. That sample was excluded from the comparison below.
+
+A valid follow-up used `-PisolatedPreview` to give the same release build a
+separate package ID. The welcome dialog was visibly on **Explore first**;
+pressing OK entered the launcher, while the personal package retained Home.
+After resetting `gfxinfo`, the same 20 Home → Apps → Settings → Apps → Home
+cycles yielded 1,043 frames: 67 janky (6.42%), median 13 ms, p90 22 ms,
+p95 24 ms and p99 36 ms. The preceding release run had 1,045 frames:
+110 janky (10.53%), median 21 ms, p90 32 ms, p95 34 ms and p99 46 ms.
+Android reported 65 slow issue-draw frames and 3 slow UI-thread frames in the
+optimized run, versus 109 and 7 before. The final screen was Home. This is
+one matched workload on one device with HDMI output off; package IDs differ,
+and run-to-run variation has not been quantified. It supports the wallpaper
+change but does not establish Apple TV-level or projected-screen smoothness.
+
+The isolated package and test script were removed. The normal public package
+was rebuilt and verified as `agency.carpediem.tv`; only the personal package
+remained installed on the stick, with its Home role confirmed. Raw results and
+screenshots remain in the private `public-release-performance-20261111` and
+`public-release-performance-20261111-optimized` checkpoints.
+
+## App-list refresh focus regression — 2026-11-11
+
+A package-list change previously rebuilt the visible Home or Apps page without
+explicitly restoring a focused app tile. `showApps` now records that tile's
+package before rebuilding, then focuses its replacement. If the package has
+been removed, it focuses the first remaining tile. The existing Home-return
+focus path remains ahead of this fallback.
+
+The isolated `agency.carpediem.tv.publicpreview` debug APK and its instrumentation
+APK were installed on MiTV-AFMU1. `HomeFocusProbe` exercised first-row D-pad
+navigation, Home-return focus, a pending Home restore during refresh, a normal
+focused second-tile refresh, and Settings → Power. It reported `home_focus=PASS`.
+Both isolated test packages were then uninstalled, the personal launcher was
+resumed, and Android's Home role still read `agency.carpediem.tv.prototype`.
+This verifies a controlled refresh on one device; it does not measure visual
+smoothness on the projector or replace final release testing.
+
+## Current isolated navigation comparison — 2026-11-11
+
+On MiTV-AFMU1 with HDMI output off, the current isolated debug build passed
+36 normal/rapid page changes and focus checks. With motion enabled, the
+instrumentation recorded 866 focus-navigation frames (median 10.75 ms,
+p95 17.26 ms) and 304 page-transition frames (median 20.88 ms, p95 50.32 ms).
+A second run used the same workload with motion disabled only inside the
+isolated test app: 79 focus frames (median 16.60 ms, p95 35.61 ms) and 36
+page frames (median 47.75 ms, p95 61.24 ms). Both runs passed navigation.
+
+The frame populations differ greatly because removing animation removes its
+intermediate frames; these percentiles are not a direct speed comparison.
+They do show that replacing transitions with hard cuts does not make page
+changes uniformly cheap. Page draw, command issue, background composition and
+first-render work need release-build profiling on the projected display.
+No animation setting was changed in the personal launcher. Both isolated APKs
+were removed and its Home role was confirmed after each run. These numbers
+are debug instrumentation evidence, not a claim of Apple TV-level smoothness.
+
+## Release-variant navigation on the stick — 2026-11-11
+
+A locally signed release variant with the isolated `.publicpreview` app ID was
+installed on MiTV-AFMU1. After first run, 20 scripted rail cycles through
+Home → Apps → Settings → Apps → Home were measured with `dumpsys gfxinfo`.
+The result was 923 frames, median 10 ms, p90 13 ms, p95 22 ms, p99 57 ms;
+Android reported 6 janky frames (0.65%) under its current metric and 62
+(6.72%) under the legacy metric. The final ADB screenshot showed the Home
+page and five favorite apps. The test APK was uninstalled, the personal
+launcher resumed, and its Home role remained selected.
+
+This release workload is closer to shipping behavior than debug instrumentation,
+but it still uses injected input with the projector off. It does not establish
+perceived smoothness on the projected image or behavior on other hardware.
+The debug page-transition p95 above and this `gfxinfo` p95 have different
+measurement windows and should not be compared as identical metrics.

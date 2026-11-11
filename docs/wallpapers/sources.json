@@ -1,0 +1,32 @@
+[
+  {
+    "key": "alpine",
+    "author": "Andrew Spencer",
+    "page": "https://commons.wikimedia.org/wiki/File:Tranquil_mountain_lake_(Unsplash).jpg",
+    "download": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Tranquil_mountain_lake_%28Unsplash%29.jpg",
+    "license": "CC0-1.0",
+    "originalSha256": "215669f43100ff0b63aeb0a9988f1a2af0181b0572dc4351ec0e3eff7c51ecae",
+    "bundledSha256": "19c044abdc40858c59f5e87d60a44c867dcd6e21d49ff35b5a6a709b6b1dd475",
+    "modifications": "Resized to 1920 pixels wide; center-cropped to 1920x1080; JPEG quality 84."
+  },
+  {
+    "key": "aurora",
+    "author": "CangemiY",
+    "page": "https://commons.wikimedia.org/wiki/File:Aurora_dancing_in_the_Swedish_Lapland_sky.jpg",
+    "download": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Aurora_dancing_in_the_Swedish_Lapland_sky.jpg",
+    "license": "CC0-1.0",
+    "originalSha256": "18639327699081638a37291be5bc93bf05191d66b24590443b3c711833ae4589",
+    "bundledSha256": "8f42d078bed0e5a5cbadf1af17a8077fbcb231b3b994d31df9c9b631aa7bf9be",
+    "modifications": "Resized to 1920 pixels wide; center-cropped to 1920x1080; JPEG quality 84."
+  },
+  {
+    "key": "como",
+    "author": "Stinglehammer",
+    "page": "https://commons.wikimedia.org/wiki/File:Sunset_on_Lake_Como.jpg",
+    "download": "https://upload.wikimedia.org/wikipedia/commons/4/40/Sunset_on_Lake_Como.jpg",
+    "license": "CC0-1.0",
+    "originalSha256": "24c4bc0e66bebcc7f8107df641e50992d1e8fb251a5c44d1289122e189f108df",
+    "bundledSha256": "a170739c9323a3dbb3347c6508c9d707a650f1eb79b6a04df9c92b6dd8160e43",
+    "modifications": "Resized to 1920 pixels wide; center-cropped to 1920x1080; JPEG quality 84."
+  }
+]

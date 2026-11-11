@@ -1,0 +1,40 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'agency.carpediem.tv.prototype'
+    compileSdk 34
+    defaultConfig { applicationId 'agency.carpediem.tv'; minSdk 26; targetSdk 34; versionCode 14; versionName '0.2.7'; testInstrumentationRunner 'agency.carpediem.tv.prototype.NavigationProbe' }
+    buildFeatures { buildConfig true; aidl true }
+    defaultConfig { buildConfigField 'String', 'UPDATE_FEED_URL', '\"' + (findProperty('updateFeedUrl') ?: '').replace('\\', '\\\\').replace('"', '\\"') + '\"' }
+    signingConfigs {
+        release {
+            if (System.getenv('ANDROID_KEYSTORE_PATH')) {
+                storeFile file(System.getenv('ANDROID_KEYSTORE_PATH'))
+                storePassword System.getenv('ANDROID_STORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            if (project.hasProperty('isolatedPreview')) applicationIdSuffix '.publicpreview'
+        }
+        release {
+            if (project.hasProperty('isolatedPreview')) applicationIdSuffix '.publicpreview'
+            // Draft releases stay hidden from the public updater. Once a stable
+            // release is published, GitHub's latest endpoint exposes update.json.
+            buildConfigField 'String', 'UPDATE_FEED_URL', '"' + (findProperty('updateFeedUrl') ?: 'https://api.github.com/repos/carpe-diem-agency/carpe-tv/releases/latest').replace('\\', '\\\\').replace('"', '\\"') + '"'
+            if (System.getenv('ANDROID_KEYSTORE_PATH')) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+
+dependencies {
+ implementation "com.google.zxing:core:3.5.4"
+ implementation "com.github.MuntashirAkon:libadb-android:3.1.1"
+ implementation "org.conscrypt:conscrypt-android:2.8.0"
+ implementation "org.bouncycastle:bcpkix-jdk15to18:1.86"
+ implementation "dev.rikka.shizuku:api:13.1.5"
+ implementation "dev.rikka.shizuku:provider:13.1.5"
+}

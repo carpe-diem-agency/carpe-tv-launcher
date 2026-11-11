@@ -1,0 +1,1 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"><item><bitmap android:src="@drawable/wallpaper_alpine" android:gravity="fill"/></item><item><shape><gradient android:startColor="#B3080F1E" android:endColor="#99080F1E" android:angle="0"/></shape></item></layer-list>

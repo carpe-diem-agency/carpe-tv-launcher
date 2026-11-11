@@ -1,0 +1,42 @@
+name: Build and checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-provider: basic
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Repository hygiene
+        run: python3 scripts/check_repository.py
+      - name: Build and lint
+        run: ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest assembleRelease lintDebug
+      - name: Check release artwork
+        run: python3 scripts/check_release_apk.py app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Build artifacts (test builds, not a stable signing channel)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-${{ github.sha }}
+          retention-days: 14
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*unsigned.apk
+            app/build/reports/lint-results-debug.*
