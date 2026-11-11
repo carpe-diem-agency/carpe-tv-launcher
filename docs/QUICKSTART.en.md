@@ -1,8 +1,8 @@
 # Carpe TV: quick install
 
-**Status:** this guide is for the future public release. The repository is currently
-private, so the APK is available only to invited users. Check the signature and
-version on the specific release page.
+**Status:** the source is public, but the stable APK is still being prepared.
+Use these steps after a signed release appears. Check its version and checksum
+on that release page.
 
 1. On your TV, open the [latest release](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest)
    and download `carpe-tv.apk`. If there is no browser, transfer the file from your phone.
