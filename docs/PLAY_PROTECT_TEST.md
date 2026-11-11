@@ -63,3 +63,8 @@ We also tried a narrower system-component route: disabling only Google TV's
 Android rejected the command with `SecurityException: Shell cannot change
 component state`. A readback still resolved Home to Google TV and showed the
 Google TV package enabled. No system component was changed.
+
+The platform's `cmd package set-home-activity --user 0
+agency.carpediem.tv.publicpreview` returned **Success**, but a subsequent
+`resolve-activity` still selected `com.google.android.apps.tv.launcherx` for
+`MAIN` + `HOME`. This command therefore did not fix routing on the test stick.
