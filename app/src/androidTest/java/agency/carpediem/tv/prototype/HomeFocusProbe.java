@@ -89,11 +89,32 @@ final class HomeFocusProbe {
                 require(activeSettings == null && (cachedSettings == null || !cachedSettings.isShown()),
                         "Settings content must be hidden when Power is activated");
             });
+            checkToolbar(test, screen, R.id.nav_home, R.id.home_power, R.id.home_wifi,
+                    R.id.home_bluetooth, R.id.home_timer);
+            checkToolbar(test, screen, R.id.nav_apps, R.id.apps_power, R.id.apps_wifi,
+                    R.id.apps_bluetooth, R.id.apps_timer);
+            checkToolbar(test, screen, R.id.nav_settings, R.id.settings_power, R.id.settings_wifi,
+                    R.id.settings_bluetooth, R.id.settings_timer);
         } finally {
             if(previous==null)screen.getPreferences(0).edit().remove("last_opened_package").commit();
             else screen.getPreferences(0).edit().putString("last_opened_package",previous).commit();
         }
-        result.putString("home_focus","PASS: toolbar navigation, Home and app refresh retain tile focus, Power activation hides Settings, launch motion fallback valid");
+        result.putString("home_focus","PASS: toolbar order on all pages, Home and app refresh retain tile focus, Power activation hides Settings, launch motion fallback valid");
+    }
+    private static void checkToolbar(Instrumentation test, MainActivity screen, int page, int power,
+                                     int wifi, int bluetooth, int timer) {
+        test.runOnMainSync(() -> screen.findViewById(page).requestFocus());
+        SystemClock.sleep(250);
+        test.runOnMainSync(() -> screen.findViewById(power).requestFocus());
+        for (int expected : new int[]{wifi, bluetooth, timer}) {
+            key(test, KeyEvent.KEYCODE_DPAD_RIGHT);
+            int[] actual={View.NO_ID};
+            test.runOnMainSync(() -> {
+                View focused=screen.getCurrentFocus();
+                if (focused != null) actual[0]=focused.getId();
+            });
+            require(actual[0] == expected, "Toolbar focus " + actual[0] + " expected " + expected);
+        }
     }
     private static void collect(ViewGroup group,List<View> tiles) {
         for(int i=0;i<group.getChildCount();i++) {

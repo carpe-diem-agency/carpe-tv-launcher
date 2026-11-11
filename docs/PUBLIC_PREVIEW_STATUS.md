@@ -1,8 +1,10 @@
 # Public source preview
 
-This directory is a local export of the private Carpe TV development tree at
-`d00dcdc9929de8f001b71b602818d04dcbd7b539`. It has no Git history or
-remote and has not been published.
+This source began as a clean export of the private Carpe TV development tree at
+`d00dcdc9929de8f001b71b602818d04dcbd7b539`. It now has its own history
+in the public [carpe-tv-launcher repository](https://github.com/carpe-diem-agency/carpe-tv-launcher).
+The repository and [preview page](https://carpe-diem-agency.github.io/carpe-tv-launcher/)
+are public; a production APK has not been released.
 
 The exported app now uses `agency.carpediem.tv`, separate from the installed
 personal build (`agency.carpediem.tv.prototype`). A debug variant with the
@@ -48,3 +50,11 @@ backup, GitHub draft-release testing and physical Home/rollback checks remain
 open. Details and hashes are in the [device test record](RELEASE_APK_DEVICE_TEST.md).
 
 The installed personal build and its backup remain separate from this export.
+
+On 2026-11-11, the public source aligned the top controls on Home, Apps and
+Settings: Power, Wi-Fi, Bluetooth and Timer. The timer was removed from the
+left rail. The isolated debug package was installed beside the personal build;
+all three pages were visually checked at 1920×1080 and the D-pad Home focus
+probe passed. The test package was then removed and the personal launcher
+remained the Android Home role holder. This source change does not update the
+personal 0.2.7 APK on the stick.
