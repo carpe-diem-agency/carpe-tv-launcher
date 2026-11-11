@@ -97,11 +97,12 @@ listed the component, but Xiaomi's Accessibility screen listed only TalkBack,
 even after restarting Settings. The service was not enabled, and physical Home
 was not verified. Google TV remained enabled throughout.
 
-Android may restrict Accessibility for sideloaded apps. Google documents a
+Android restricted the preview: read-only `appops get` reported
+`ACCESS_RESTRICTED_SETTINGS: deny`. Google documents a
 per-app [“Allow restricted settings” control](https://support.google.com/android/answer/12623953)
 on some Android 13+ devices, but
-the tested Xiaomi TV app-details screen did not show that control. This is an
-inference, not a confirmed diagnosis for this firmware.
+the tested Xiaomi TV app-details screen did not show that control. We did not
+change this app-op or bypass the platform restriction.
 
 The opt-in prototype is saved locally on `experiment/home-bridge-optin` and is
 not in the public APK. Do not publish setup steps until a user can enable it
