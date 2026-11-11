@@ -393,6 +393,16 @@ not prove native Android/Google TV compatibility with a mismatched density.
 
 ### OEM Home routing after YouTube — 2026-11-11
 
+- Repeated the check on the installed `agency.carpediem.tv.publicpreview`
+  0.2.8 after the personal package had been removed. Saved the exact installed
+  APK at `/private/tmp/carpe-publicpreview-before-home-test.apk` (SHA-256
+  `bb1255cbd742486ddca6973d5991a9064e3293b35c55cf4ff91ddd5281210724`).
+  Android's Home role holder was the preview, but `MAIN` + `HOME` resolved to
+  `com.google.android.apps.tv.launcherx/.home.HomeActivity`. Launching YouTube
+  and sending an injected Home key resumed that Google TV activity. Carpe TV
+  was returned to the foreground afterward; Google TV remained enabled and no
+  package state or Home role was changed. This confirms the current installed
+  build still has the same routing failure. It is not a physical-remote test.
 - On MiTV-AFMU1, enabled the isolated preview's Home entry using its own Device action and Android's Home picker. Android reported `agency.carpediem.tv.publicpreview` as the Home role holder. The personal Home bridge was temporarily disabled for the test.
 - Launched YouTube from the preview Home tile. After an injected Home key event, Android resumed `com.google.android.apps.tv.launcherx/.home.HomeActivity`, not the selected preview. This confirms an OEM routing gap on this firmware. It does not establish the behavior of the physical remote, but it is sufficient to prevent claiming that choosing the Android Home role alone works on this stick.
 - Restored `agency.carpediem.tv.prototype` as the Home holder and its previously enabled Home bridge, verified the service bound with no crashed service, and brought the personal launcher to the foreground. No system package was disabled or removed. The isolated preview was then uninstalled so it no longer appears as a second Carpe TV in the Android Home picker; Home role and service were read back again.
