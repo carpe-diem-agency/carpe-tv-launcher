@@ -337,17 +337,17 @@
       </div>
     </section>
     <section class="access-guide" data-copy="uk" aria-labelledby="access-title-uk">
-      <h2 id="access-title-uk">Системний доступ: коли він потрібен</h2>
-      <p>Shizuku — окремий застосунок, який дає Carpe TV доступ до погоджених системних дій без root: таймера сну й керування окремими системними пакетами. Головний екран і програми працюють без нього. Шестизначний код Android потрібен лише для першого парування; це не пароль від акаунта.</p>
+      <h2 id="access-title-uk">Додаткові функції</h2>
+      <p>Таймер сну й керування системними програмами потребують окремого застосунку Shizuku. Він дає Carpe TV дозвіл на ці дії без root. Для головного екрана та запуску програм Shizuku не потрібен. Шестизначний код Android використовується лише для першого підключення.</p>
       <div class="access-layout" data-access-guide>
         <div class="access-steps" role="tablist" aria-label="Кроки підключення">
           <button class="access-step" type="button" role="tab" aria-selected="true" data-step="0">1. Відкрий майстер на ТВ</button>
           <button class="access-step" type="button" role="tab" aria-selected="false" data-step="1">2. Введи код із ТВ на телефоні</button>
-          <button class="access-step" type="button" role="tab" aria-selected="false" data-step="2">3. Запусти Shizuku пультом</button>
+          <button class="access-step" type="button" role="tab" aria-selected="false" data-step="2">3. Увімкни додаткові функції</button>
         </div>
         <div class="access-stage" role="tabpanel" aria-live="polite">
           <h3 data-stage-title>Carpe TV → Налаштування → Пристрій</h3>
-          <p data-stage-text>Установи Shizuku й увімкни «Налагодження через Wi-Fi». Обери «Підключити системний доступ» → «1. Підключити приставку». Майстер покаже QR-код. Телефон і приставка мають бути в одній довіреній мережі Wi-Fi.</p>
+          <p data-stage-text>Установи Shizuku й увімкни «Налагодження через Wi-Fi». У Carpe TV обери «Додаткові функції» → «1. Підключити через телефон». Майстер покаже QR-код. Телефон і приставка мають бути в одній довіреній мережі Wi-Fi.</p>
           <div class="access-sample"><small data-stage-label>На екрані ТВ</small><strong data-stage-sample>QR</strong></div>
           <p class="access-note" data-stage-note>Це додатковий крок. Вибір Carpe TV як Home працює без Shizuku.</p>
         </div>
@@ -355,17 +355,17 @@
       <p class="aside">Для повного переходу спочатку вибери Carpe TV головним екраном в Android і перевір фізичну кнопку Home після перезапуску. На деяких прошивках потрібна окрема служба Carpe TV для кнопки Home. Вимкнення штатного лаунчера на нашому Xiaomi зараз не пропонується: воно викликало екран відновлення. <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/docs/INSTALL.uk.md#повернення-до-штатного-лаунчера">Як повернутися до штатного Home</a>.</p>
     </section>
     <section class="access-guide" data-copy="en" hidden aria-labelledby="access-title-en">
-      <h2 id="access-title-en">System access: when you need it</h2>
-      <p>Shizuku is a separate app that gives Carpe TV access to approved system actions without root: the sleep timer and managing specific system packages. Home and your apps work without it. Android’s six-digit code is only for first-time pairing; it is not an account password.</p>
+      <h2 id="access-title-en">Extra features</h2>
+      <p>The sleep timer and system app controls need the separate Shizuku app. It grants Carpe TV access to those actions without root. Home and app launching work without it. Android’s six-digit code is only for the first connection.</p>
       <div class="access-layout" data-access-guide>
         <div class="access-steps" role="tablist" aria-label="Setup steps">
           <button class="access-step" type="button" role="tab" aria-selected="true" data-step="0">1. Open the wizard on TV</button>
           <button class="access-step" type="button" role="tab" aria-selected="false" data-step="1">2. Enter the TV code on your phone</button>
-          <button class="access-step" type="button" role="tab" aria-selected="false" data-step="2">3. Start Shizuku with the remote</button>
+          <button class="access-step" type="button" role="tab" aria-selected="false" data-step="2">3. Enable extra features</button>
         </div>
         <div class="access-stage" role="tabpanel" aria-live="polite">
           <h3 data-stage-title>Carpe TV → Settings → Device</h3>
-          <p data-stage-text>Install Shizuku and enable Wireless debugging. Choose “System access setup” → “1. Pair device.” The wizard shows a QR code. Keep your phone and TV on the same trusted Wi-Fi network.</p>
+          <p data-stage-text>Install Shizuku and enable Wireless debugging. In Carpe TV, choose “Extra features” → “1. Connect with phone.” The wizard shows a QR code. Keep your phone and TV on the same trusted Wi-Fi network.</p>
           <div class="access-sample"><small data-stage-label>On your TV</small><strong data-stage-sample>QR</strong></div>
           <p class="access-note" data-stage-note>This is optional. Choosing Carpe TV as Home does not require Shizuku.</p>
         </div>
@@ -412,14 +412,14 @@
     for (const button of buttons) button.addEventListener('click', () => selectLanguage(button.dataset.language));
     const accessContent = {
       uk: [
-        ['Carpe TV → Налаштування → Пристрій', 'Установи Shizuku й увімкни «Налагодження через Wi-Fi». Обери «Підключити системний доступ» → «1. Підключити приставку». Майстер покаже QR-код. Телефон і приставка мають бути в одній довіреній мережі Wi-Fi.', 'На екрані ТВ', 'QR', 'Це додатковий крок. Вибір Carpe TV як Home працює без Shizuku.'],
+        ['Carpe TV → Налаштування → Пристрій', 'Установи Shizuku й увімкни «Налагодження через Wi-Fi». Обери «Додаткові функції» → «1. Підключити через телефон». Майстер покаже QR-код. Телефон і приставка мають бути в одній довіреній мережі Wi-Fi.', 'На екрані ТВ', 'QR', 'Це додатковий крок. Вибір Carpe TV як Home працює без Shizuku.'],
         ['Код показує Android на телевізорі', 'Скануй QR телефоном. На ТВ відкрий «Налагодження через Wi-Fi» → «Підключити за кодом». Шість цифр із ТВ введи у форму на телефоні.', 'Приклад, не твій код', '123456', 'Код не надсилай у чат і не вводь на сторонніх сайтах.'],
-        ['Повернись до Carpe TV', 'Після підтвердження на телефоні натисни «Запустити Shizuku» в майстрі пультом. Якщо Android попросить, дозволь доступ Carpe TV.', 'Стан після запуску', 'Готово', 'Після перезапуску Shizuku може знадобитися запустити знову.']
+        ['Повернись до Carpe TV', 'Після підтвердження на телефоні натисни «2. Увімкнути додаткові функції» в майстрі пультом. Якщо Android попросить, дозволь доступ Carpe TV.', 'Стан після запуску', 'Готово', 'Після перезапуску Shizuku може знадобитися запустити знову.']
       ],
       en: [
-        ['Carpe TV → Settings → Device', 'Install Shizuku and enable Wireless debugging. Choose “System access setup” → “1. Pair device.” The wizard shows a QR code. Keep your phone and TV on the same trusted Wi-Fi network.', 'On your TV', 'QR', 'This is optional. Choosing Carpe TV as Home does not require Shizuku.'],
+        ['Carpe TV → Settings → Device', 'Install Shizuku and enable Wireless debugging. Choose “Extra features” → “1. Connect with phone.” The wizard shows a QR code. Keep your phone and TV on the same trusted Wi-Fi network.', 'On your TV', 'QR', 'This is optional. Choosing Carpe TV as Home does not require Shizuku.'],
         ['Android shows the code on your TV', 'Scan the QR code with your phone. On TV open Wireless debugging → Pair using pairing code. Enter the six TV digits in the form on your phone.', 'Example, not your code', '123456', 'Do not post the code in chat or enter it on other websites.'],
-        ['Return to Carpe TV', 'After pairing on the phone, select “Start Shizuku” in the TV wizard with your remote. Grant Carpe TV access if Android asks.', 'Status after start', 'Ready', 'You may need to restart Shizuku after reboot.']
+        ['Return to Carpe TV', 'After pairing on the phone, select “2. Enable extra features” in the TV wizard with your remote. Grant Carpe TV access if Android asks.', 'Status after start', 'Ready', 'You may need to restart Shizuku after reboot.']
       ]
     };
     for (const guide of document.querySelectorAll('[data-access-guide]')) {

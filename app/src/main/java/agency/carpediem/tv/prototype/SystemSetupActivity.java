@@ -35,7 +35,7 @@ public final class SystemSetupActivity extends Activity {
     private final AtomicInteger pairingPort = new AtomicInteger();
     private LocalAdbDiscovery discovery;
     private LocalPairingServer server;
-    private TextView status, address;
+    private TextView status, address, codeExample;
     private ImageView qr;
     private Button openSettings, startButton, grantButton;
     private Typeface font;
@@ -82,7 +82,7 @@ public final class SystemSetupActivity extends Activity {
         address = label("", 14, Color.WHITE);
         address.setVisibility(View.GONE);
         panel.addView(address);
-        TextView codeExample = label(getString(R.string.setup_code_example), 14, 0xffc4d2e8);
+        codeExample = label(getString(R.string.setup_code_example), 14, 0xffc4d2e8);
         codeExample.setPadding(dp(18), dp(12), dp(18), dp(12));
         codeExample.setBackgroundResource(R.drawable.control_background);
         LinearLayout.LayoutParams exampleSize = new LinearLayout.LayoutParams(-1, -2);
@@ -123,12 +123,19 @@ public final class SystemSetupActivity extends Activity {
     private void refreshStatus() {
         if (busy) return;
         boolean paired = getSharedPreferences("system_setup", 0).getBoolean("paired", false);
-        openSettings.setEnabled(server != null);
-        startButton.setEnabled(paired && !SystemAccess.ready());
+        boolean ready = SystemAccess.ready();
+        boolean running = SystemAccess.running();
+        boolean pairing = server != null && !paired;
+        if (paired) { qr.setVisibility(View.GONE); address.setVisibility(View.GONE); }
+        codeExample.setVisibility(pairing ? View.VISIBLE : View.GONE);
+        openSettings.setVisibility(pairing ? View.VISIBLE : View.GONE);
+        startButton.setVisibility(paired && !running ? View.VISIBLE : View.GONE);
+        grantButton.setVisibility(running && !ready ? View.VISIBLE : View.GONE);
+        startButton.setEnabled(paired && !ready);
         startButton.setBackgroundResource(SystemAccess.ready() ? R.drawable.system_access_on : R.drawable.system_access_off);
-        grantButton.setEnabled(SystemAccess.running() && !SystemAccess.ready());
-        status.setText(SystemAccess.ready() ? R.string.system_access_ready
-                : SystemAccess.running() ? R.string.system_access_permission
+        grantButton.setEnabled(running && !ready);
+        status.setText(ready ? R.string.system_access_ready
+                : running ? R.string.system_access_permission
                 : paired
                         ? R.string.setup_paired : R.string.shizuku_stopped_short);
     }
@@ -152,6 +159,7 @@ public final class SystemSetupActivity extends Activity {
                         busy = false;
                         status.setText(R.string.setup_paired);
                         stopDiscovery();
+                        refreshStatus();
                         returnToSetup();
                     });
                 }
@@ -164,7 +172,10 @@ public final class SystemSetupActivity extends Activity {
         }
         busy = true;
         status.setText(R.string.setup_scan_first);
-        openSettings.setEnabled(true);
+        codeExample.setVisibility(View.VISIBLE);
+        openSettings.setVisibility(View.VISIBLE);
+        startButton.setVisibility(View.GONE);
+        grantButton.setVisibility(View.GONE);
         discovery = new LocalAdbDiscovery(this);
         discovery.start(true, new LocalAdbDiscovery.Result() {
             public void found(int port) { pairingPort.set(port); }
