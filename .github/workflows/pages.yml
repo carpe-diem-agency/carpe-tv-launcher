@@ -1,8 +1,11 @@
 name: Publish install page
 
 'on':
+  push:
+    branches: [main]
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,7 +16,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ !github.event.repository.private && !github.event.release.prerelease && !github.event.release.draft }}
+    if: ${{ !github.event.repository.private && (github.event_name != 'release' || (!github.event.release.prerelease && !github.event.release.draft)) }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -25,10 +28,24 @@ jobs:
       id-token: write
     steps:
       - name: Verify release files
+        if: ${{ github.event_name == 'release' }}
         env:
           EVENT_PATH: ${{ github.event_path }}
         run: |
           jq -e '([.release.assets[].name] | index("carpe-tv.apk") != null and index("SHA256SUMS") != null and index("update.json") != null)' "$EVENT_PATH"
+      - name: Check whether a stable APK already exists
+        id: stable
+        if: ${{ github.event_name != 'release' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url="https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest"
+          if curl --fail --silent --show-error -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "$url" \
+            | jq -e '([.assets[]?.name] | index("carpe-tv.apk") != null and index("SHA256SUMS") != null and index("update.json") != null)' >/dev/null; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -43,6 +60,9 @@ jobs:
           cp docs/assets/google-tv-home-test-stick.png site/assets/google-tv-home-test-stick.png
           cp docs/assets/settings-preview.jpg site/assets/settings-preview.jpg
           cp docs/assets/interface-preview.mp4 site/assets/interface-preview.mp4
+      - name: Mark preview until a stable APK release
+        if: ${{ github.event_name != 'release' && steps.stable.outputs.ready != 'true' }}
+        run: python3 scripts/prepare_pages_preview.py site/index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact

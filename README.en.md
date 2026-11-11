@@ -84,8 +84,9 @@ open the recovery screen. Use Android's Home app selection to switch launchers.
 
 ## Install and update
 
-A short [TV and phone install page](docs/index.html) is prepared; its GitHub
-Pages URL will become live after the first public stable release.
+A short [Carpe TV page](https://carpe-diem-agency.github.io/carpe-tv-launcher/)
+can show the project before the APK is ready. The download action appears
+after the first stable release.
 
 1. Once the signed build is published, open the [latest release](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest)
    on the TV and download `carpe-tv.apk`. If the TV has no browser, transfer

@@ -16,7 +16,10 @@
 - [x] Prepare a bilingual TV/phone install page in `docs/index.html`, with a
       direct link to the intended stable APK asset and a fallback release link.
 - [x] Prepare a gated GitHub Pages workflow that publishes only the install
-      page, its reviewed media and sitemap after a stable release in a public repository.
+      page, its reviewed media and sitemap in a public repository. Before a
+      stable APK exists, the page shows a source preview without a download
+      action or structured download metadata. A stable release with the named
+      APK, checksum and updater metadata switches the page to installation mode.
 - [ ] Publish and test that install page only after the public stable release
       exists; verify the TV-browser download and phone transfer on real devices.
 - [x] Bundle Apache-2.0, LGPL-3.0 and incorporated GPL-3.0 texts in the APK;
