@@ -27,6 +27,8 @@ jobs:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
       - name: Repository hygiene
         run: python3 scripts/check_repository.py
+      - name: Check Pages download gate
+        run: python3 scripts/test_verify_pages_release.py
       - name: Build and lint
         run: ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest assembleRelease lintDebug
       - name: Check release artwork
