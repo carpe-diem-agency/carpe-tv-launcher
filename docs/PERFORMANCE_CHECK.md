@@ -173,3 +173,21 @@ but it still uses injected input with the projector off. It does not establish
 perceived smoothness on the projected image or behavior on other hardware.
 The debug page-transition p95 above and this `gfxinfo` p95 have different
 measurement windows and should not be compared as identical metrics.
+
+## Isolated debug follow-up after layout measurement change — 2026-11-11
+
+The `.publicpreview` debug APK at source commit `21472ce` and its separate
+instrumentation APK were installed on MiTV-AFMU1 without changing the personal
+launcher. The D-pad probe passed focus navigation and 36 ordinary/rapid page
+changes. It recorded 872 focus frames (median 11.37 ms, p95 20.16 ms) and
+312 page-transition frames (median 23.71 ms, p95 46.67 ms, max 71.78 ms).
+Page-stage p95 values were draw 10.22 ms, command issue 15.64 ms and layout
+1.25 ms; these are marginal percentiles from different frames and cannot be
+added. The `homefocus` probe also passed app-list refresh, last-app focus,
+Settings hidden on Power focus, and launch-motion fallback.
+
+These numbers are one debug run with HDMI output off. They do not prove the
+small `baselineAligned` edit improved performance or that the projected image
+is consistently smooth. Both temporary APKs were uninstalled. A readback
+showed only `agency.carpediem.tv.prototype` remained among Carpe TV packages,
+and Android's Home resolver still named Google TV as it did before the test.
