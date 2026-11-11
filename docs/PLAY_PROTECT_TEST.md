@@ -104,6 +104,12 @@ on some Android 13+ devices, but
 the tested Xiaomi TV app-details screen did not show that control. We did not
 change this app-op or bypass the platform restriction.
 
+On a later read-only check, the same app-details screen was opened again and
+scrolled to the bottom. Its visible items ended with storage, defaults,
+notifications and permissions; there was still no restricted-settings control.
+The screen was returned to Carpe TV afterward. This narrows the documented
+Xiaomi UI path, but does not establish how other Android TV devices behave.
+
 The opt-in prototype is saved locally on `experiment/home-bridge-optin` and is
 not in the public APK. Do not publish setup steps until a user can enable it
 through the normal TV UI and both Home and rollback are verified.
