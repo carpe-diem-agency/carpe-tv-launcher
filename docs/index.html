@@ -109,14 +109,6 @@
     .compare-grid figcaption { padding: 12px 4px 0; color: var(--muted); font-size: clamp(15px, 1.15vw, 18px); }
     .compare-screen { width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--edge); border-radius: 20px; overflow: hidden; box-shadow: 0 18px 40px rgba(0, 5, 20, .3); }
     .compare-screen img { display: block; width: 100%; height: 100%; object-fit: cover; }
-    .sample-screen { padding: 5%; background: linear-gradient(150deg, #26364c, #111823 72%); }
-    .sample-nav { display: flex; gap: 3%; margin-bottom: 7%; }
-    .sample-nav span { width: 15%; height: 9px; border-radius: 20px; background: #8f9bad; opacity: .65; }
-    .sample-nav span:first-child { background: #f5f8ff; opacity: 1; }
-    .sample-hero { height: 38%; border-radius: 13px; background: linear-gradient(115deg, #5b6880, #8b6b70 62%, #28354b); }
-    .sample-row { display: flex; gap: 2.3%; margin-top: 5%; height: 22%; }
-    .sample-row span { flex: 1; border-radius: 9px; background: linear-gradient(140deg, #50617d, #27364f); }
-    .sample-row span:nth-child(2n) { background: linear-gradient(140deg, #735a67, #35445a); }
     .benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 22px 0 0; }
     .benefits > div { padding: 21px; border: 1px solid var(--edge); border-radius: 18px; background: var(--surface); }
     .benefits strong { display: block; margin-bottom: 8px; font-size: clamp(17px, 1.3vw, 21px); }
@@ -213,7 +205,7 @@
       <h2 id="compare-title-uk">Менше кроків до улюбленого</h2>
       <p>Carpe TV відкриває обрані програми на головному екрані. Усі встановлені програми зібрані в бібліотеці з пошуком, а фон і заставку можна змінити під себе.</p>
       <div class="compare-grid">
-        <figure><div class="compare-screen sample-screen" role="img" aria-label="Схематичне зображення типового головного екрана з кількома рядами рекомендацій"><div class="sample-nav"><span></span><span></span><span></span><span></span></div><div class="sample-hero"></div><div class="sample-row"><span></span><span></span><span></span><span></span><span></span></div><div class="sample-row"><span></span><span></span><span></span><span></span><span></span></div></div><figcaption>Типовий стартовий екран · схема, не знімок Google TV</figcaption></figure>
+        <figure><div class="compare-screen"><img src="assets/google-tv-home-test-stick.png" width="1920" height="1080" loading="lazy" alt="Штатний головний екран Google TV з рядами рекомендацій і програм на Xiaomi TV Stick"></div><figcaption>Штатний Google TV · знімок з того самого Xiaomi TV Stick</figcaption></figure>
         <figure><div class="compare-screen"><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Головний екран Carpe TV з улюбленими програмами"></div><figcaption>Carpe TV · знімок тестової збірки на Xiaomi TV Stick</figcaption></figure>
       </div>
       <div class="benefits">
@@ -226,7 +218,7 @@
       <h2 id="compare-title-en">Fewer steps to your favorites</h2>
       <p>Carpe TV puts favorite apps on Home. All installed apps are in a searchable library, while the wallpaper and screensaver are yours to choose.</p>
       <div class="compare-grid">
-        <figure><div class="compare-screen sample-screen" role="img" aria-label="Illustration of a typical home screen with multiple recommendation rows"><div class="sample-nav"><span></span><span></span><span></span><span></span></div><div class="sample-hero"></div><div class="sample-row"><span></span><span></span><span></span><span></span><span></span></div><div class="sample-row"><span></span><span></span><span></span><span></span><span></span></div></div><figcaption>Typical home screen · illustration, not a Google TV capture</figcaption></figure>
+        <figure><div class="compare-screen"><img src="assets/google-tv-home-test-stick.png" width="1920" height="1080" loading="lazy" alt="Stock Google TV home screen with recommendation and app rows on a Xiaomi TV Stick"></div><figcaption>Stock Google TV · captured on the same Xiaomi TV Stick</figcaption></figure>
         <figure><div class="compare-screen"><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Home with favorite apps"></div><figcaption>Carpe TV · test build on Xiaomi TV Stick</figcaption></figure>
       </div>
       <div class="benefits">
@@ -260,8 +252,8 @@
     <footer>
       <span data-copy="uk">Android TV 8.0+ · Встановлення підтверджує Android</span>
       <span data-copy="en" hidden>Android TV 8.0+ · Android confirms installation</span>
-      <a data-copy="uk" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/docs/INSTALL.uk.md">Детальна інструкція та відкат</a>
-      <a data-copy="en" hidden href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/docs/INSTALL.md">Full guide and rollback</a>
+      <a data-copy="uk" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/docs/INSTALL.uk.md">Детальна інструкція</a>
+      <a data-copy="en" hidden href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/docs/INSTALL.md">Detailed guide</a>
     </footer>
   </div>
   <script>

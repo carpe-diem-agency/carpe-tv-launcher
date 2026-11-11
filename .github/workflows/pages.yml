@@ -40,6 +40,7 @@ jobs:
           cp docs/robots.txt docs/sitemap.xml site/
           cp docs/assets/wallpaper_alpine.jpg site/assets/wallpaper_alpine.jpg
           cp docs/assets/home-preview.jpg site/assets/home-preview.jpg
+          cp docs/assets/google-tv-home-test-stick.png site/assets/google-tv-home-test-stick.png
           cp docs/assets/settings-preview.jpg site/assets/settings-preview.jpg
           cp docs/assets/interface-preview.mp4 site/assets/interface-preview.mp4
       - name: Configure Pages
