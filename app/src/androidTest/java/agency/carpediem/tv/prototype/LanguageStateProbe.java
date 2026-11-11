@@ -13,8 +13,11 @@ import java.util.concurrent.atomic.AtomicReference;
 /** A language-triggered recreation must keep Settings even after an app was opened. */
 final class LanguageStateProbe {
     static void run(Instrumentation test, Bundle result) throws Exception {
-        test.getTargetContext().getSharedPreferences(MainActivity.class.getName(), 0)
-                .edit().putBoolean("welcome_seen", true).commit();
+        android.content.SharedPreferences launcherPrefs = test.getTargetContext()
+                .getSharedPreferences(MainActivity.class.getName(), 0);
+        boolean hadWelcome = launcherPrefs.contains("welcome_seen");
+        boolean previousWelcome = launcherPrefs.getBoolean("welcome_seen", false);
+        launcherPrefs.edit().putBoolean("welcome_seen", true).commit();
         MainActivity original = (MainActivity) test.startActivitySync(
                 new Intent(test.getTargetContext(), MainActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
@@ -64,6 +67,10 @@ final class LanguageStateProbe {
             application.unregisterActivityLifecycleCallbacks(callbacks);
             if (previous == null) original.getPreferences(0).edit().remove("last_opened_package").commit();
             else original.getPreferences(0).edit().putString("last_opened_package", previous).commit();
+            android.content.SharedPreferences.Editor welcome = launcherPrefs.edit();
+            if (hadWelcome) welcome.putBoolean("welcome_seen", previousWelcome);
+            else welcome.remove("welcome_seen");
+            welcome.commit();
         }
     }
     private static void require(boolean condition, String message) {

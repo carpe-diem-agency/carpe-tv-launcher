@@ -24,6 +24,16 @@ The dialog retained the browser action, and Back restored focus to Settings.
 This verifies the TV image and encoded destination; a phone-browser Issue
 submission remains a separate end-to-end check.
 
+## Favorites and language focus — 2026-11-11
+
+On the isolated preview, `reorder` passed remote arrows, boundary handling,
+Back cancellation, OK persistence, selected-tile focus and return to the top
+toolbar. The test restored the original favorite order afterward.
+`languagestate` passed Activity recreation from Settings after a previously
+opened app: the Settings page and language control retained focus. Its test
+setup now restores the first-run preference as well as the last-opened app.
+These checks cover the stated paths, not every possible application lifecycle.
+
 ## Shared-background navigation check — 2026-11-11
 
 On the isolated public preview on MiTV-AFMU1, the selected blue wallpaper was
