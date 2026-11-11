@@ -9,6 +9,9 @@
       the guard also verifies all three bundled CC0 landscape photos. This checks the
       packaged media bytes, not Git history or independently modified copies.
 - [x] Export this source as a fresh tree without the private repository history or old screenshots.
+- [x] Publish that clean-history source to the separate public
+      `carpe-diem-agency/carpe-tv-launcher` repository. The private personal
+      `carpe-tv` repository remains separate.
 - [ ] Capture and review new screenshots from the final release candidate.
 - [x] Prepare clean Home and Settings previews plus a short on-device
       transition recording for the install page. These were captured from an
@@ -20,6 +23,8 @@
       stable APK exists, the page shows a source preview without a download
       action or structured download metadata. A stable release with the named
       APK, checksum and updater metadata switches the page to installation mode.
+- [x] Enable GitHub Pages from Actions and verify the live Ukrainian source
+      preview at `https://carpe-diem-agency.github.io/carpe-tv-launcher/`.
 - [ ] Publish and test that install page only after the public stable release
       exists; verify the TV-browser download and phone transfer on real devices.
 - [x] Bundle Apache-2.0, LGPL-3.0 and incorporated GPL-3.0 texts in the APK;
