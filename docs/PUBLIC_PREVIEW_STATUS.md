@@ -58,3 +58,10 @@ all three pages were visually checked at 1920×1080 and the D-pad Home focus
 probe passed. The test package was then removed and the personal launcher
 remained the Android Home role holder. This source change does not update the
 personal 0.2.7 APK on the stick.
+
+The sleep-timer sheet was then reduced to a bounded 420 dp width with smaller
+controls and spacing. An isolated debug build opened it on the same stick at
+1920×1080; the screenshot showed the system-access explanation and both
+buttons without clipping. This only verifies the unavailable-access state.
+Scheduling and the active countdown still require a signed build with the
+optional system-access setup and separate device checks.
