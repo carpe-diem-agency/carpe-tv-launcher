@@ -123,6 +123,9 @@ final class HomeFocusProbe {
             SystemClock.sleep(350);
             test.runOnMainSync(()->screen.findViewById(R.id.settings_power).performClick());
             SystemClock.sleep(350);
+            // With optional system access ready, Power opens a confirmation
+            // dialog. Dismiss it before probing toolbar navigation underneath.
+            if (SystemAccess.ready()) key(test, KeyEvent.KEYCODE_BACK);
             focus(test,screen,R.id.nav_home);
             test.runOnMainSync(() -> {
                 View activeSettings = screen.findViewById(R.id.content).findViewById(R.id.settings_detail);

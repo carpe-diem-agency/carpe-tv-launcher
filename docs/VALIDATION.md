@@ -1,5 +1,20 @@
 # Validation baseline — 2026-11-03
 
+## Device checklist and remote navigation — 2026-11-11
+
+The redesigned Settings → Device checklist was installed in the isolated
+`agency.carpediem.tv.publicpreview` package on MiTV-AFMU1 at 1920×1080.
+Its Home card remained unverified because Android's Home role belongs to
+Carpe TV while the Xiaomi remote route still opens Google TV. The optional
+system-access card showed ready. No stock package was disabled.
+
+`settingsfocus` passed right/down/up/left navigation between the Device
+category and both setup cards. `homefocus` passed toolbar order, Back/Home
+handling inside Carpe TV, external-app return to the prior tile, app refresh,
+Power confirmation and launch motion. The Home-focus probe now closes the
+Power confirmation before checking navigation behind it. These tests do not
+prove physical Home from another app; that release check remains open.
+
 ## Shared-background navigation check — 2026-11-11
 
 On the isolated public preview on MiTV-AFMU1, the selected blue wallpaper was

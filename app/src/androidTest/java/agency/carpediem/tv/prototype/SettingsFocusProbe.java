@@ -39,7 +39,19 @@ final class SettingsFocusProbe {
         key(test, KeyEvent.KEYCODE_DPAD_RIGHT);
         key(test, KeyEvent.KEYCODE_BACK);
         require(activity.getCurrentFocus() == appearance, "Back from detail misses category");
-        result.putString("settings_focus", "PASS: categories, detail, header and Back use predictable D-pad lanes");
+        View deviceCategory = categories.getChildAt(4);
+        test.runOnMainSync(deviceCategory::requestFocus);
+        key(test, KeyEvent.KEYCODE_DPAD_RIGHT);
+        View homeCard = (View) activity.findViewById(R.id.home_status).getParent().getParent();
+        View accessCard = (View) activity.findViewById(R.id.shizuku_status).getParent().getParent();
+        require(activity.getCurrentFocus() == homeCard, "Right misses Home setup card");
+        key(test, KeyEvent.KEYCODE_DPAD_DOWN);
+        require(activity.getCurrentFocus() == accessCard, "Down misses system-access card");
+        key(test, KeyEvent.KEYCODE_DPAD_UP);
+        require(activity.getCurrentFocus() == homeCard, "Up misses Home setup card");
+        key(test, KeyEvent.KEYCODE_DPAD_LEFT);
+        require(activity.getCurrentFocus() == deviceCategory, "Left from Home setup misses Device category");
+        result.putString("settings_focus", "PASS: category, detail, header, Back and setup cards use predictable D-pad lanes");
     }
     private static void key(Instrumentation test, int code) {
         test.sendKeyDownUpSync(code);
