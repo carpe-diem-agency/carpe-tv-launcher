@@ -1,21 +1,21 @@
-name: Bug report
-description: Report a launcher problem without private data
+name: Проблема / Bug report
+description: Опиши проблему з лаунчером без приватних даних / Report a launcher problem without private data
 title: "[Bug] "
 body:
   - type: textarea
     id: device
     attributes:
-      label: Device / Android version / launcher version
-      description: No serial numbers, IP addresses or credentials.
+      label: Пристрій / Android / версія Carpe TV · Device / Android / app version
+      description: Без серійних номерів, IP-адрес і паролів. / No serial numbers, IP addresses or credentials.
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
-      label: Steps, expected behavior and actual behavior
+      label: Як відтворити, що очікувалось і що сталося · Steps, expected and actual behavior
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
-      label: Screenshot or sanitized log
+      label: Скриншот або очищений лог · Screenshot or sanitized log

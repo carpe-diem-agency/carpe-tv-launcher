@@ -155,7 +155,7 @@ public final class MainActivity extends Activity {
                 && !HomeChoice.isSelected(this);
         renderPage();
         if (welcome) content.post(() -> showWelcome(true));
-        if (!welcome && (preferences.contains("last_opened_package")
+        if (state == null && !welcome && (preferences.contains("last_opened_package")
                 || getIntent().getBooleanExtra("from_home", false)
                 || getIntent().hasCategory(Intent.CATEGORY_HOME))) restoreLastOpenedApp();
         openTestUpdates(getIntent());

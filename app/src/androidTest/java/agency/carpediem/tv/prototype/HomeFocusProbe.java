@@ -25,12 +25,10 @@ final class HomeFocusProbe {
         require(tiles.size()>=2,"At least two favorites needed");
         for(int i=0;i<Math.min(5,tiles.size());i++) {
             View tile=tiles.get(i);test.runOnMainSync(tile::requestFocus);
-            key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,R.id.home_wifi);
-            key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,R.id.home_wifi);
-            key(test,KeyEvent.KEYCODE_DPAD_RIGHT);focus(test,screen,R.id.home_bluetooth);
-            key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,R.id.home_bluetooth);
-            key(test,KeyEvent.KEYCODE_DPAD_DOWN);focus(test,screen,tile.getId());
-            key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,R.id.home_wifi);
+            int header = i == 0 ? R.id.home_power : i < 3 ? R.id.home_wifi
+                    : i == 3 ? R.id.home_bluetooth : R.id.home_timer;
+            key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,header);
+            key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,header);
             key(test,KeyEvent.KEYCODE_DPAD_DOWN);focus(test,screen,tile.getId());
         }
         View artwork=tiles.get(0).findViewById(R.id.app_artwork);
