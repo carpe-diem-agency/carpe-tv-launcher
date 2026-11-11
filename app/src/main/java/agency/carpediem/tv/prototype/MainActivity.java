@@ -154,7 +154,12 @@ public final class MainActivity extends Activity {
             if (focused && !"home".equals(page)) openPage("home");
             findViewById(R.id.nav_home).setSelected(!focused && "home".equals(page));
         });
-        findViewById(R.id.nav_power).setOnClickListener(v -> SleepTimer.show(this));
+        findViewById(R.id.nav_power).setOnClickListener(v -> {
+            // Touch and accessibility clicks can invoke this action without first
+            // moving focus, so the focus listener alone cannot clear Settings.
+            if (!"home".equals(page)) openPage("home");
+            SleepTimer.show(this);
+        });
         android.content.SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         boolean welcome = state == null && !preferences.getBoolean("welcome_seen", false)
                 && !HomeChoice.isSelected(this);

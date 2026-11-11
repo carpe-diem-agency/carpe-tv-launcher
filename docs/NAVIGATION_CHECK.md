@@ -111,3 +111,12 @@ to Home before displaying the timer dialog; the Settings panel was absent in
 the captured frame. The preview package was removed afterward and the
 personal launcher remained the Home role holder. This visual check covers the
 Settings → timer transition, not sleep execution or physical Home behavior.
+
+A later direct-tap check found a separate path through the same control:
+touch activation did not necessarily move focus first, so the timer opened
+over Settings. The Power click handler now switches to Home itself before
+opening the timer. On MiTV-AFMU1 the isolated build was installed again,
+Settings → Power was activated by tap, and the captured frame showed Home
+behind the timer. The preview package was then removed; the personal launcher
+was again foreground and the Android Home role holder. This verifies the
+direct-click path, while physical remote navigation still needs release testing.
