@@ -5,6 +5,7 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +53,22 @@ final class HomeFocusProbe {
             test.runOnMainSync(()->screen.onNewIntent(new Intent(screen,MainActivity.class).putExtra("from_home",true)));
             SystemClock.sleep(350);
             test.runOnMainSync(()->require(screen.getCurrentFocus()!=null && last.equals(screen.getCurrentFocus().getTag()),"Home restores last opened tile"));
+            // Exercise the real pause/resume path through another Android app.
+            // The public preview is not the device's Home role, so this checks
+            // lifecycle return; physical Home routing is a separate release gate.
+            test.runOnMainSync(() -> {
+                try {
+                    java.lang.reflect.Field awaiting=MainActivity.class.getDeclaredField("launchedAppAwaitingReturn");
+                    awaiting.setAccessible(true); awaiting.set(screen,last);
+                    screen.startActivity(new Intent(Settings.ACTION_SETTINGS));
+                } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+            });
+            SystemClock.sleep(700);
+            key(test,KeyEvent.KEYCODE_BACK);
+            SystemClock.sleep(700);
+            test.runOnMainSync(() -> require(screen.hasWindowFocus() && screen.getCurrentFocus()!=null
+                    && last.equals(screen.getCurrentFocus().getTag()),
+                    "Returning from Android Settings must restore the last opened tile"));
             // A background app-list refresh can land just after Home and must not
             // override the restored tile with the old rail focus.
             test.runOnMainSync(() -> {
@@ -105,7 +122,7 @@ final class HomeFocusProbe {
             if(previous==null)screen.getPreferences(0).edit().remove("last_opened_package").commit();
             else screen.getPreferences(0).edit().putString("last_opened_package",previous).commit();
         }
-        result.putString("home_focus","PASS: toolbar order, Back/Home and app refresh retain tile focus, Power hides Settings, launch motion fallback valid");
+        result.putString("home_focus","PASS: toolbar order, Back/Home and external-app return retain tile focus, app refresh, Power and launch motion valid");
     }
     private static void checkToolbar(Instrumentation test, MainActivity screen, int page, int power,
                                      int wifi, int bluetooth, int timer) {
