@@ -74,8 +74,10 @@ method in a private record, not this repository. A second folder on the same
 Mac is not an independent backup. Until this check succeeds, keep the release workflow in
 draft preparation and do not publish a stable APK.
 
-The manual Release workflow builds a signed APK, verifies its signature and
-artwork, then attaches the APK, the SPAKE2 source bundle, SHA256SUMS and
+The manual Release workflow rebuilds SPAKE2 from the distributed source
+archive, packages that AAR, verifies all four native libraries inside the
+signed APK, then checks its signature and artwork. It attaches the APK, the
+SPAKE2 source bundle, SHA256SUMS and
 update.json to a **draft**
 pre-release. Reviewers should check the resulting APK on real Android TV
 devices and approve publication only after the [publication checklist](PUBLICATION.md)

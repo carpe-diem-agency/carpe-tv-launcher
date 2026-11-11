@@ -59,6 +59,10 @@
       passed the release artifact check, was signed with a disposable test
       certificate, installed and navigated on MiTV-AFMU1, then removed.
       Production-signed replacement and the LGPL distribution review remain open.
+- [x] Configure the draft-release workflow to build SPAKE2 from the staged
+      source archive, substitute its AAR and compare all four native libraries
+      inside the signed APK. The signed workflow has not yet run with the final
+      credentials; verify its actual draft artifact before publication.
 - [ ] Complete distribution review of libadb-android and its LGPL-3.0
       `spake2-android` 2.2.1 transitive component, including native-library
       source and relinking obligations. Bundled license text alone is not clearance.

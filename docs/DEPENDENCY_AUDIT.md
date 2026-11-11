@@ -29,6 +29,10 @@ The unsigned release APK was rebuilt on 2026-11-11 and `check_release_apk.py`
 verified all six packaged license texts. Inspect the final signed public APK
 again before publication. The LGPL source, modification and
 relinking obligations still need review; text inclusion alone is insufficient.
+The draft-release workflow is configured to build SPAKE2 from the source
+archive shipped with that release and compare its four native libraries with
+the signed APK. This workflow has not yet produced a production-signed draft;
+the earlier dedicated-key candidates still used the resolved JitPack artifact.
 The
 `libadb-android` upstream explicitly notes its LGPL dependency even when its
 Apache-2.0 option is used.

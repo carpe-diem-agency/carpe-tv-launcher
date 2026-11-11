@@ -15,7 +15,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     environment: release
-    timeout-minutes: 20
+    timeout-minutes: 40
     permissions:
       contents: write
     steps:
@@ -29,6 +29,22 @@ jobs:
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           cache-provider: basic
+      - name: Verify and unpack SPAKE2 source
+        run: |
+          (cd compliance/source && sha256sum -c SHA256SUMS)
+          mkdir -p "$RUNNER_TEMP/spake2-source"
+          tar -xzf compliance/source/spake2-java-2.2.1-with-submodule.tar.gz -C "$RUNNER_TEMP/spake2-source"
+      - name: Install native build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            'platforms;android-35' 'build-tools;35.0.0' \
+            'ndk;27.2.12479018' 'cmake;3.22.1'
+      - name: Build SPAKE2 from distributed source
+        working-directory: ${{ runner.temp }}/spake2-source/spake2-java-2.2.1
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon :android:assembleRelease
+          test -s android/build/outputs/aar/android-release.aar
       - name: Validate tag and signing configuration
         env:
           RELEASE_TAG: ${{ inputs.tag }}
@@ -58,7 +74,9 @@ jobs:
           ANDROID_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-        run: ./gradlew --no-daemon assembleRelease lintDebug
+        run: |
+          ./gradlew --no-daemon assembleRelease lintDebug \
+            -Pspake2Aar="$RUNNER_TEMP/spake2-source/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar"
       - name: Verify and create draft
         env:
           GH_TOKEN: ${{ github.token }}
@@ -73,6 +91,20 @@ jobs:
               raise SystemExit('Release APK is missing the public update feed')
           PYCODE
           python3 scripts/check_release_apk.py app/build/outputs/apk/release/app-release.apk
+          python3 - <<'PYCODE'
+          import hashlib, os, zipfile
+          aar = os.path.join(os.environ['RUNNER_TEMP'], 'spake2-source/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar')
+          apk = 'app/build/outputs/apk/release/app-release.apk'
+          with zipfile.ZipFile(aar) as source, zipfile.ZipFile(apk) as packaged:
+              names = sorted(n for n in source.namelist() if n.startswith('jni/') and n.endswith('/libspake2.so'))
+              if len(names) != 4:
+                  raise SystemExit(f'Expected four SPAKE2 ABI libraries, found {len(names)}')
+              for name in names:
+                  packaged_name = 'lib/' + name.removeprefix('jni/')
+                  if hashlib.sha256(source.read(name)).digest() != hashlib.sha256(packaged.read(packaged_name)).digest():
+                      raise SystemExit(f'Signed APK native library differs from source AAR: {packaged_name}')
+                  print('Verified source-built native library:', packaged_name)
+          PYCODE
           APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -mindepth 2 -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$APK_SIGNER"
           "$APK_SIGNER" verify --verbose app/build/outputs/apk/release/app-release.apk

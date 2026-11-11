@@ -86,3 +86,12 @@ source-edit-to-signed-APK-to-device path for this test. It does not establish
 an update path over the eventual production-signed APK or complete the LGPL
 distribution review. The marker is only a build probe and is not in the
 normal release dependency.
+
+The draft-release workflow is now configured to verify the staged source
+archive, build its Android AAR, substitute that AAR for the transitive
+JitPack artifact, and compare all four native libraries inside the signed
+APK with the source-built AAR. This removes the unresolved JitPack binary
+provenance from the planned public artifact. The signed draft workflow has
+not yet run with production signing credentials, so its actual output must
+still be checked. The LGPL combined-work and installation-information review
+remains a separate publication gate.
