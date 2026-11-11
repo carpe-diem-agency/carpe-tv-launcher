@@ -80,20 +80,20 @@ final class HomeFocusProbe {
             });
             test.runOnMainSync(()->screen.findViewById(R.id.nav_settings).requestFocus());
             SystemClock.sleep(350);
-            test.runOnMainSync(()->screen.findViewById(R.id.nav_power).requestFocus());
+            test.runOnMainSync(()->screen.findViewById(R.id.settings_power).performClick());
             SystemClock.sleep(350);
-            focus(test,screen,R.id.nav_power);
+            focus(test,screen,R.id.nav_home);
             test.runOnMainSync(() -> {
                 View activeSettings = screen.findViewById(R.id.content).findViewById(R.id.settings_detail);
                 View cachedSettings = screen.findViewById(R.id.settings_detail);
                 require(activeSettings == null && (cachedSettings == null || !cachedSettings.isShown()),
-                        "Settings content must be hidden when Power has focus");
+                        "Settings content must be hidden when Power is activated");
             });
         } finally {
             if(previous==null)screen.getPreferences(0).edit().remove("last_opened_package").commit();
             else screen.getPreferences(0).edit().putString("last_opened_package",previous).commit();
         }
-        result.putString("home_focus","PASS: toolbar navigation, Home and app refresh retain tile focus, Power hides Settings, launch motion fallback valid");
+        result.putString("home_focus","PASS: toolbar navigation, Home and app refresh retain tile focus, Power activation hides Settings, launch motion fallback valid");
     }
     private static void collect(ViewGroup group,List<View> tiles) {
         for(int i=0;i<group.getChildCount();i++) {

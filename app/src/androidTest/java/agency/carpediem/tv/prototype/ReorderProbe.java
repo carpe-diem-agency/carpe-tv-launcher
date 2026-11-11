@@ -22,7 +22,7 @@ final class ReorderProbe {
             t.sendKeySync(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DPAD_CENTER));
             boolean[] sidebarFlash={false};
             View root=a.getWindow().getDecorView();
-            ViewTreeObserver.OnGlobalFocusChangeListener monitor=(oldFocus,newFocus)->{if(newFocus!=null && (newFocus.getId()==R.id.home_wifi || newFocus.getId()==R.id.home_bluetooth || newFocus.getId()==R.id.nav_home || newFocus.getId()==R.id.nav_apps || newFocus.getId()==R.id.nav_settings || newFocus.getId()==R.id.nav_power)) sidebarFlash[0]=true;};
+            ViewTreeObserver.OnGlobalFocusChangeListener monitor=(oldFocus,newFocus)->{if(newFocus!=null && (newFocus.getId()==R.id.home_wifi || newFocus.getId()==R.id.home_bluetooth || newFocus.getId()==R.id.nav_home || newFocus.getId()==R.id.nav_apps || newFocus.getId()==R.id.nav_settings)) sidebarFlash[0]=true;};
             t.runOnMainSync(()->root.getViewTreeObserver().addOnGlobalFocusChangeListener(monitor));
             key(t,22);
             t.runOnMainSync(()->root.getViewTreeObserver().removeOnGlobalFocusChangeListener(monitor));

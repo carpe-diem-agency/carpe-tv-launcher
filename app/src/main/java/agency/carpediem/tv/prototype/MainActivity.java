@@ -150,16 +150,6 @@ public final class MainActivity extends Activity {
         bindNavigation(R.id.nav_settings, "settings");
         // The rail is stable across pages; configure its state fades once.
         configureStateFade(findViewById(R.id.sidebar));
-        findViewById(R.id.nav_power).setOnFocusChangeListener((v, focused) -> {
-            if (focused && !"home".equals(page)) openPage("home");
-            findViewById(R.id.nav_home).setSelected(!focused && "home".equals(page));
-        });
-        findViewById(R.id.nav_power).setOnClickListener(v -> {
-            // Touch and accessibility clicks can invoke this action without first
-            // moving focus, so the focus listener alone cannot clear Settings.
-            if (!"home".equals(page)) openPage("home");
-            SleepTimer.show(this);
-        });
         android.content.SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         boolean welcome = state == null && !preferences.getBoolean("welcome_seen", false)
                 && !HomeChoice.isSelected(this);
@@ -219,7 +209,7 @@ public final class MainActivity extends Activity {
     private boolean isSidebarFocused() {
         View view = getCurrentFocus();
         return view != null && (view.getId() == R.id.nav_home
-                || view.getId() == R.id.nav_apps || view.getId() == R.id.nav_settings || view.getId() == R.id.nav_power);
+                || view.getId() == R.id.nav_apps || view.getId() == R.id.nav_settings);
     }
     @Override protected void onResume() {
         super.onResume();
@@ -372,7 +362,7 @@ public final class MainActivity extends Activity {
             if (tile == null) tile = findPageTile(content, null);
             if (tile != null) restoredAppFocus = tile.requestFocus();
         }
-        if (!restoredAppFocus && (previousId == R.id.nav_home || previousId == R.id.nav_apps || previousId == R.id.nav_settings || previousId == R.id.nav_power || previousId == R.id.home_wifi || previousId == R.id.apps_search)) {
+        if (!restoredAppFocus && (previousId == R.id.nav_home || previousId == R.id.nav_apps || previousId == R.id.nav_settings || previousId == R.id.home_wifi || previousId == R.id.apps_search)) {
             View restored = findViewById(previousId); if (restored != null) restored.requestFocus();
         }
     }
@@ -451,7 +441,8 @@ public final class MainActivity extends Activity {
         View settings = getLayoutInflater().inflate(R.layout.page_settings, content, false); content.addView(settings);
         ((TextView) settings.findViewById(R.id.settings_heading)).setTypeface(font);
         ((TextView) settings.findViewById(R.id.settings_clock)).setTypeface(font);
-        settings.findViewById(R.id.settings_sleep_timer).setOnClickListener(v -> showSleepNow());
+        settings.findViewById(R.id.settings_power).setOnClickListener(v -> showSleepNow());
+        settings.findViewById(R.id.settings_timer).setOnClickListener(v -> SleepTimer.show(this));
         updateSleepTimerIndicator();
         settings.findViewById(R.id.settings_wifi).setOnClickListener(v -> openWifi());
         settings.findViewById(R.id.settings_bluetooth).setOnClickListener(v -> openBluetooth());
@@ -1058,7 +1049,8 @@ public final class MainActivity extends Activity {
             int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
             greeting.setText(hour < 6 ? getString(R.string.greeting_night) : hour < 12 ? getString(R.string.greeting_morning) : hour < 18 ? getString(R.string.greeting_day) : getString(R.string.greeting_evening));
             content.addView(header);
-            header.findViewById(R.id.home_sleep_timer).setOnClickListener(v -> showSleepNow());
+            header.findViewById(R.id.home_power).setOnClickListener(v -> showSleepNow());
+            header.findViewById(R.id.home_timer).setOnClickListener(v -> SleepTimer.show(this));
             updateSleepTimerIndicator();
             header.findViewById(R.id.home_wifi).setOnClickListener(v -> openWifi());
         header.findViewById(R.id.home_bluetooth).setOnClickListener(v -> openBluetooth());
@@ -1073,7 +1065,8 @@ public final class MainActivity extends Activity {
             content.addView(layout);
             TextView title = layout.findViewById(R.id.apps_title); title.setTypeface(Typeface.create(font, Typeface.BOLD));
             ((TextView) layout.findViewById(R.id.apps_clock)).setTypeface(font);
-            layout.findViewById(R.id.apps_sleep_timer).setOnClickListener(v -> showSleepNow());
+            layout.findViewById(R.id.apps_power).setOnClickListener(v -> showSleepNow());
+            layout.findViewById(R.id.apps_timer).setOnClickListener(v -> SleepTimer.show(this));
             updateSleepTimerIndicator();
             layout.findViewById(R.id.apps_wifi).setOnClickListener(v -> {
                 try { startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)); }
@@ -1108,8 +1101,7 @@ public final class MainActivity extends Activity {
         hideKeyboard();
         int direction = pageOrder(target) > pageOrder(page) ? 1 : -1;
         page = target; query = ""; focusedPackage = pageFocus.get(target);
-        if (!findViewById(R.id.nav_power).hasFocus())
-            findViewById("home".equals(target) ? R.id.nav_home : "apps".equals(target) ? R.id.nav_apps : R.id.nav_settings).requestFocus();
+        findViewById("home".equals(target) ? R.id.nav_home : "apps".equals(target) ? R.id.nav_apps : R.id.nav_settings).requestFocus();
         LinearLayout cached = pageViews.get(target);
         content = pageMotion.prepare(content, cached, motionEnabled(), direction);
         pageViews.put(target, content);
@@ -1132,6 +1124,7 @@ public final class MainActivity extends Activity {
             updateHomeGreeting();
         }
         pageMotion.play(content, direction);
+        updateSleepTimerIndicator();
     }
     private View findPageTile(android.view.ViewGroup root, String pkg) {
         for (int i = 0; i < root.getChildCount(); i++) {
@@ -1163,7 +1156,7 @@ public final class MainActivity extends Activity {
         }
     }
     private void linkHomeHeaderDown(int tileId) {
-        View timer=findViewById(R.id.home_sleep_timer);
+        View timer=findViewById(R.id.home_power);
         if(timer!=null) timer.setNextFocusDownId(tileId);
         View wifi=findViewById(R.id.home_wifi);
         if(wifi!=null) wifi.setNextFocusDownId(tileId);
@@ -1488,6 +1481,8 @@ public final class MainActivity extends Activity {
     }
     private boolean motionEnabled() { return getPreferences(MODE_PRIVATE).getBoolean("animations", true) && android.animation.ValueAnimator.areAnimatorsEnabled(); }
     private void showSleepNow() {
+        // Power is global. Dismiss the previous page before its confirmation appears.
+        if (!"home".equals(page)) openPage("home");
         if (!SystemAccess.ready()) {
             Toast.makeText(this, R.string.sleep_access, Toast.LENGTH_LONG).show();
             return;
@@ -1508,10 +1503,19 @@ public final class MainActivity extends Activity {
     void updateSleepTimerIndicator() {
         wallpaperTimer.removeCallbacks(sleepStatusTick);
         long remaining = SleepTimer.remaining(this);
-        TextView value = findViewById(R.id.nav_sleep_countdown);
-        if (value != null) {
-            value.setVisibility(remaining > 0 ? View.VISIBLE : View.GONE);
-            if (remaining > 0) value.setText(SleepTimer.countdown(remaining));
+        if (content != null) for (int id : new int[]{R.id.home_timer, R.id.apps_timer, R.id.settings_timer}) {
+            TextView value = content.findViewById(id);
+            if (value == null) continue;
+            if (remaining > 0) {
+                String countdown = SleepTimer.countdown(remaining);
+                value.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0);
+                value.setText(countdown);
+                value.setContentDescription(getString(R.string.sleep_countdown, countdown));
+            } else {
+                value.setText("");
+                value.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_sleep_timer, 0, 0, 0);
+                value.setContentDescription(getString(R.string.sleep_timer));
+            }
         }
         if (remaining > 0 && wallpaperResumed && !destroyed) wallpaperTimer.postDelayed(sleepStatusTick, 1000);
     }
