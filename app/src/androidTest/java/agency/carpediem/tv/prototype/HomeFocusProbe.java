@@ -50,9 +50,27 @@ final class HomeFocusProbe {
         try {
             String last=(String)tiles.get(0).getTag();
             screen.getPreferences(0).edit().putString("last_opened_package",last).commit();
+            test.runOnMainSync(() -> {
+                try {
+                    java.lang.reflect.Field awaiting = MainActivity.class.getDeclaredField("launchedAppAwaitingReturn");
+                    awaiting.setAccessible(true); awaiting.set(screen, last);
+                } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+            });
             test.runOnMainSync(()->screen.onNewIntent(new Intent(screen,MainActivity.class).putExtra("from_home",true)));
             SystemClock.sleep(350);
             test.runOnMainSync(()->require(screen.getCurrentFocus()!=null && last.equals(screen.getCurrentFocus().getTag()),"Home restores last opened tile"));
+            // Pressing Home while already browsing Carpe TV must keep the
+            // currently selected favorite, not jump to an older launched app.
+            String current = (String) tiles.get(1).getTag();
+            test.runOnMainSync(() -> {
+                List<View> currentTiles = new ArrayList<>();
+                collect((ViewGroup) screen.findViewById(R.id.content), currentTiles);
+                View second = currentTiles.get(1);
+                second.requestFocus();
+                screen.onNewIntent(new Intent(screen, MainActivity.class).putExtra("from_home", true));
+                require(screen.getCurrentFocus() != null && current.equals(screen.getCurrentFocus().getTag()),
+                        "Home inside launcher retains current favorite");
+            });
             // Exercise the real pause/resume path through another Android app.
             // The public preview is not the device's Home role, so this checks
             // lifecycle return; physical Home routing is a separate release gate.
@@ -105,6 +123,9 @@ final class HomeFocusProbe {
             SystemClock.sleep(350);
             test.runOnMainSync(()->screen.findViewById(R.id.settings_power).performClick());
             SystemClock.sleep(350);
+            // With optional system access ready, Power opens a confirmation
+            // dialog. Dismiss it before probing toolbar navigation underneath.
+            if (SystemAccess.ready()) key(test, KeyEvent.KEYCODE_BACK);
             focus(test,screen,R.id.nav_home);
             test.runOnMainSync(() -> {
                 View activeSettings = screen.findViewById(R.id.content).findViewById(R.id.settings_detail);
@@ -129,6 +150,10 @@ final class HomeFocusProbe {
         test.runOnMainSync(() -> screen.findViewById(page).requestFocus());
         SystemClock.sleep(250);
         test.runOnMainSync(() -> screen.findViewById(power).requestFocus());
+        test.runOnMainSync(() -> require(!screen.findViewById(R.id.nav_home).isSelected()
+                && !screen.findViewById(R.id.nav_apps).isSelected()
+                && !screen.findViewById(R.id.nav_settings).isSelected(),
+                "Toolbar focus must not highlight the sidebar"));
         for (int expected : new int[]{wifi, bluetooth, timer}) {
             key(test, KeyEvent.KEYCODE_DPAD_RIGHT);
             int[] actual={View.NO_ID};

@@ -116,6 +116,14 @@
       production-signed APK from the actual GitHub release link, without ADB.
       Test direct TV-browser download and a phone-to-TV transfer path separately;
       document the exact extra app, if that device needs one.
+- [ ] Only after the supported Home route works through the normal TV UI, add
+      Ukrainian and English site documentation for the complete setup order:
+      install the APK, select Carpe TV as Home, enable any optional system access,
+      verify the physical Home key, and explain which features work without that
+      access. Include device-specific screenshots and a tested reverse path to
+      the stock Home screen. Do not suggest bypassing Play Protect or Android's
+      restricted-settings protection. The Xiaomi MiTV-AFMU1 route is not yet
+      verified; see [device evidence](PLAY_PROTECT_TEST.md).
 - [x] Repeat ordinary TV Bro installation with a newly signed local APK after
       removing the Accessibility Home bridge. The earlier signed 0.2.7 APK
       was blocked by Play Protect; the revised APK, signed with the same

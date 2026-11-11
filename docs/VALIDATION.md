@@ -1,5 +1,164 @@
 # Validation baseline — 2026-11-03
 
+## Device checklist and remote navigation — 2026-11-11
+
+The redesigned Settings → Device checklist was installed in the isolated
+`agency.carpediem.tv.publicpreview` package on MiTV-AFMU1 at 1920×1080.
+Its Home card remained unverified because Android's Home role belongs to
+Carpe TV while the Xiaomi remote route still opens Google TV. The optional
+system-access card showed ready. No stock package was disabled.
+
+`settingsfocus` passed right/down/up/left navigation between the Device
+category and both setup cards. `homefocus` passed toolbar order, Back/Home
+handling inside Carpe TV, external-app return to the prior tile, app refresh,
+Power confirmation and launch motion. The Home-focus probe now closes the
+Power confirmation before checking navigation behind it. These tests do not
+prove physical Home from another app; that release check remains open.
+
+## Rendered feedback QR — 2026-11-11
+
+On the same isolated preview, the feedback dialog was captured at the Stick's
+1920×1080 output size. An independent ZXing QR reader decoded the rendered
+image to `https://github.com/carpe-diem-agency/carpe-tv-launcher/issues/new?template=bug.yml`.
+The dialog retained the browser action, and Back restored focus to Settings.
+This verifies the TV image and encoded destination; a phone-browser Issue
+submission remains a separate end-to-end check.
+
+## Favorites and language focus — 2026-11-11
+
+On the isolated preview, `reorder` passed remote arrows, boundary handling,
+Back cancellation, OK persistence, selected-tile focus and return to the top
+toolbar. The test restored the original favorite order afterward.
+`languagestate` passed Activity recreation from Settings after a previously
+opened app: the Settings page and language control retained focus. Its test
+setup now restores the first-run preference as well as the last-opened app.
+These checks cover the stated paths, not every possible application lifecycle.
+
+## Shared-background navigation check — 2026-11-11
+
+On the isolated public preview on MiTV-AFMU1, the selected blue wallpaper was
+identical across Home, Library and Settings. The launcher nevertheless replaced
+and cross-faded its full-screen drawable on every page change. The background
+key now stays shared for blue, plain and not-yet-decoded photo placeholders;
+loaded photos still get the page-specific dimmed/blurred treatment.
+
+The same device navigation probe passed before and after the change: 36 normal
+and rapid page changes retained focus. Before the change, page frames had
+median 31.21 ms and p95 54.42 ms (315 frames). After the change, two runs had
+medians 20.52/28.05 ms and p95 43.54/43.69 ms (289/294 frames). Focus-card
+p95 stayed near 15 ms. This is a one-device comparison, not a locked-60-FPS
+claim. The wallpaper probe also passed all five choices, D-pad focus, rapid
+switches and restart persistence. No system packages were changed.
+
+## OEM Home route and optional bridge experiment — 2026-11-11
+
+On Xiaomi MiTV-AFMU1 (Android TV 14), `agency.carpediem.tv.publicpreview`
+held the Android Home role, but an injected Home key from YouTube opened
+`com.google.android.apps.tv.launcherx/.home.HomeActivity`. Android's
+`cmd package set-home-activity` reported success yet did not change the
+resolver or this result. This reproduces the OEM routing gap in the current
+public-source behavior; the physical remote remains a separate check.
+
+An isolated experimental APK with an opt-in Accessibility service was built
+and installed over the preview. The service listened only for Google TV window
+changes, had no screen-content capability, and ran only while Carpe TV held the
+Home role. With the service temporarily enabled, YouTube → injected Home
+returned to the preview launcher with the YouTube tile focused. Switching the
+Home role to Google TV while leaving the service enabled made the same sequence
+land on Google TV, confirming the rollback guard. The role was then restored
+to the previously selected preview; the temporary Accessibility setting was
+removed (`enabled_accessibility_services=null`, `accessibility_enabled=0`).
+
+The experiment is saved on local branch `experiment/oem-home-bridge` and is
+**not in the public APK source**. An earlier signed APK with this kind of
+service was blocked by Play Protect when installed through TV Bro, while the
+same candidate without it installed. See
+[PLAY_PROTECT_TEST.md](PLAY_PROTECT_TEST.md). Before promoting any bridge,
+repeat ordinary sideload installation and rollback tests with the exact
+release candidate. The current public build must not claim that the Home role
+alone works on this Xiaomi firmware.
+
+## System setup wording and remote focus — 2026-11-11
+
+An isolated `agency.carpediem.tv.publicpreview` debug APK with the revised
+Shizuku explanation was built and installed on MiTV-AFMU1. Before replacement,
+the previous preview APK was copied outside the repository for rollback, and
+the Home role holder was recorded. `SystemSetupFocusProbe` passed: all visible
+wizard buttons were reached by D-pad Down in order, then D-pad Up returned to
+the first action. The probe did not start pairing or change system packages.
+The instrumentation APK was removed afterward. The Home role still belonged
+to the preview package, Accessibility remained unset, and the preview launcher
+was returned to the foreground. `FLAG_SECURE` prevents a screenshot of this
+wizard; a projector visual review of the revised text remains open.
+
+## Public preview UX recheck — 2026-11-11
+
+On Xiaomi MiTV-AFMU1 (Android 14), the isolated `publicpreview` APK and
+instrumentation APK built and installed. These focused probes passed on the
+device: `homefocus` (including Home within Carpe TV preserving the selected
+favorite), `settingsfocus`, `feedback` (Issue QR and Back focus), and
+`pairinglimit` (English and Ukrainian phone pages load; five rejected codes
+close the local session). The test package
+was separate from the selected Home launcher.
+
+The navigation probe also passed 36 normal/rapid page changes. On this run,
+focused-card frames had median 10.57 ms and p95 15.02 ms (862 frames); page
+transition frames had median 31.39 ms and p95 56.38 ms (315 frames). A
+reduced-motion comparison still measured page p95 55.97 ms (36 frames), so
+this single pair of runs does not identify animation as the sole cause of
+slow page frames. Further profiling and visual review remain necessary.
+
+The physical remote's Home routing from YouTube into the future public release,
+phone scanning of the Issue QR, and a complete visual review of every settings
+screen remain release checks. The Shizuku guide intentionally prevents ADB
+screenshots, so its wording and visible controls were checked through Android's
+UI hierarchy instead of a captured image.
+
+### Home alias preference regression — 2026-11-12
+
+On MiTV-AFMU1, the isolated public preview had a separate focus regression:
+launching `HomeEntry` after a process stop focused the left Home navigation item
+even though YouTube was the last opened favorite. Android's activity-specific
+`getPreferences()` had written two files: `MainActivity.xml` held
+`last_opened_package`, while `HomeEntry.xml` held the Home-alias settings. The
+launcher now uses one stable preference file for both entry points and imports
+alias-only settings without replacing existing main settings. The screensaver
+reads the same selected wallpaper. The updater's local JSON checkpoint now
+exports the launcher, language/screensaver, and legacy alias preference files.
+
+Before the device install, the installed preview APK and preference files were
+copied to private local rollback files. `assembleDebug`, `assembleDebugAndroidTest`,
+and `lintDebug` passed. A controlled process stop followed by an explicit
+`HomeEntry` launch focused YouTube again; the isolated `homealias` instrumentation
+probe passed and its temporary test package was removed. This validates focus
+when Carpe TV is launched as Home. It does **not** validate the physical Home
+button on Xiaomi firmware; that route still opens Google TV.
+
+An additional read-only resolver check still selected Google TV's
+`launcherx/.home.HomeActivity`, while the preview's `HomeEntry` remained enabled
+and registered as a preferred activity. A reversible component-only experiment
+could not proceed: Android rejected both shell `disable-user` and `enable` for
+Google TV's protected Home component with `SecurityException`. No component
+state changed; the resolver still selected Google TV afterward. Disabling the
+entire Google TV package is not a replacement for this test because an earlier
+controlled trial routed Home to Xiaomi's recovery activity. The stock package
+and the current Home selection were left intact.
+
+### Language recreation and remote flow — 2026-11-12
+
+On the isolated preview, device instrumentation passed Home focus, Settings
+focus, Issue QR/Back navigation, and favorite tile reordering. The language
+recreation probe then exposed a real crash: Android delivered a final focus
+change while clearing the old Activity view tree, and the sidebar selection
+handler dereferenced navigation views that had already been removed. The
+handler now ignores that teardown callback. The probe was updated to use the
+same stable launcher preference file as production code, so it restores the
+actual last-opened-app setting after the test. `assembleDebug`,
+`assembleDebugAndroidTest`, and `lintDebug` passed; the updated APK was installed
+on MiTV-AFMU1 and the language recreation probe passed. This covers Activity
+recreation with Settings and language focus after opening an app; it is not a
+claim that every translated string has been visually reviewed.
+
 **Current public-source status (2026-11-11):** This file retains historical
 measurements of the personal/internal launcher. The public APK no longer
 contains the Accessibility Home bridge used in some checks below. For the
@@ -279,7 +438,46 @@ not prove native Android/Google TV compatibility with a mismatched density.
 
 ### OEM Home routing after YouTube — 2026-11-11
 
+- Repeated the check on the installed `agency.carpediem.tv.publicpreview`
+  0.2.8 after the personal package had been removed. Saved the exact installed
+  APK at `/private/tmp/carpe-publicpreview-before-home-test.apk` (SHA-256
+  `bb1255cbd742486ddca6973d5991a9064e3293b35c55cf4ff91ddd5281210724`).
+  Android's Home role holder was the preview, but `MAIN` + `HOME` resolved to
+  `com.google.android.apps.tv.launcherx/.home.HomeActivity`. Launching YouTube
+  and sending an injected Home key resumed that Google TV activity. Carpe TV
+  was returned to the foreground afterward; Google TV remained enabled and no
+  package state or Home role was changed. This confirms the current installed
+  build still has the same routing failure. It is not a physical-remote test.
 - On MiTV-AFMU1, enabled the isolated preview's Home entry using its own Device action and Android's Home picker. Android reported `agency.carpediem.tv.publicpreview` as the Home role holder. The personal Home bridge was temporarily disabled for the test.
 - Launched YouTube from the preview Home tile. After an injected Home key event, Android resumed `com.google.android.apps.tv.launcherx/.home.HomeActivity`, not the selected preview. This confirms an OEM routing gap on this firmware. It does not establish the behavior of the physical remote, but it is sufficient to prevent claiming that choosing the Android Home role alone works on this stick.
 - Restored `agency.carpediem.tv.prototype` as the Home holder and its previously enabled Home bridge, verified the service bound with no crashed service, and brought the personal launcher to the foreground. No system package was disabled or removed. The isolated preview was then uninstalled so it no longer appears as a second Carpe TV in the Android Home picker; Home role and service were read back again.
 - Changed the Device warning to remain visible whenever Carpe TV holds the Home role, because `resolveActivity` and the role holder can both look correct while the OEM Home screen still appears. The warning asks users to test the remote before changing system packages.
+
+### Optional system access guide — 2026-11-11
+
+- Reworded the TV wizard and website to explain Shizuku as an optional helper for sleep on a timer and selected system actions. The wizard now shows QR on phone → code on TV → access ready, and names the exact Android path for the six-digit code. The phone form repeats that path and removes the code form after successful pairing.
+- Built the isolated preview APK and inspected the wizard's 1920×1080 view hierarchy on MiTV-AFMU1: all three steps, status and enabled buttons fit on screen. `SystemSetupFocusProbe` passed D-pad navigation. `PairingLimitProbe` passed the Ukrainian and English phone instructions and five-attempt limit without using a real code. The website inline script passed `node --check`.
+- The wizard uses `FLAG_SECURE`, so ADB screenshot capture produced an empty file. No pairing code was recorded. The preview APK was backed up before replacement; the temporary test runner was removed after testing. This check did not perform a new real pairing or change system packages.
+
+### Guided phone-to-TV pairing layout — 2026-11-11
+
+- Replaced the detached QR, instructions and settings button with one guide: scan QR on phone → open Wireless debugging and select pairing by code on TV → enter the six digits on the phone. The settings button sits beside the TV step. The long introduction hides during pairing so the QR and all three actions fit at 1920×1080.
+- Built and installed only `agency.carpediem.tv.publicpreview`, after saving its previous APK to `/private/tmp/carpe-preview-before-guided-qr.apk`. `SystemSetupFocusProbe` passed on MiTV-AFMU1 Android 14: every instruction was fully visible and D-pad Down from the QR action reached the settings button. The temporary androidTest package was uninstalled. No real code was entered and no system launcher setting changed.
+
+### Device setup checklist and Home route — 2026-11-11
+
+- Saved the installed isolated preview APK to `/private/tmp/carpe-preview-before-setup-checklist.apk` before updating it. The Device settings now present Home and optional system actions as two focusable cards with distinct vector icons. The system-access card is green only when the access is ready.
+- On MiTV-AFMU1 Android 14, the preview held the Android Home role, but an injected Home key from Android Settings resumed `com.google.android.apps.tv.launcherx/.home.HomeActivity`. Manually returning to Carpe TV did not mark Home as verified. The Device card therefore reports that Google TV still opens from Home. This is an injected-key test; the owner also reported the same result with the physical remote.
+- The final 1920×1080 device capture shows both cards without clipping. D-pad Right from the Device category focused the Home card. `assembleDebug` and `lintDebug` passed for the isolated preview. No stock package was disabled or removed. The Home routing gap remains a release blocker for claiming that Carpe TV fully replaces Home on this Xiaomi firmware.
+
+### Toolbar focus and sidebar highlight — 2026-11-11
+
+- On MiTV-AFMU1, focusing a top action previously left the current page highlighted in the left rail. The isolated preview now clears that rail selection while the toolbar or Apps search has focus and restores it when focus returns to page content.
+- Saved the previous installed preview APK as `/private/tmp/carpe-publicpreview-before-focus-fix.apk`, then installed only the isolated preview. `HomeFocusProbe`, `SettingsFocusProbe` and `ReorderProbe` all passed on the stick. This change does not alter the unresolved OEM Home routing.
+
+### YouTube return route — 2026-11-11
+
+- On the installed `agency.carpediem.tv.publicpreview` 0.2.8, closed Carpe TV's idle screen, moved D-pad Right from the Home rail to the YouTube tile, and opened it with Select. Android reported YouTube's `MainActivity` as resumed.
+- One Back key exposed Aerial Views' dream activity; a second Back key resumed Google TV, not Carpe TV. This observation does not establish whether YouTube itself or the system dream caused the first Back transition, but it confirms that Back did not return directly to Carpe in this run.
+- Opening the existing Carpe TV task explicitly then focused the YouTube tile again. This verifies last-tile focus restoration when Carpe returns to the foreground, while the OEM Home routing remains unresolved. No system package, Home role or accessibility setting was changed during this test.
+- `HomeChoice.request()` no longer reports only “already selected” when Carpe holds the Home role but Android resolves Home to the stock launcher. The Device status uses the same generic route-conflict wording on different brands. CI `android` passed on draft PR #8 at commit `2412a6f`; this text fix has not been installed on the stick.

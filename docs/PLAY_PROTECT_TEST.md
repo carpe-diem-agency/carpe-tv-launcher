@@ -41,3 +41,75 @@ installer reported **App installed** without a Play Protect block. The signed
 app's first-run screen opened. The public test package and downloaded APK were
 then removed, the server stopped, and the personal Home holder confirmed.
 This does not validate a future GitHub release URL or physical Home behavior.
+
+## Separate Home helper experiment · 2026-11-11
+
+To check whether separating the Home accessibility service from the main APK
+would avoid the installation block, we built a minimal, independently packaged
+debug APK (`agency.carpediem.tv.homehelper.experiment`). Its service listened only
+for Google TV window-state events, requested no window content, and intentionally
+performed no action. Its SHA-256 was
+`a324e0fda2d4cc93ccce06f0a95ac6836cecd4cbf1eb69f1ae8101239856f0b4`.
+
+TV Bro downloaded the APK from a temporary local HTTP server. Android's package
+installer offered **Install**, then Google Play Protect blocked it with the
+warning that the app could request access to sensitive data. The app was not
+installed or enabled. The temporary server was stopped. This shows that simply
+putting the same type of service in a separate APK does not make ordinary TV Bro
+installation work on this stick. The fixture is not a distributable solution.
+
+We also tried a narrower system-component route: disabling only Google TV's
+`home.HomeActivity` through shell, while leaving the Google TV package enabled.
+Android rejected the command with `SecurityException: Shell cannot change
+component state`. A readback still resolved Home to Google TV and showed the
+Google TV package enabled. No system component was changed.
+
+The platform's `cmd package set-home-activity --user 0
+agency.carpediem.tv.publicpreview` returned **Success**, but a subsequent
+`resolve-activity` still selected `com.google.android.apps.tv.launcherx` for
+`MAIN` + `HOME`. This command therefore did not fix routing on the test stick.
+
+## Full Google TV package routing check · 2026-11-11
+
+With the isolated Carpe TV preview holding `ROLE_HOME`, the stick still resolved
+`MAIN` + `HOME` to Google TV (priority 2). We temporarily disabled the Google TV
+package inside a shell command with an automatic `EXIT` trap that restored it.
+During that brief interval, Home resolved to
+`com.google.android.tungsten.setupwraith/.RecoveryActivity` (priority 1), not
+Carpe TV's `HomeEntry` (priority 0). A final readback confirmed Google TV was
+enabled again (`enabled=1`) and resumed as the Home resolver. No physical Home
+key was pressed during this check. Disabling Google TV alone is therefore not
+an acceptable Home fix on this firmware, and the recovery package was left
+untouched.
+
+Android's manifest documentation also rules out raising the non-privileged
+`HomeEntry` intent-filter priority above these OEM candidates: requested
+positive priorities are capped at zero for non-privileged apps. See
+<https://developer.android.com/guide/topics/manifest/intent-filter-element#priority>.
+
+## Disabled-by-default Home service experiment · 2026-11-11
+
+An isolated preview APK declared the Google TV window observer with
+`android:enabled="false"`. TV Bro downloaded it and Android installed it
+without a Play Protect block. The service was then made available from a
+Carpe TV settings action in a separate preview build. Android's package manager
+listed the component, but Xiaomi's Accessibility screen listed only TalkBack,
+even after restarting Settings. The service was not enabled, and physical Home
+was not verified. Google TV remained enabled throughout.
+
+Android restricted the preview: read-only `appops get` reported
+`ACCESS_RESTRICTED_SETTINGS: deny`. Google documents a
+per-app [“Allow restricted settings” control](https://support.google.com/android/answer/12623953)
+on some Android 13+ devices, but
+the tested Xiaomi TV app-details screen did not show that control. We did not
+change this app-op or bypass the platform restriction.
+
+On a later read-only check, the same app-details screen was opened again and
+scrolled to the bottom. Its visible items ended with storage, defaults,
+notifications and permissions; there was still no restricted-settings control.
+The screen was returned to Carpe TV afterward. This narrows the documented
+Xiaomi UI path, but does not establish how other Android TV devices behave.
+
+The opt-in prototype is saved locally on `experiment/home-bridge-optin` and is
+not in the public APK. Do not publish setup steps until a user can enable it
+through the normal TV UI and both Home and rollback are verified.

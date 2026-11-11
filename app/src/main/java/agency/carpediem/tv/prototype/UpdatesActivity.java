@@ -64,7 +64,8 @@ public final class UpdatesActivity extends Activity {
         install = button(getString(R.string.install),R.id.update_install, () -> UpdateManager.install(this));
         cancel = button(getString(R.string.cancel),R.id.update_cancel, () -> UpdateManager.cancel(this));
         for (Button b : new Button[]{check,download,install,cancel}) {
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(dp(220),dp(64));
+            int width = b == install ? 320 : b == check ? 220 : 260;
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(dp(width),dp(76));
             p.setMarginEnd(dp(12));
             actions.addView(b,p);
         }
@@ -78,7 +79,7 @@ public final class UpdatesActivity extends Activity {
         check.requestFocus(); render();
     }
     private Button button(String title,int id,Runnable action) {
-        Button b = new Button(this); if (id != 0) b.setId(id); b.setText(title); b.setAllCaps(false); b.setTypeface(font); b.setTextSize(15); b.setTextColor(Color.WHITE); b.setGravity(Gravity.CENTER); b.setPadding(dp(12),dp(6),dp(12),dp(6)); b.setMaxLines(2); b.setBackgroundResource(R.drawable.control_background); b.setOnClickListener(v -> { try { action.run(); } catch (RuntimeException e) { Toast.makeText(this,getString(R.string.action_unavailable),Toast.LENGTH_LONG).show(); } }); return b;
+        Button b = new Button(this); if (id != 0) b.setId(id); b.setText(title); b.setAllCaps(false); b.setTypeface(font); b.setTextSize(15); b.setTextColor(Color.WHITE); b.setGravity(Gravity.CENTER); b.setPadding(dp(12),dp(8),dp(12),dp(8)); b.setSingleLine(true); b.setBackgroundResource(R.drawable.control_background); b.setOnClickListener(v -> { try { action.run(); } catch (RuntimeException e) { Toast.makeText(this,getString(R.string.action_unavailable),Toast.LENGTH_LONG).show(); } }); return b;
     }
     private TextView text(String s,int size) { TextView t = new TextView(this); t.setText(s); t.setTextSize(size); t.setTextColor(Color.WHITE); t.setTypeface(font); return t; }
     private int dp(int n) { return Math.round(n*getResources().getDisplayMetrics().density); }

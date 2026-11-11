@@ -7,21 +7,31 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 /** Exercises the LAN form as a client without opening Android's real pairing flow. */
 final class PairingLimitProbe {
     static void run(Context context, Bundle result) throws Exception {
         if (!context.getPackageName().endsWith(".publicpreview"))
             throw new IllegalStateException("Requires isolated preview package");
-        try (LocalPairingServer server = new LocalPairingServer(code -> false)) {
+        try (LocalPairingServer server = new LocalPairingServer(code -> false, Locale.ENGLISH)) {
             URI uri = URI.create(server.address());
-            require(status(uri, "GET") == 200, "Initial form unavailable");
+            String english = response(uri, "GET");
+            require(english.contains("<html lang=en>") && english.contains("Developer options → Wireless debugging"),
+                    "English form or TV-code directions unavailable");
             for (int attempt = 1; attempt <= 5; attempt++)
                 require(status(uri, "POST") == 409, "Attempt " + attempt + " was not rejected");
             require(!reachable(uri), "Form remained available after five failures");
         }
-        try (LocalPairingServer fresh = new LocalPairingServer(code -> false)) {
-            require(status(URI.create(fresh.address()), "GET") == 200, "Fresh session unavailable");
+        try (LocalPairingServer fresh = new LocalPairingServer(code -> false, Locale.forLanguageTag("uk"))) {
+            String html = response(URI.create(fresh.address()), "GET");
+            require(html.contains("<html lang=uk>") && html.contains("Параметри розробника → Налагодження через Wi-Fi"),
+                    "Ukrainian form or TV-code directions unavailable");
+        }
+        try (LocalPairingServer accepted = new LocalPairingServer(code -> true, Locale.forLanguageTag("uk"))) {
+            String page = response(URI.create(accepted.address()), "POST");
+            require(page.startsWith("HTTP/1.1 200") && page.contains("Повернися до телевізора") && !page.contains("<form"),
+                    "Successful pairing did not end with a clear return-to-TV screen");
         }
         result.putString("pairingLimit", "5 rejected; old session closed; fresh session reachable");
     }
@@ -32,6 +42,12 @@ final class PairingLimitProbe {
     }
 
     private static int status(URI uri, String method) throws Exception {
+        String response = response(uri, method);
+        if (!response.startsWith("HTTP/1.1 ")) throw new AssertionError("No HTTP response");
+        return Integer.parseInt(response.substring(9, 12));
+    }
+
+    private static String response(URI uri, String method) throws Exception {
         try (Socket socket = new Socket(uri.getHost(), uri.getPort())) {
             socket.setSoTimeout(3000);
             String body = "POST".equals(method) ? "code=000000" : "";
@@ -40,9 +56,10 @@ final class PairingLimitProbe {
                     + "Content-Length: " + body.length() + "\r\nConnection: close\r\n\r\n" + body;
             socket.getOutputStream().write(request.getBytes(StandardCharsets.US_ASCII));
             socket.getOutputStream().flush();
-            String line = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.US_ASCII)).readLine();
-            if (line == null || !line.startsWith("HTTP/1.1 ")) throw new AssertionError("No HTTP response");
-            return Integer.parseInt(line.substring(9, 12));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            StringBuilder result = new StringBuilder();
+            for (String line; (line = reader.readLine()) != null;) result.append(line).append('\n');
+            return result.toString();
         }
     }
 

@@ -40,6 +40,10 @@ import java.util.concurrent.Executors;
 
 /** Carpe TV launcher; Home role and optional OEM bridge are enabled explicitly. */
 public final class MainActivity extends Activity {
+    private android.content.SharedPreferences launcherPreferences() {
+        return LauncherSettings.get(this);
+    }
+
     @Override protected void attachBaseContext(Context base) {
         base = AppLanguage.wrap(base);
         android.content.res.Configuration configuration =
@@ -121,17 +125,26 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        HomeChoice.recordHomeReturn(this, intent);
         setIntent(intent);
         openTestUpdates(intent);
         if (BuildConfig.DEBUG && intent.getBooleanExtra("internal_welcome_preview", false))
             content.post(() -> showWelcome(false));
         if (intent.getBooleanExtra("from_home", false) || intent.hasCategory(Intent.CATEGORY_HOME)) {
+            boolean returningFromLaunchedApp = launchedAppAwaitingReturn != null;
             launchedAppAwaitingReturn = null;
-            restoreLastOpenedApp();
+            if (returningFromLaunchedApp) restoreLastOpenedApp();
+            else {
+                openPage("home");
+                View lastTile = findPageTile(content, pageFocus.get("home"));
+                if (lastTile != null) lastTile.requestFocus();
+                else findViewById(R.id.nav_home).requestFocus();
+            }
         }
     }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        HomeChoice.recordHomeReturn(this, getIntent());
         rikka.shizuku.Shizuku.addRequestPermissionResultListener(systemPermissionResult);
         rikka.shizuku.Shizuku.addBinderReceivedListenerSticky(systemBinderReady);
         rikka.shizuku.Shizuku.addBinderDeadListener(systemBinderDead);
@@ -148,15 +161,16 @@ public final class MainActivity extends Activity {
         bindNavigation(R.id.nav_home, "home");
         bindNavigation(R.id.nav_apps, "apps");
         bindNavigation(R.id.nav_settings, "settings");
+        findViewById(android.R.id.content).getViewTreeObserver()
+                .addOnGlobalFocusChangeListener((oldFocus, newFocus) -> updateSidebarSelection(newFocus));
         // The rail is stable across pages; configure its state fades once.
         configureStateFade(findViewById(R.id.sidebar));
-        android.content.SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        android.content.SharedPreferences preferences = launcherPreferences();
         boolean welcome = state == null && !preferences.getBoolean("welcome_seen", false)
                 && !HomeChoice.isSelected(this);
         renderPage();
         if (welcome) content.post(() -> showWelcome(true));
-        if (state == null && !welcome && (preferences.contains("last_opened_package")
-                || getIntent().getBooleanExtra("from_home", false)
+        if (state == null && !welcome && (getIntent().getBooleanExtra("from_home", false)
                 || getIntent().hasCategory(Intent.CATEGORY_HOME))) restoreLastOpenedApp();
         openTestUpdates(getIntent());
         restoreLanguageFocus = state != null && state.getBoolean("languageFocus",false);
@@ -211,6 +225,27 @@ public final class MainActivity extends Activity {
         return view != null && (view.getId() == R.id.nav_home
                 || view.getId() == R.id.nav_apps || view.getId() == R.id.nav_settings);
     }
+    private boolean isHeaderAction(View view) {
+        if (view == null) return false;
+        int id = view.getId();
+        return id == R.id.home_power || id == R.id.home_wifi || id == R.id.home_bluetooth
+                || id == R.id.home_timer || id == R.id.apps_power || id == R.id.apps_wifi
+                || id == R.id.apps_bluetooth || id == R.id.apps_timer || id == R.id.apps_search
+                || id == R.id.settings_power || id == R.id.settings_wifi
+                || id == R.id.settings_bluetooth || id == R.id.settings_timer;
+    }
+    private void updateSidebarSelection(View focused) {
+        // Android can dispatch a final focus-cleared callback while recreate()
+        // removes the old content view. There is no sidebar left to update.
+        View home = findViewById(R.id.nav_home);
+        View apps = findViewById(R.id.nav_apps);
+        View settings = findViewById(R.id.nav_settings);
+        if (home == null || apps == null || settings == null) return;
+        boolean show = !isHeaderAction(focused) && movingPackage == null;
+        home.setSelected(show && "home".equals(page));
+        apps.setSelected(show && "apps".equals(page));
+        settings.setSelected(show && "settings".equals(page));
+    }
     @Override protected void onResume() {
         super.onResume();
         if (launchedAppAwaitingReturn != null) {
@@ -221,8 +256,7 @@ public final class MainActivity extends Activity {
         updateHomeGreeting(); updateSaverCacheStatus(); updateSleepTimerIndicator();
         if("settings".equals(page) && "audit".equals(settingsCategory)) refreshApplicationAudit();
         UpdateManager.maybeCheck(this);
-        TextView status = content.findViewById(R.id.home_status);
-        if (status != null) status.setText(HomeChoice.status(this));
+        updateHomeSetupStatus();
         TextView homeWarning = content.findViewById(R.id.home_remote_warning);
         if (homeWarning != null) homeWarning.setVisibility(HomeChoice.needsRemoteHomeCheck(this) ? View.VISIBLE : View.GONE);
         updateShizukuStatus();
@@ -303,7 +337,7 @@ public final class MainActivity extends Activity {
     private List<AppItem> readCache() {
         List<AppItem> result = new ArrayList<>();
         try {
-            JSONArray data = new JSONArray(getPreferences(MODE_PRIVATE).getString("apps", "[]"));
+            JSONArray data = new JSONArray(launcherPreferences().getString("apps", "[]"));
             for (int i = 0; i < data.length(); i++) {
                 JSONObject item = data.getJSONObject(i);
                 String pkg = item.getString("package");
@@ -316,11 +350,11 @@ public final class MainActivity extends Activity {
         JSONArray data = new JSONArray();
         try {
             for (AppItem app : apps) data.put(new JSONObject().put("package", app.pkg).put("label", app.label));
-            getPreferences(MODE_PRIVATE).edit().putString("apps", data.toString()).apply();
+            launcherPreferences().edit().putString("apps", data.toString()).apply();
         } catch (Exception ignored) { /* A cache failure must not prevent displaying apps. */ }
     }
     private void seedFirstRunFavorites(List<AppItem> apps) {
-        android.content.SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        android.content.SharedPreferences prefs = launcherPreferences();
         if (prefs.contains("apps") || prefs.contains("favorite_order") || prefs.contains("favorites") || apps.isEmpty()) return;
         List<String> selected = new ArrayList<>();
         String[] preferred = {
@@ -367,7 +401,7 @@ public final class MainActivity extends Activity {
         }
     }
     private void restoreLastOpenedApp() {
-        android.content.SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        android.content.SharedPreferences prefs = launcherPreferences();
         String pkg = prefs.getString("last_opened_package", null);
         if (pkg == null) {
             openPage("home");
@@ -409,7 +443,7 @@ public final class MainActivity extends Activity {
     private void showWelcome(boolean markSeen) {
         if (destroyed || isFinishing()) return;
         Runnable rememberChoice = () -> {
-            if (markSeen) getPreferences(MODE_PRIVATE).edit().putBoolean("welcome_seen", true).commit();
+            if (markSeen) launcherPreferences().edit().putBoolean("welcome_seen", true).commit();
         };
         android.app.Dialog dialog = new android.app.Dialog(this);
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
@@ -451,8 +485,15 @@ public final class MainActivity extends Activity {
         LinearLayout detail = settings.findViewById(R.id.settings_detail);
         String[][] entries = {{"appearance", getString(R.string.appearance)}, {"screensaver", getString(R.string.saver_title)}, {"favorites", getString(R.string.favorites)}, {"audit", getString(R.string.audit_title)}, {"device", getString(R.string.device)}, {"about", getString(R.string.about)}};
         for (String[] entry : entries) {
-            Button category = action(entry[1], () -> { settingsCategory = entry[0]; settingsCategoryView = getCurrentFocus(); showSettingsDetail(detail, entry[0]); View target = firstFocusable(detail); if (target != null) target.requestFocus(); });
-            int symbol = entry[0].equals("audit") ? R.drawable.ic_apps : entry[0].equals("screensaver") ? R.drawable.ic_screensaver : entry[0].equals("appearance") ? R.drawable.ic_monitor : entry[0].equals("favorites") ? R.drawable.ic_heart : entry[0].equals("device") ? R.drawable.ic_settings : R.drawable.ic_info;
+            Button category = action(entry[1], () -> {
+                settingsCategory = entry[0];
+                settingsCategoryView = getCurrentFocus();
+                showSettingsDetail(detail, entry[0]);
+                ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0, 0);
+                View target = firstFocusable(detail);
+                if (target != null) target.requestFocus();
+            });
+            int symbol = entry[0].equals("audit") ? R.drawable.ic_apps : entry[0].equals("screensaver") ? R.drawable.ic_screensaver : entry[0].equals("appearance") ? R.drawable.ic_monitor : entry[0].equals("favorites") ? R.drawable.ic_heart : entry[0].equals("device") ? R.drawable.ic_device : R.drawable.ic_info;
             android.graphics.drawable.Drawable categoryIcon=getDrawable(symbol).mutate();
             categoryIcon.setBounds(0,0,dp(22),dp(22));
             category.setCompoundDrawablesRelative(categoryIcon,null,null,null); category.setCompoundDrawablePadding(dp(12));
@@ -463,7 +504,9 @@ public final class MainActivity extends Activity {
             category.setOnKeyListener((v,key,event)->{
                 if(key==android.view.KeyEvent.KEYCODE_DPAD_RIGHT && event.getAction()==android.view.KeyEvent.ACTION_DOWN) {
                     ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0,0);
-                    View target=firstFocusable(detail);if(target!=null) target.requestFocus();return true;
+                    View target=firstFocusable(detail);
+                    if(target!=null) { target.setNextFocusUpId(R.id.settings_power); target.requestFocus(); }
+                    return true;
                 }return false;
             });
             category.setOnFocusChangeListener((v, focused) -> {
@@ -472,7 +515,8 @@ public final class MainActivity extends Activity {
                     findViewById(R.id.nav_settings).setNextFocusRightId(category.getId());
                     if (!settingsCategory.equals(entry[0])) { settingsCategory = entry[0]; showSettingsDetail(detail, entry[0]); ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0,0); }
                     for (int i = 0; i < categories.getChildCount(); i++) categories.getChildAt(i).setSelected(categories.getChildAt(i) == category);
-                    View target = firstFocusable(detail); if (target != null) category.setNextFocusRightId(target.getId());
+                    View target = firstFocusable(detail);
+                    if (target != null) { category.setNextFocusRightId(target.getId()); target.setNextFocusUpId(R.id.settings_power); }
                 }
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(56)); params.bottomMargin = dp(12); categories.addView(category, params);
@@ -488,6 +532,12 @@ public final class MainActivity extends Activity {
             View first = firstFocusable(detail); if (first != null) settingsCategoryView.setNextFocusRightId(first.getId());
             findViewById(R.id.nav_settings).setNextFocusRightId(settingsCategoryView.getId());
         }
+        // Keep the header and the detail column in predictable focus lanes.
+        for (int id : new int[]{R.id.settings_power, R.id.settings_wifi, R.id.settings_bluetooth, R.id.settings_timer}) {
+            View headerAction = settings.findViewById(id);
+            headerAction.setOnKeyListener((v, key, event) -> key == android.view.KeyEvent.KEYCODE_DPAD_UP);
+        }
+        connectSettingsHeader(detail);
     }
     private void renderApplicationAudit(LinearLayout detail) {
         detail.addView(label(getString(R.string.audit_title),24,Color.WHITE));
@@ -677,46 +727,62 @@ public final class MainActivity extends Activity {
                 preview.setClipToOutline(true); preview.setSelected(entry.key.equals(wallpaper()));
                 TextView caption=label(getString(entry.title),12,0xffdbe3f1); caption.setSingleLine(true); caption.setEllipsize(android.text.TextUtils.TruncateAt.END); caption.setPadding(0,dp(8),0,0); card.addView(caption);
                 preview.setOnClickListener(v -> {
-                    getPreferences(MODE_PRIVATE).edit().putString("wallpaper",entry.key).putLong(WallpaperRotation.CHANGED_AT,System.currentTimeMillis()).apply();
+                    launcherPreferences().edit().putString("wallpaper",entry.key).putLong(WallpaperRotation.CHANGED_AT,System.currentTimeMillis()).apply();
                     for (WallpaperCatalog.Entry other:WallpaperCatalog.entries(this)) appearance.findViewById(other.viewId).setSelected(other.key.equals(entry.key));
                     chosen.setText(getString(R.string.selected_prefix)+wallpaperName()); requestWallpaper(); updateBackground(); scheduleWallpaperRotation();
                 });
             }
             Switch dynamic=appearance.findViewById(R.id.dynamic_wallpapers); dynamic.setTypeface(font);
-            dynamic.setChecked(getPreferences(MODE_PRIVATE).getBoolean(WallpaperRotation.ENABLED,false));
+            dynamic.setChecked(launcherPreferences().getBoolean(WallpaperRotation.ENABLED,false));
             dynamic.setOnCheckedChangeListener((view,enabled) -> {
-                getPreferences(MODE_PRIVATE).edit().putBoolean(WallpaperRotation.ENABLED,enabled).putLong(WallpaperRotation.CHANGED_AT,System.currentTimeMillis()).apply();
+                launcherPreferences().edit().putBoolean(WallpaperRotation.ENABLED,enabled).putLong(WallpaperRotation.CHANGED_AT,System.currentTimeMillis()).apply();
                 scheduleWallpaperRotation();
             });
             TextView dimLabel = appearance.findViewById(R.id.dim_label); dimLabel.setTypeface(font);
             TextView dimValue = appearance.findViewById(R.id.dim_value); dimValue.setTypeface(font);
-            SeekBar dim = appearance.findViewById(R.id.wallpaper_dim); dim.setProgress(getPreferences(MODE_PRIVATE).getInt("dim", RECOMMENDED_DIM));
+            SeekBar dim = appearance.findViewById(R.id.wallpaper_dim); dim.setProgress(launcherPreferences().getInt("dim", RECOMMENDED_DIM));
             dimLabel.setText(getString(R.string.wallpaper_dim)); dimValue.setText(dim.getProgress() + "%");
             dim.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                public void onProgressChanged(SeekBar bar, int value, boolean user) { dimValue.setText(value + "%"); if (user) { getPreferences(MODE_PRIVATE).edit().putInt("dim", value).apply(); updateBackground(); } }
+                public void onProgressChanged(SeekBar bar, int value, boolean user) { dimValue.setText(value + "%"); if (user) { launcherPreferences().edit().putInt("dim", value).apply(); updateBackground(); } }
                 public void onStartTrackingTouch(SeekBar bar) {}
                 public void onStopTrackingTouch(SeekBar bar) {}
             });
             Button resetDim=appearance.findViewById(R.id.dim_reset); resetDim.setTypeface(font);
             resetDim.setText(getString(R.string.dim_reset_recommended,RECOMMENDED_DIM));
             resetDim.setOnClickListener(v -> {
-                getPreferences(MODE_PRIVATE).edit().putInt("dim",RECOMMENDED_DIM).apply();
+                launcherPreferences().edit().putInt("dim",RECOMMENDED_DIM).apply();
                 dim.setProgress(RECOMMENDED_DIM); updateBackground();
             });
             Switch animations = appearance.findViewById(R.id.animations); animations.setTypeface(font);
-            animations.setChecked(getPreferences(MODE_PRIVATE).getBoolean("animations", true));
+            animations.setChecked(launcherPreferences().getBoolean("animations", true));
             animations.setOnCheckedChangeListener((button, checked) -> {
-                getPreferences(MODE_PRIVATE).edit().putBoolean("animations", checked).apply();
+                launcherPreferences().edit().putBoolean("animations", checked).apply();
                 configureStateFade(findViewById(android.R.id.content));
             });
-            Button language = action(getString(R.string.language) + " · " + AppLanguage.label(this), () -> {
+            LinearLayout language = new LinearLayout(this);
+            language.setId(R.id.language_choice);
+            language.setGravity(Gravity.CENTER_VERTICAL);
+            language.setPadding(dp(18), 0, dp(18), 0);
+            language.setBackgroundResource(R.drawable.control_background);
+            language.setFocusable(true);
+            language.setClickable(true);
+            language.setContentDescription(getString(R.string.language) + ", " + AppLanguage.label(this));
+            language.addView(label(getString(R.string.language), 16, Color.WHITE),
+                    new LinearLayout.LayoutParams(0, -2, 1));
+            TextView languageValue = label(AppLanguage.label(this), 14, 0xffb9c7dc);
+            language.addView(languageValue);
+            TextView languageArrow = label("›", 24, 0xffb9c7dc);
+            LinearLayout.LayoutParams arrowSize = new LinearLayout.LayoutParams(-2, -2);
+            arrowSize.setMarginStart(dp(14));
+            language.addView(languageArrow, arrowSize);
+            configureStateFade(language);
+            language.setOnClickListener(v -> {
                 String[] tags={"","uk","en"}; String selected=AppLanguage.selected(this); int index=selected.equals("uk")?1:selected.equals("en")?2:0;
                 new AlertDialog.Builder(this).setTitle(R.string.language)
                         .setSingleChoiceItems(new String[]{getString(R.string.language_system),"Українська","English"},index,(dialog,which)->{
                             dialog.dismiss(); if(!tags[which].equals(AppLanguage.selected(this))) { AppLanguage.choose(this,tags[which]); languageChange=true; recreate(); }
                         }).setNegativeButton(R.string.cancel,null).show();
             });
-            language.setId(R.id.language_choice);
             LinearLayout.LayoutParams languageSize=new LinearLayout.LayoutParams(-1,dp(52)); languageSize.topMargin=dp(12); detail.addView(language,languageSize);
         } else if ("screensaver".equals(category)) {
             detail.addView(label(getString(R.string.saver_title), 24, Color.WHITE));
@@ -792,6 +858,24 @@ public final class MainActivity extends Activity {
             addSettingAction(detail, getString(R.string.open_library), () -> openPage("apps"));
         } else if ("device".equals(category)) {
             detail.addView(label(getString(R.string.device), 24, Color.WHITE));
+            TextView setupIntro = label(getString(R.string.setup_checklist_intro), 14, 0xffb9c7dc);
+            setupIntro.setTypeface(font);
+            setupIntro.setPadding(0, dp(10), 0, dp(16)); detail.addView(setupIntro);
+            boolean available = false;
+            try { getPackageManager().getActivityInfo(new android.content.ComponentName(this, MainActivity.class.getPackage().getName() + ".HomeEntry"), PackageManager.MATCH_DISABLED_COMPONENTS); available = true; }
+            catch (PackageManager.NameNotFoundException ignored) { }
+            if (available) addSetupCard(detail, R.drawable.ic_setup_home, R.string.setup_home_title,
+                    R.id.home_status, R.id.home_setup_icon,
+                    () -> { if (HomeChoice.isSelected(this)) HomeChoice.startRemoteCheck(this); else HomeChoice.request(this); });
+            addSetupCard(detail, R.drawable.ic_setup_access, R.string.setup_system_title,
+                    R.id.shizuku_status, R.id.system_setup_icon,
+                    () -> startActivity(new Intent(this, SystemSetupActivity.class)));
+            updateHomeSetupStatus();
+            updateShizukuStatus();
+            addSettingAction(detail, getString(R.string.android_settings), () -> {
+                try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
+                catch (RuntimeException error) { Toast.makeText(this, getString(R.string.settings_unavailable), Toast.LENGTH_SHORT).show(); }
+            });
             android.view.Display display = getWindowManager().getDefaultDisplay();
             android.view.Display.Mode mode = display.getMode();
             android.graphics.Point output = new android.graphics.Point();
@@ -807,38 +891,11 @@ public final class MainActivity extends Activity {
             specifications.setPadding(dp(18), dp(14), dp(18), dp(14));
             specifications.setBackgroundResource(R.drawable.control_background);
             LinearLayout.LayoutParams specsSize = new LinearLayout.LayoutParams(-1, -2);
-            specsSize.bottomMargin = dp(14);
+            specsSize.topMargin = dp(18);
             detail.addView(specifications, specsSize);
-            TextView home = label(HomeChoice.status(this), 14, 0xffb9c7dc); home.setId(R.id.home_status); home.setPadding(0, dp(16), 0, dp(16)); detail.addView(home);
-            TextView warning = label(getString(R.string.home_remote_check), 14, 0xffffd68a);
-            warning.setId(R.id.home_remote_warning);
-            warning.setPadding(0, 0, 0, dp(12));
-            warning.setVisibility(HomeChoice.needsRemoteHomeCheck(this) ? View.VISIBLE : View.GONE);
-            detail.addView(warning);
-            boolean available = false;
-            try { getPackageManager().getActivityInfo(new android.content.ComponentName(this, MainActivity.class.getPackage().getName() + ".HomeEntry"), PackageManager.MATCH_DISABLED_COMPONENTS); available = true; }
-            catch (PackageManager.NameNotFoundException ignored) { }
-            if (available) { addSettingAction(detail, getString(R.string.make_home), () -> HomeChoice.request(this)); addSettingAction(detail, getString(R.string.choose_home), () -> HomeChoice.chooseOther(this)); }
-            addSettingAction(detail, getString(R.string.android_settings), () -> {
-                try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
-                catch (RuntimeException error) { Toast.makeText(this, getString(R.string.settings_unavailable), Toast.LENGTH_SHORT).show(); }
-            });
-            TextView extra = label(getString(R.string.optional_system_controls), 16, 0xffb9c7dc);
-            extra.setPadding(0, dp(24), 0, dp(8)); detail.addView(extra);
-            addSettingAction(detail, getString(R.string.setup_title), () -> startActivity(new Intent(this, SystemSetupActivity.class)));
-            TextView shizuku = label("", 14, 0xffb9c7dc);
-            shizuku.setId(R.id.shizuku_status); shizuku.setPadding(0, dp(16), 0, dp(8));
-            detail.addView(shizuku); updateShizukuStatus();
-            addSettingAction(detail, getString(R.string.shizuku_open), () -> {
-                try { SystemAccess.openManager(this); }
-                catch (RuntimeException unavailable) { Toast.makeText(this, R.string.system_access_failed, Toast.LENGTH_LONG).show(); }
-            });
-            addSettingAction(detail, getString(R.string.shizuku_grant), () -> {
-                try { SystemAccess.request(this); }
-                catch (RuntimeException unavailable) { Toast.makeText(this, R.string.system_access_failed, Toast.LENGTH_LONG).show(); }
-            });
-            TextView shizukuHint = label(getString(R.string.shizuku_start_hint), 12, 0xffb9c7dc);
-            shizukuHint.setPadding(0, dp(8), 0, dp(16)); detail.addView(shizukuHint);
+            if (available) addSettingAction(detail, getString(R.string.choose_home), () -> HomeChoice.chooseOther(this));
+            // Shizuku's own phone-oriented screen has no reliable D-pad focus.
+            // The launcher provides a remote-first setup flow above instead.
         } else {
             LinearLayout brand = new LinearLayout(this); brand.setGravity(Gravity.CENTER_VERTICAL);
             ImageView mark = new ImageView(this); mark.setImageResource(R.drawable.brand_icon);
@@ -858,6 +915,7 @@ public final class MainActivity extends Activity {
             });
         }
         linkSettingsFocus(detail);
+        connectSettingsHeader(detail);
         configureStateFade(detail);
         } finally {renderingPage=previousRendering;}
     }
@@ -995,13 +1053,13 @@ public final class MainActivity extends Activity {
         dialog.show(); dialog.getWindow().setLayout(dp(550),-2);
         if(selectedView!=null) selectedView.requestFocus();
     }
-    private String wallpaper() { return WallpaperCatalog.find(this,getPreferences(MODE_PRIVATE).getString("wallpaper", "alpine")).key; }
+    private String wallpaper() { return WallpaperCatalog.find(this,launcherPreferences().getString("wallpaper", "alpine")).key; }
     private String wallpaperName() { return getString(WallpaperCatalog.find(this,wallpaper()).title); }
     private void scheduleWallpaperRotation() {
         wallpaperTimer.removeCallbacks(wallpaperRotationTick);
         if(destroyed || !wallpaperResumed) return;
         long now=System.currentTimeMillis();
-        android.content.SharedPreferences prefs=getPreferences(MODE_PRIVATE);
+        android.content.SharedPreferences prefs=launcherPreferences();
         if(WallpaperRotation.advanceIfDue(this,prefs,now)) {
             requestWallpaper(); updateBackground();
             TextView label=findViewById(R.id.wallpaper_label);
@@ -1036,10 +1094,45 @@ public final class MainActivity extends Activity {
         Button button = action(text, callback); button.setId(View.generateViewId());
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(52)); params.topMargin = dp(10); detail.addView(button, params);
     }
+    private void addSetupCard(LinearLayout detail, int icon, int title, int statusId, int iconId, Runnable callback) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setPadding(dp(16), dp(11), dp(16), dp(11));
+        card.setBackgroundResource(R.drawable.setup_card_background);
+        card.setFocusable(true);
+        card.setClickable(true);
+        card.setContentDescription(getString(title));
+        card.setOnClickListener(v -> callback.run());
+        configureStateFade(card);
+        ImageView picture = new ImageView(this);
+        picture.setId(iconId);
+        picture.setImageResource(icon);
+        picture.setImageTintList(android.content.res.ColorStateList.valueOf(0xffb9c7dc));
+        card.addView(picture, new LinearLayout.LayoutParams(dp(32), dp(32)));
+        LinearLayout text = new LinearLayout(this);
+        text.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textSize = new LinearLayout.LayoutParams(0, -2, 1);
+        textSize.leftMargin = dp(16);
+        card.addView(text, textSize);
+        TextView heading = label(getString(title), 17, Color.WHITE);
+        text.addView(heading);
+        TextView status = label("", 13, 0xffb9c7dc);
+        status.setTypeface(font);
+        status.setId(statusId);
+        status.setPadding(0, dp(5), 0, 0);
+        text.addView(status);
+        TextView arrow = label("›", 25, 0xff9db2cd);
+        arrow.setTypeface(font);
+        card.addView(arrow);
+        LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(-1, dp(82));
+        size.bottomMargin = dp(10);
+        detail.addView(card, size);
+    }
     private View firstFocusable(android.view.ViewGroup group) {
         for (int i = 0; i < group.getChildCount(); i++) {
             View view = group.getChildAt(i);
-            if (view.isFocusable()) return view;
+            if (view.isFocusable() && view.getVisibility() == View.VISIBLE) return view;
             if (view instanceof android.view.ViewGroup) { View nested = firstFocusable((android.view.ViewGroup) view); if (nested != null) return nested; }
         }
         return null;
@@ -1061,6 +1154,31 @@ public final class MainActivity extends Activity {
             }
             if (view instanceof android.view.ViewGroup) linkSettingsFocus((android.view.ViewGroup) view);
         }
+    }
+
+    private void connectSettingsHeader(android.view.ViewGroup detail) {
+        if (!"settings".equals(page)) return;
+        View first = firstFocusable(detail);
+        View power = findViewById(R.id.settings_power);
+        if (first == null || power == null) return;
+        first.setNextFocusUpId(power.getId());
+        View last = lastFocusable(detail);
+        if (last != null) last.setNextFocusDownId(last.getId());
+        for (int id : new int[]{R.id.settings_power, R.id.settings_wifi, R.id.settings_bluetooth, R.id.settings_timer}) {
+            View headerAction = findViewById(id);
+            if (headerAction != null) headerAction.setNextFocusDownId(first.getId());
+        }
+    }
+    private View lastFocusable(android.view.ViewGroup group) {
+        for (int i = group.getChildCount() - 1; i >= 0; i--) {
+            View view = group.getChildAt(i);
+            if (view instanceof android.view.ViewGroup) {
+                View nested = lastFocusable((android.view.ViewGroup) view);
+                if (nested != null) return nested;
+            }
+            if (view.isFocusable() && view.getVisibility() == View.VISIBLE) return view;
+        }
+        return null;
     }
 
     private void renderPage() {
@@ -1101,9 +1219,7 @@ public final class MainActivity extends Activity {
         libraryEntry = null;
         content.removeAllViews();
         updateBackground();
-        findViewById(R.id.nav_home).setSelected("home".equals(page));
-        findViewById(R.id.nav_apps).setSelected("apps".equals(page));
-        findViewById(R.id.nav_settings).setSelected("settings".equals(page));
+        updateSidebarSelection(getCurrentFocus());
         if ("home".equals(page)) {
             View header = getLayoutInflater().inflate(R.layout.home_header, content, false);
             ((TextView) header.findViewById(R.id.home_time)).setTypeface(Typeface.create(font, Typeface.BOLD));
@@ -1172,9 +1288,7 @@ public final class MainActivity extends Activity {
         if (cached == null) renderCurrentPage();
         else {
             updateBackground();
-            findViewById(R.id.nav_home).setSelected("home".equals(page));
-            findViewById(R.id.nav_apps).setSelected("apps".equals(page));
-            findViewById(R.id.nav_settings).setSelected("settings".equals(page));
+            updateSidebarSelection(getCurrentFocus());
             EditText search = content.findViewById(R.id.apps_search);
             if (search != null && search.length() > 0) search.setText("");
             View entry = findPageTile(content, focusedPackage);
@@ -1353,7 +1467,10 @@ public final class MainActivity extends Activity {
         boolean ready=selected.equals(loadedWallpaper) && sharpWallpaper!=null;
         // Keep the previous scene during asynchronous decoding instead of flashing a placeholder.
         if(entry.photo!=0 && !ready && sharpWallpaper!=null) return;
-        String key=page+":"+selected+":"+("home".equals(page) ? getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM) : 0)+":"+ready;
+        // Solid and gradient choices have the same appearance on every page.
+        // Replacing that full-screen drawable on each rail move wastes GPU work.
+        String key=selected+":"+ready+(ready ? ":"+page+":"+("home".equals(page)
+                ? launcherPreferences().getInt("dim",RECOMMENDED_DIM) : 0) : ":shared");
         if(key.equals(backgroundKey)) return;
         Drawable next;
         if(ready) {
@@ -1361,7 +1478,7 @@ public final class MainActivity extends Activity {
             android.graphics.drawable.BitmapDrawable photo=new android.graphics.drawable.BitmapDrawable(getResources(),image);
             photo.setGravity(Gravity.FILL); photo.setFilterBitmap(true);
             if("home".equals(page)) {
-                int alpha=Math.round(getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM)*2.55f);
+                int alpha=Math.round(launcherPreferences().getInt("dim",RECOMMENDED_DIM)*2.55f);
                 next=new android.graphics.drawable.LayerDrawable(new Drawable[]{photo,new android.graphics.drawable.ColorDrawable(Color.argb(alpha,8,15,30))});
             } else next=photo;
         } else if("plain".equals(selected)) next=new android.graphics.drawable.ColorDrawable(getColor(R.color.cd_background));
@@ -1373,9 +1490,9 @@ public final class MainActivity extends Activity {
     private List<String> getFavorites() {
         if (movingOrder != null) return new ArrayList<>(movingOrder);
         List<String> items = new ArrayList<>();
-        String saved = getPreferences(MODE_PRIVATE).getString("favorite_order", null);
+        String saved = launcherPreferences().getString("favorite_order", null);
         if (saved == null) {
-            items.addAll(getPreferences(MODE_PRIVATE).getStringSet("favorites", java.util.Collections.emptySet()));
+            items.addAll(launcherPreferences().getStringSet("favorites", java.util.Collections.emptySet()));
             java.util.Collections.sort(items);
             return items;
         }
@@ -1384,7 +1501,7 @@ public final class MainActivity extends Activity {
         return items;
     }
     private void saveFavorites(List<String> items) {
-        getPreferences(MODE_PRIVATE).edit().putString("favorite_order", new JSONArray(items).toString()).apply();
+        launcherPreferences().edit().putString("favorite_order", new JSONArray(items).toString()).apply();
         if (!"home".equals(page)) {
             LinearLayout old = pageViews.remove("home"); if (old != null) pageMotion.discardCached(old);
         }
@@ -1424,6 +1541,29 @@ public final class MainActivity extends Activity {
         else if(homeGrid!=null && "home".equals(page)) renderList(homeGrid,allApps,true);
     }
     @Override public boolean dispatchKeyEvent(android.view.KeyEvent event) {
+        if (movingPackage == null && "settings".equals(page)
+                && event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+            View focused = getCurrentFocus();
+            View detail = findViewById(R.id.settings_detail);
+            int key = event.getKeyCode();
+            if (key == android.view.KeyEvent.KEYCODE_DPAD_DOWN && detail instanceof android.view.ViewGroup && focused != null
+                    && (focused.getId() == R.id.settings_power || focused.getId() == R.id.settings_wifi
+                    || focused.getId() == R.id.settings_bluetooth || focused.getId() == R.id.settings_timer)) {
+                View first = firstFocusable((android.view.ViewGroup) detail);
+                if (first != null) first.requestFocus();
+                return true;
+            }
+            if (focused != null && isWithin(focused, detail)) {
+                if (key == android.view.KeyEvent.KEYCODE_DPAD_UP || key == android.view.KeyEvent.KEYCODE_DPAD_DOWN) {
+                    View next = key == android.view.KeyEvent.KEYCODE_DPAD_UP
+                            ? focused.focusSearch(View.FOCUS_UP) : focused.focusSearch(View.FOCUS_DOWN);
+                    if (next == null || !isWithin(next, detail)) {
+                        if (key == android.view.KeyEvent.KEYCODE_DPAD_UP) findViewById(R.id.settings_power).requestFocus();
+                        return true;
+                    }
+                }
+            }
+        }
         if(movingPackage==null) return super.dispatchKeyEvent(event);
         int key=event.getKeyCode();
         boolean direction=key==21 || key==22 || key==19 || key==20;
@@ -1438,6 +1578,11 @@ public final class MainActivity extends Activity {
             moveSelected(delta);
         }
         return true;
+    }
+    private boolean isWithin(View child, View ancestor) {
+        for (View current = child; current != null; current = current.getParent() instanceof View
+                ? (View) current.getParent() : null) if (current == ancestor) return true;
+        return false;
     }
     private void moveSelected(int delta) {
         List<View> tiles=moveTiles();
@@ -1551,7 +1696,7 @@ public final class MainActivity extends Activity {
         }
         dialog.show(); dialog.getWindow().setLayout(dp(300), -2); rows.getChildAt(0).requestFocus();
     }
-    private boolean motionEnabled() { return getPreferences(MODE_PRIVATE).getBoolean("animations", true) && android.animation.ValueAnimator.areAnimatorsEnabled(); }
+    private boolean motionEnabled() { return launcherPreferences().getBoolean("animations", true) && android.animation.ValueAnimator.areAnimatorsEnabled(); }
     private void showSleepNow() {
         // Power is global. Dismiss the previous page before its confirmation appears.
         if (!"home".equals(page)) openPage("home");
@@ -1593,8 +1738,28 @@ public final class MainActivity extends Activity {
     }
     private void updateShizukuStatus() {
         TextView status = findViewById(R.id.shizuku_status);
-        if (status != null) status.setText(SystemAccess.ready() ? R.string.system_access_ready
-                : SystemAccess.running() ? R.string.system_access_permission : R.string.shizuku_stopped_short);
+        if (status != null) {
+            boolean ready = SystemAccess.ready();
+            status.setText(ready ? R.string.setup_system_ready
+                    : SystemAccess.running() ? R.string.setup_system_permission : R.string.setup_system_off);
+            status.setTextColor(ready ? 0xff9ce0c3 : 0xffb9c7dc);
+            View picture = findViewById(R.id.system_setup_icon);
+            if (picture instanceof ImageView) ((ImageView)picture).setImageTintList(
+                    android.content.res.ColorStateList.valueOf(ready ? 0xff9ce0c3 : 0xffb9c7dc));
+        }
+    }
+    private void updateHomeSetupStatus() {
+        TextView status = findViewById(R.id.home_status);
+        if (status == null) return;
+        boolean selected = HomeChoice.isSelected(this);
+        boolean verified = HomeChoice.isRemoteVerified(this);
+        status.setText(verified ? R.string.setup_home_ready
+                : selected && !HomeChoice.platformResolvesToCarpe(this) ? R.string.setup_home_route_conflict
+                : selected ? R.string.setup_home_unverified : R.string.setup_home_off);
+        status.setTextColor(verified ? 0xff9ce0c3 : 0xffb9c7dc);
+        View picture = findViewById(R.id.home_setup_icon);
+        if (picture instanceof ImageView) ((ImageView)picture).setImageTintList(
+                android.content.res.ColorStateList.valueOf(verified ? 0xff9ce0c3 : 0xffb9c7dc));
     }
     private void openBluetooth() {
         // Prefer the platform contract; several TV OEMs do not implement it.
@@ -1646,6 +1811,13 @@ public final class MainActivity extends Activity {
         icon.setScaleType(banner ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER); icon.setImageDrawable(artwork);
     }
     @Override public void onBackPressed() {
+        if ("settings".equals(page)) {
+            View current = getCurrentFocus();
+            View detail = findViewById(R.id.settings_detail);
+            for (View child = current; child != null; child = child.getParent() instanceof View ? (View) child.getParent() : null) {
+                if (child == detail && settingsCategoryView != null && settingsCategoryView.requestFocus()) return;
+            }
+        }
         if (!"home".equals(page)) {
             openPage("home");
             View lastTile = findPageTile(content, pageFocus.get("home"));
@@ -1673,7 +1845,7 @@ public final class MainActivity extends Activity {
             boolean animated=motionEnabled();
             if(!animated) intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivity(intent,AppLaunchMotion.options(artwork,animated));
-            getPreferences(MODE_PRIVATE).edit().putString("last_opened_package",pkg).apply();
+            launcherPreferences().edit().putString("last_opened_package",pkg).apply();
             launchedAppAwaitingReturn = pkg;
         }
         catch (RuntimeException error) { Toast.makeText(this, getString(R.string.app_launch_failed), Toast.LENGTH_SHORT).show(); }
