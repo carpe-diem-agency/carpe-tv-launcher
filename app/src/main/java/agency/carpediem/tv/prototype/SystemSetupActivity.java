@@ -37,7 +37,7 @@ public final class SystemSetupActivity extends Activity {
     private LocalPairingServer server;
     private TextView status, address;
     private ImageView qr;
-    private Button openSettings;
+    private Button openSettings, startButton, grantButton;
     private Typeface font;
     private boolean busy, destroyed;
 
@@ -62,6 +62,12 @@ public final class SystemSetupActivity extends Activity {
         scroll.addView(panel);
         setContentView(scroll);
         panel.addView(label(getString(R.string.setup_title), 27, Color.WHITE));
+        TextView explanation = label(getString(R.string.setup_what_is_shizuku), 15, 0xffdce8fa);
+        explanation.setPadding(dp(18), dp(14), dp(18), dp(14));
+        explanation.setBackgroundResource(R.drawable.control_background);
+        LinearLayout.LayoutParams explanationSize = new LinearLayout.LayoutParams(-1, -2);
+        explanationSize.topMargin = dp(12);
+        panel.addView(explanation, explanationSize);
         panel.addView(label(getString(R.string.setup_phone_intro), 15, 0xffbdcce2));
         status = label("", 15, 0xffa8d6ff);
         status.setPadding(0, dp(8), 0, dp(8));
@@ -76,14 +82,21 @@ public final class SystemSetupActivity extends Activity {
         address = label("", 14, Color.WHITE);
         address.setVisibility(View.GONE);
         panel.addView(address);
+        TextView codeExample = label(getString(R.string.setup_code_example), 14, 0xffc4d2e8);
+        codeExample.setPadding(dp(18), dp(12), dp(18), dp(12));
+        codeExample.setBackgroundResource(R.drawable.control_background);
+        LinearLayout.LayoutParams exampleSize = new LinearLayout.LayoutParams(-1, -2);
+        exampleSize.topMargin = dp(12);
+        panel.addView(codeExample, exampleSize);
         openSettings = button(getString(R.string.setup_open_settings), this::openDeveloperSettings);
-        openSettings.setVisibility(View.GONE);
         panel.addView(openSettings, buttonSize());
-        panel.addView(button(getString(R.string.setup_start), this::startServiceOnDevice), buttonSize());
-        panel.addView(button(getString(R.string.shizuku_grant), () -> {
+        startButton = button(getString(R.string.setup_start), this::startServiceOnDevice);
+        panel.addView(startButton, buttonSize());
+        grantButton = button(getString(R.string.shizuku_grant), () -> {
             try { SystemAccess.request(this); }
             catch (RuntimeException error) { status.setText(R.string.system_access_failed); }
-        }), buttonSize());
+        });
+        panel.addView(grantButton, buttonSize());
         panel.addView(button(getString(R.string.close), this::finish), buttonSize());
         first.requestFocus();
         refreshStatus();
@@ -109,9 +122,14 @@ public final class SystemSetupActivity extends Activity {
     }
     private void refreshStatus() {
         if (busy) return;
+        boolean paired = getSharedPreferences("system_setup", 0).getBoolean("paired", false);
+        openSettings.setEnabled(server != null);
+        startButton.setEnabled(paired && !SystemAccess.ready());
+        startButton.setBackgroundResource(SystemAccess.ready() ? R.drawable.system_access_on : R.drawable.system_access_off);
+        grantButton.setEnabled(SystemAccess.running() && !SystemAccess.ready());
         status.setText(SystemAccess.ready() ? R.string.system_access_ready
                 : SystemAccess.running() ? R.string.system_access_permission
-                : getSharedPreferences("system_setup", 0).getBoolean("paired", false)
+                : paired
                         ? R.string.setup_paired : R.string.shizuku_stopped_short);
     }
     @Override protected void onResume() { super.onResume(); refreshStatus(); }
@@ -146,7 +164,7 @@ public final class SystemSetupActivity extends Activity {
         }
         busy = true;
         status.setText(R.string.setup_scan_first);
-        openSettings.setVisibility(View.VISIBLE);
+        openSettings.setEnabled(true);
         discovery = new LocalAdbDiscovery(this);
         discovery.start(true, new LocalAdbDiscovery.Result() {
             public void found(int port) { pairingPort.set(port); }

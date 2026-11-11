@@ -64,13 +64,16 @@ the stock launcher enabled until a device-specific rollback path is verified.
 
 ## 3. Connect Shizuku optional
 
-Shizuku is a separate app providing authorized ADB-level actions without root.
+Shizuku is a separate app providing authorized ADB-level actions without root,
+including the sleep timer and managing specific system packages. The Home screen,
+app launching and package status work without it. Android's six-digit code is
+only for first-time pairing; it is not an account password.
 The ordinary launcher and package-state display work without it.
 
 1. Install Shizuku from its [official source](https://shizuku.rikka.app/download/).
 2. Enable Wireless debugging in Android Developer options. The phone and TV must be
    on the same **trusted** Wi-Fi network.
-3. Open **Carpe TV → Settings → Apps & background → System access setup** and select
+3. Open **Carpe TV → Settings → Device → System access setup** and select
    **1. Pair this TV**. Scan the QR code with your phone. The local page expires
    after 15 minutes; do not share its address or the pairing code. Five failed
    attempts close the session; restart the wizard to try again.

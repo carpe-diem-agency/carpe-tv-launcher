@@ -86,6 +86,7 @@ public final class MainActivity extends Activity {
     private TextView auditMemory;
     private int auditGeneration;
     private TextView systemAccessStatus;
+    private Button systemAccessSetup;
     private boolean systemOperation;
     private AlertDialog systemConfirmation;
     private void refreshSystemAccessUi(){runOnUiThread(()->{if(!destroyed)refreshApplicationAudit();});}
@@ -470,7 +471,9 @@ public final class MainActivity extends Activity {
             category.setOnKeyListener((v,key,event)->{
                 if(key==android.view.KeyEvent.KEYCODE_DPAD_RIGHT && event.getAction()==android.view.KeyEvent.ACTION_DOWN) {
                     ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0,0);
-                    View target=firstFocusable(detail);if(target!=null) target.requestFocus();return true;
+                    View target=firstFocusable(detail);
+                    if(target!=null) { target.setNextFocusUpId(R.id.settings_power); target.requestFocus(); }
+                    return true;
                 }return false;
             });
             category.setOnFocusChangeListener((v, focused) -> {
@@ -479,7 +482,8 @@ public final class MainActivity extends Activity {
                     findViewById(R.id.nav_settings).setNextFocusRightId(category.getId());
                     if (!settingsCategory.equals(entry[0])) { settingsCategory = entry[0]; showSettingsDetail(detail, entry[0]); ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0,0); }
                     for (int i = 0; i < categories.getChildCount(); i++) categories.getChildAt(i).setSelected(categories.getChildAt(i) == category);
-                    View target = firstFocusable(detail); if (target != null) category.setNextFocusRightId(target.getId());
+                    View target = firstFocusable(detail);
+                    if (target != null) { category.setNextFocusRightId(target.getId()); target.setNextFocusUpId(R.id.settings_power); }
                 }
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(56)); params.bottomMargin = dp(12); categories.addView(category, params);
@@ -495,6 +499,12 @@ public final class MainActivity extends Activity {
             View first = firstFocusable(detail); if (first != null) settingsCategoryView.setNextFocusRightId(first.getId());
             findViewById(R.id.nav_settings).setNextFocusRightId(settingsCategoryView.getId());
         }
+        // Keep the header and the detail column in predictable focus lanes.
+        for (int id : new int[]{R.id.settings_power, R.id.settings_wifi, R.id.settings_bluetooth, R.id.settings_timer}) {
+            View headerAction = settings.findViewById(id);
+            headerAction.setOnKeyListener((v, key, event) -> key == android.view.KeyEvent.KEYCODE_DPAD_UP);
+        }
+        connectSettingsHeader(detail);
     }
     private void renderApplicationAudit(LinearLayout detail) {
         detail.addView(label(getString(R.string.audit_title),24,Color.WHITE));
@@ -848,20 +858,15 @@ public final class MainActivity extends Activity {
             });
             TextView extra = label(getString(R.string.optional_system_controls), 16, 0xffb9c7dc);
             extra.setPadding(0, dp(24), 0, dp(8)); detail.addView(extra);
-            addSettingAction(detail, getString(R.string.setup_title), () -> startActivity(new Intent(this, SystemSetupActivity.class)));
+            systemAccessSetup = action(getString(R.string.setup_title), () -> startActivity(new Intent(this, SystemSetupActivity.class)));
+            systemAccessSetup.setId(View.generateViewId());
+            LinearLayout.LayoutParams setupSize = new LinearLayout.LayoutParams(-1, dp(52));
+            setupSize.topMargin = dp(10); detail.addView(systemAccessSetup, setupSize);
             TextView shizuku = label("", 14, 0xffb9c7dc);
             shizuku.setId(R.id.shizuku_status); shizuku.setPadding(0, dp(16), 0, dp(8));
             detail.addView(shizuku); updateShizukuStatus();
-            addSettingAction(detail, getString(R.string.shizuku_open), () -> {
-                try { SystemAccess.openManager(this); }
-                catch (RuntimeException unavailable) { Toast.makeText(this, R.string.system_access_failed, Toast.LENGTH_LONG).show(); }
-            });
-            addSettingAction(detail, getString(R.string.shizuku_grant), () -> {
-                try { SystemAccess.request(this); }
-                catch (RuntimeException unavailable) { Toast.makeText(this, R.string.system_access_failed, Toast.LENGTH_LONG).show(); }
-            });
-            TextView shizukuHint = label(getString(R.string.shizuku_start_hint), 12, 0xffb9c7dc);
-            shizukuHint.setPadding(0, dp(8), 0, dp(16)); detail.addView(shizukuHint);
+            // Shizuku's own phone-oriented screen has no reliable D-pad focus.
+            // The launcher provides a remote-first setup flow above instead.
         } else {
             LinearLayout brand = new LinearLayout(this); brand.setGravity(Gravity.CENTER_VERTICAL);
             ImageView mark = new ImageView(this); mark.setImageResource(R.drawable.brand_icon);
@@ -881,6 +886,7 @@ public final class MainActivity extends Activity {
             });
         }
         linkSettingsFocus(detail);
+        connectSettingsHeader(detail);
         configureStateFade(detail);
         } finally {renderingPage=previousRendering;}
     }
@@ -1062,7 +1068,7 @@ public final class MainActivity extends Activity {
     private View firstFocusable(android.view.ViewGroup group) {
         for (int i = 0; i < group.getChildCount(); i++) {
             View view = group.getChildAt(i);
-            if (view.isFocusable()) return view;
+            if (view.isFocusable() && view.getVisibility() == View.VISIBLE) return view;
             if (view instanceof android.view.ViewGroup) { View nested = firstFocusable((android.view.ViewGroup) view); if (nested != null) return nested; }
         }
         return null;
@@ -1084,6 +1090,31 @@ public final class MainActivity extends Activity {
             }
             if (view instanceof android.view.ViewGroup) linkSettingsFocus((android.view.ViewGroup) view);
         }
+    }
+
+    private void connectSettingsHeader(android.view.ViewGroup detail) {
+        if (!"settings".equals(page)) return;
+        View first = firstFocusable(detail);
+        View power = findViewById(R.id.settings_power);
+        if (first == null || power == null) return;
+        first.setNextFocusUpId(power.getId());
+        View last = lastFocusable(detail);
+        if (last != null) last.setNextFocusDownId(last.getId());
+        for (int id : new int[]{R.id.settings_power, R.id.settings_wifi, R.id.settings_bluetooth, R.id.settings_timer}) {
+            View headerAction = findViewById(id);
+            if (headerAction != null) headerAction.setNextFocusDownId(first.getId());
+        }
+    }
+    private View lastFocusable(android.view.ViewGroup group) {
+        for (int i = group.getChildCount() - 1; i >= 0; i--) {
+            View view = group.getChildAt(i);
+            if (view instanceof android.view.ViewGroup) {
+                View nested = lastFocusable((android.view.ViewGroup) view);
+                if (nested != null) return nested;
+            }
+            if (view.isFocusable() && view.getVisibility() == View.VISIBLE) return view;
+        }
+        return null;
     }
 
     private void renderPage() {
@@ -1447,6 +1478,31 @@ public final class MainActivity extends Activity {
         else if(homeGrid!=null && "home".equals(page)) renderList(homeGrid,allApps,true);
     }
     @Override public boolean dispatchKeyEvent(android.view.KeyEvent event) {
+        if (movingPackage == null && "settings".equals(page)
+                && event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+            View focused = getCurrentFocus();
+            View detail = findViewById(R.id.settings_detail);
+            int key = event.getKeyCode();
+            if (key == android.view.KeyEvent.KEYCODE_DPAD_DOWN && detail instanceof android.view.ViewGroup && focused != null
+                    && (focused.getId() == R.id.settings_power || focused.getId() == R.id.settings_wifi
+                    || focused.getId() == R.id.settings_bluetooth || focused.getId() == R.id.settings_timer)) {
+                View first = firstFocusable((android.view.ViewGroup) detail);
+                if (first != null) first.requestFocus();
+                return true;
+            }
+            if (focused != null && isWithin(focused, detail)) {
+                int direction = key == android.view.KeyEvent.KEYCODE_DPAD_UP
+                        ? View.FOCUS_UP : key == android.view.KeyEvent.KEYCODE_DPAD_DOWN
+                        ? View.FOCUS_DOWN : 0;
+                if (direction != 0) {
+                    View next = focused.focusSearch(direction);
+                    if (next == null || !isWithin(next, detail)) {
+                        if (direction == View.FOCUS_UP) findViewById(R.id.settings_power).requestFocus();
+                        return true;
+                    }
+                }
+            }
+        }
         if(movingPackage==null) return super.dispatchKeyEvent(event);
         int key=event.getKeyCode();
         boolean direction=key==21 || key==22 || key==19 || key==20;
@@ -1461,6 +1517,11 @@ public final class MainActivity extends Activity {
             moveSelected(delta);
         }
         return true;
+    }
+    private boolean isWithin(View child, View ancestor) {
+        for (View current = child; current != null; current = current.getParent() instanceof View
+                ? (View) current.getParent() : null) if (current == ancestor) return true;
+        return false;
     }
     private void moveSelected(int delta) {
         List<View> tiles=moveTiles();
@@ -1618,6 +1679,9 @@ public final class MainActivity extends Activity {
         TextView status = findViewById(R.id.shizuku_status);
         if (status != null) status.setText(SystemAccess.ready() ? R.string.system_access_ready
                 : SystemAccess.running() ? R.string.system_access_permission : R.string.shizuku_stopped_short);
+        if (systemAccessSetup != null)
+            systemAccessSetup.setBackgroundResource(SystemAccess.ready()
+                    ? R.drawable.system_access_on : R.drawable.system_access_off);
     }
     private void openBluetooth() {
         // Prefer the platform contract; several TV OEMs do not implement it.
@@ -1669,6 +1733,13 @@ public final class MainActivity extends Activity {
         icon.setScaleType(banner ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER); icon.setImageDrawable(artwork);
     }
     @Override public void onBackPressed() {
+        if ("settings".equals(page)) {
+            View current = getCurrentFocus();
+            View detail = findViewById(R.id.settings_detail);
+            for (View child = current; child != null; child = child.getParent() instanceof View ? (View) child.getParent() : null) {
+                if (child == detail && settingsCategoryView != null && settingsCategoryView.requestFocus()) return;
+            }
+        }
         if (!"home".equals(page)) {
             openPage("home");
             View lastTile = findPageTile(content, pageFocus.get("home"));

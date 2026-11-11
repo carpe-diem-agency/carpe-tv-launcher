@@ -239,7 +239,9 @@
 <string name="shizuku_start_hint">After restarting your TV, open System access setup and start Shizuku.</string>
 <string name="shizuku_grant">Grant Carpe TV access</string>
 <string name="setup_title">System access setup</string>
+<string name="setup_what_is_shizuku">What is Shizuku? It is a separate app that lets Carpe TV perform approved system actions without root. It is used for the sleep timer and managing specific system packages. Home and your apps work without it.</string>
 <string name="setup_phone_intro">Pair once with a phone browser on the same trusted Wi-Fi. Later, restart Shizuku here with the TV remote.</string>
+<string name="setup_code_example">On the TV, choose “Pair using pairing code.” Enter the six digits shown by Android on the Carpe TV page on your phone. For example: 123456. This is only an example, not your code.</string>
 <string name="setup_scan_first">Scan the QR code with your phone first. Then open Developer options → Wireless debugging → Pair using pairing code. Enter the TV code on your phone.</string>
 <string name="setup_phone_unavailable">Could not open the local pairing page. Check the TV Wi-Fi connection.</string>
 <string name="setup_pair">1. Pair this TV</string>

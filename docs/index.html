@@ -148,6 +148,20 @@
     .trust-grid span { color: var(--muted); font-size: clamp(15px, 1.1vw, 18px); line-height: 1.45; }
     .trust a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 4px; }
     .trust a:focus-visible { outline: 2px solid rgba(219, 234, 255, .8); outline-offset: 3px; border-radius: 3px; box-shadow: 0 0 0 6px rgba(118, 177, 250, .15); }
+    .access-guide { padding: 2px 0 58px; }
+    .access-guide h2 { margin: 0 0 10px; font-size: clamp(29px, 3vw, 46px); letter-spacing: -.04em; }
+    .access-guide > p { max-width: 68ch; margin: 0 0 24px; color: var(--muted); font-size: clamp(17px, 1.4vw, 21px); line-height: 1.5; }
+    .access-layout { display: grid; grid-template-columns: minmax(250px, .75fr) minmax(0, 1.25fr); gap: 20px; }
+    .access-steps { display: grid; align-content: start; gap: 10px; }
+    .access-step { width: 100%; padding: 17px 20px; text-align: left; color: var(--ink); font: inherit; font-size: clamp(16px, 1.2vw, 19px); font-weight: 650; border: 1px solid var(--edge); border-radius: 16px; background: rgba(14, 27, 49, .7); cursor: pointer; }
+    .access-step[aria-selected="true"] { background: #dbeaff; color: #102543; box-shadow: 0 12px 28px rgba(3, 12, 27, .24); }
+    .access-stage { min-height: 350px; padding: clamp(22px, 3vw, 40px); border: 1px solid var(--edge); border-radius: 24px; background: linear-gradient(135deg, rgba(31, 55, 93, .88), rgba(11, 24, 45, .92)); display: grid; align-content: center; gap: 18px; }
+    .access-stage h3 { margin: 0; font-size: clamp(22px, 2.1vw, 32px); line-height: 1.25; }
+    .access-stage p { margin: 0; max-width: 56ch; color: #d6e3f7; font-size: clamp(16px, 1.15vw, 19px); line-height: 1.5; }
+    .access-sample { display: inline-flex; align-items: center; gap: 18px; justify-self: start; padding: 16px 22px; border-radius: 16px; color: #102543; background: #dbeaff; }
+    .access-sample strong { font-size: clamp(25px, 3vw, 42px); letter-spacing: .12em; font-variant-numeric: tabular-nums; }
+    .access-sample small { font-size: 14px; font-weight: 700; }
+    .access-note { color: #a9bed9 !important; font-size: 14px !important; }
     footer { padding-top: 22px; color: var(--muted); font-size: clamp(14px, 1vw, 17px); }
     footer nav { display: flex; flex-wrap: wrap; gap: 12px 24px; }
     footer a { color: var(--ink); text-underline-offset: 4px; }
@@ -162,6 +176,8 @@
       .compare-grid { grid-template-columns: 1fr; }
       .benefits { grid-template-columns: 1fr; }
       .trust-grid { grid-template-columns: 1fr; }
+      .access-layout { grid-template-columns: 1fr; }
+      .access-stage { min-height: 280px; }
       .device-row { grid-template-columns: 1fr auto; gap: 8px 14px; }
       .device-row span { grid-column: 1; }
       .device-state { grid-column: 2; grid-row: 1 / span 2; }
@@ -318,6 +334,42 @@
         <div class="device-row"><strong>Other Android TV / Google TV</strong><span>Needs testing on each model</span><span class="device-state">Untested</span></div>
       </div>
     </section>
+    <section class="access-guide" data-copy="uk" aria-labelledby="access-title-uk">
+      <h2 id="access-title-uk">Системний доступ: коли він потрібен</h2>
+      <p>Shizuku — окремий застосунок, який дає Carpe TV доступ до погоджених системних дій без root: таймера сну й керування окремими системними пакетами. Головний екран і програми працюють без нього. Шестизначний код Android потрібен лише для першого парування; це не пароль від акаунта.</p>
+      <div class="access-layout" data-access-guide>
+        <div class="access-steps" role="tablist" aria-label="Кроки підключення">
+          <button class="access-step" type="button" role="tab" aria-selected="true" data-step="0">1. Відкрий майстер на ТВ</button>
+          <button class="access-step" type="button" role="tab" aria-selected="false" data-step="1">2. Введи код із ТВ на телефоні</button>
+          <button class="access-step" type="button" role="tab" aria-selected="false" data-step="2">3. Запусти Shizuku пультом</button>
+        </div>
+        <div class="access-stage" role="tabpanel" aria-live="polite">
+          <h3 data-stage-title>Carpe TV → Налаштування → Пристрій</h3>
+          <p data-stage-text>Установи Shizuku й увімкни «Налагодження через Wi-Fi». Обери «Підключити системний доступ» → «1. Підключити приставку». Майстер покаже QR-код. Телефон і приставка мають бути в одній довіреній мережі Wi-Fi.</p>
+          <div class="access-sample"><small data-stage-label>На екрані ТВ</small><strong data-stage-sample>QR</strong></div>
+          <p class="access-note" data-stage-note>Це додатковий крок. Вибір Carpe TV як Home працює без Shizuku.</p>
+        </div>
+      </div>
+      <p class="aside">Для повного переходу спочатку вибери Carpe TV головним екраном в Android і перевір фізичну кнопку Home після перезапуску. На деяких прошивках потрібна окрема служба Carpe TV для кнопки Home. Вимкнення штатного лаунчера на нашому Xiaomi зараз не пропонується: воно викликало екран відновлення. <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/docs/INSTALL.uk.md#повернення-до-штатного-лаунчера">Як повернутися до штатного Home</a>.</p>
+    </section>
+    <section class="access-guide" data-copy="en" hidden aria-labelledby="access-title-en">
+      <h2 id="access-title-en">System access: when you need it</h2>
+      <p>Shizuku is a separate app that gives Carpe TV access to approved system actions without root: the sleep timer and managing specific system packages. Home and your apps work without it. Android’s six-digit code is only for first-time pairing; it is not an account password.</p>
+      <div class="access-layout" data-access-guide>
+        <div class="access-steps" role="tablist" aria-label="Setup steps">
+          <button class="access-step" type="button" role="tab" aria-selected="true" data-step="0">1. Open the wizard on TV</button>
+          <button class="access-step" type="button" role="tab" aria-selected="false" data-step="1">2. Enter the TV code on your phone</button>
+          <button class="access-step" type="button" role="tab" aria-selected="false" data-step="2">3. Start Shizuku with the remote</button>
+        </div>
+        <div class="access-stage" role="tabpanel" aria-live="polite">
+          <h3 data-stage-title>Carpe TV → Settings → Device</h3>
+          <p data-stage-text>Install Shizuku and enable Wireless debugging. Choose “System access setup” → “1. Pair device.” The wizard shows a QR code. Keep your phone and TV on the same trusted Wi-Fi network.</p>
+          <div class="access-sample"><small data-stage-label>On your TV</small><strong data-stage-sample>QR</strong></div>
+          <p class="access-note" data-stage-note>This is optional. Choosing Carpe TV as Home does not require Shizuku.</p>
+        </div>
+      </div>
+      <p class="aside">To make the switch, first select Carpe TV as Home in Android and test the physical Home button after reboot. Some firmware needs Carpe TV’s separate Home button service. Disabling the stock launcher is currently unavailable on our Xiaomi because it opened a recovery screen. <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/docs/INSTALL.md#return-to-the-stock-launcher">How to return to stock Home</a>.</p>
+    </section>
     <section class="trust" data-copy="uk" aria-labelledby="trust-title-uk">
       <h2 id="trust-title-uk">Перед встановленням</h2>
       <div class="trust-grid">
@@ -356,6 +408,33 @@
       document.title = language === 'uk' ? 'Carpe TV — безплатний лаунчер для Android TV і Google TV' : 'Carpe TV — free launcher for Android TV and Google TV';
     }
     for (const button of buttons) button.addEventListener('click', () => selectLanguage(button.dataset.language));
+    const accessContent = {
+      uk: [
+        ['Carpe TV → Налаштування → Пристрій', 'Установи Shizuku й увімкни «Налагодження через Wi-Fi». Обери «Підключити системний доступ» → «1. Підключити приставку». Майстер покаже QR-код. Телефон і приставка мають бути в одній довіреній мережі Wi-Fi.', 'На екрані ТВ', 'QR', 'Це додатковий крок. Вибір Carpe TV як Home працює без Shizuku.'],
+        ['Код показує Android на телевізорі', 'Скануй QR телефоном. На ТВ відкрий «Налагодження через Wi-Fi» → «Підключити за кодом». Шість цифр із ТВ введи у форму на телефоні.', 'Приклад, не твій код', '123456', 'Код не надсилай у чат і не вводь на сторонніх сайтах.'],
+        ['Повернись до Carpe TV', 'Після підтвердження на телефоні натисни «Запустити Shizuku» в майстрі пультом. Якщо Android попросить, дозволь доступ Carpe TV.', 'Стан після запуску', 'Готово', 'Після перезапуску Shizuku може знадобитися запустити знову.']
+      ],
+      en: [
+        ['Carpe TV → Settings → Device', 'Install Shizuku and enable Wireless debugging. Choose “System access setup” → “1. Pair device.” The wizard shows a QR code. Keep your phone and TV on the same trusted Wi-Fi network.', 'On your TV', 'QR', 'This is optional. Choosing Carpe TV as Home does not require Shizuku.'],
+        ['Android shows the code on your TV', 'Scan the QR code with your phone. On TV open Wireless debugging → Pair using pairing code. Enter the six TV digits in the form on your phone.', 'Example, not your code', '123456', 'Do not post the code in chat or enter it on other websites.'],
+        ['Return to Carpe TV', 'After pairing on the phone, select “Start Shizuku” in the TV wizard with your remote. Grant Carpe TV access if Android asks.', 'Status after start', 'Ready', 'You may need to restart Shizuku after reboot.']
+      ]
+    };
+    for (const guide of document.querySelectorAll('[data-access-guide]')) {
+      const language = guide.closest('[data-copy]').dataset.copy;
+      const tabs = [...guide.querySelectorAll('[data-step]')];
+      const stage = guide.querySelector('.access-stage');
+      function selectStep(index) {
+        tabs.forEach((tab, n) => tab.setAttribute('aria-selected', String(n === index)));
+        const [title, body, label, sample, note] = accessContent[language][index];
+        stage.querySelector('[data-stage-title]').textContent = title;
+        stage.querySelector('[data-stage-text]').textContent = body;
+        stage.querySelector('[data-stage-label]').textContent = label;
+        stage.querySelector('[data-stage-sample]').textContent = sample;
+        stage.querySelector('[data-stage-note]').textContent = note;
+      }
+      tabs.forEach((tab, index) => tab.addEventListener('click', () => selectStep(index)));
+    }
     if (!navigator.language.toLowerCase().startsWith('uk')) selectLanguage('en');
     // A remote user can press OK immediately after the TV browser opens the page.
     requestAnimationFrame(() => document.querySelector('.intro:not([hidden]) ' + (document.documentElement.dataset.releaseReady === 'true' ? '.download.release-only' : '.github-link'))?.focus({ preventScroll: true }));
