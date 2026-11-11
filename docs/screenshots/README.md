@@ -2,7 +2,9 @@
 
 The current install-page previews are `docs/assets/home-preview.jpg` and
 `docs/assets/settings-preview.jpg`, captured from an isolated public APK
-on MiTV-AFMU1 at 1920×1080 and resized to 1280×720 for the page. They contain
+on MiTV-AFMU1 at 1920×1080. The Home preview was recaptured from the 0.2.8
+isolated debug build on 2026-11-11 to show one timer control in the toolbar;
+the Settings preview remains an earlier capture. They contain
 no addresses, pairing codes, camera views, or personal analytics. The library
 capture is deliberately excluded because it shows apps installed by the owner.
 
