@@ -3,6 +3,7 @@
     <color name="cd_sidebar">#101C33</color>
     <color name="cd_surface">#192945</color>
     <color name="cd_focus">#3869B4</color>
+    <color name="cd_accent">#288BFF</color>
     <color name="cd_text">#FFFFFF</color>
     <dimen name="cd_safe_horizontal">40dp</dimen>
     <dimen name="cd_safe_vertical">24dp</dimen>
