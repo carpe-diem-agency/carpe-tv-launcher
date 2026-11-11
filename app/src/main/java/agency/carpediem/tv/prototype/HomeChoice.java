@@ -55,6 +55,20 @@ final class HomeChoice {
         // the routing, so keep the reminder visible after selection.
         return true;
     }
+    static boolean bridgeEnabled(Context context) {
+        String services = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        if (services == null) return false;
+        String expected = new ComponentName(context, HomeBridgeService.class).flattenToString();
+        for (String service : services.split(":")) if (expected.equals(service)) return true;
+        return false;
+    }
+    static void openBridgeSettings(Activity activity) {
+        try { activity.startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
+        catch (RuntimeException error) {
+            Toast.makeText(activity, R.string.settings_unavailable, Toast.LENGTH_SHORT).show();
+        }
+    }
     static boolean isSelected(Context context) {
         if (Build.VERSION.SDK_INT >= 29) {
             RoleManager roles = context.getSystemService(RoleManager.class);

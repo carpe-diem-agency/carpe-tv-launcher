@@ -77,10 +77,12 @@ Firmware: `UKG3.250826.001.V816.0.7.0.UZFAATK`. The UI was tested at **1920×108
 4K HDMI output does not imply a 4K launcher render. Other models and Stick generations are untested.
 [Results and limitations](docs/VALIDATION.md#system-controls--xiaomi-tv-stick-2026-11-03).
 
-**Home support on Xiaomi is not yet confirmed for the public APK:** choosing Carpe TV
-as Home and pressing Home were tested through ADB, but the physical remote and reboot
-still need testing. Do not disable the Google TV package on this firmware: it can
-open the recovery screen. Use Android's Home app selection to switch launchers.
+**Home support on Xiaomi is not yet confirmed for the public APK:** Android's Home
+selection alone still opened Google TV in an injected-key test. An optional,
+manually enabled Home service returned to an isolated Carpe TV preview in the same
+test, but physical remote, reboot and ordinary APK installation with that service
+still need testing. Do not disable Google TV on this firmware: it can open the
+recovery screen. Use Android's Home app selection to switch launchers.
 
 ## Install and update
 
@@ -94,9 +96,9 @@ after the first stable release.
 2. Open Carpe TV and check app launching and remote navigation. The first launch offers
    a direct path to Android's Home picker or a chance to explore first.
 3. To use it for Home, select Carpe TV in Android's Home picker and check it with
-   the physical remote. Some firmware may ignore this choice; switch back to
-   the stock launcher on those devices. The public build has no Accessibility
-   service to intercept Home.
+   the physical remote. If firmware ignores this choice, the optional Home
+   assistance can be enabled manually in Android Accessibility settings. Keep
+   the stock launcher available until Home and rollback work on your device.
 4. Keep the stock launcher available for recovery.
 
 [Step-by-step installation and rollback](docs/INSTALL.md).

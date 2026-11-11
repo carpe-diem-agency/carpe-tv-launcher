@@ -61,6 +61,7 @@ public final class MainActivity extends Activity {
     private LinearLayout content;
     private PageMotion pageMotion;
     private BackgroundMotion backgroundMotion;
+    private BlueAtmosphere blueAtmosphere;
     private final Map<String, LinearLayout> pageViews = new LinkedHashMap<>();
     private volatile boolean destroyed;
     private String focusedPackage;
@@ -141,6 +142,7 @@ public final class MainActivity extends Activity {
         content = findViewById(R.id.content);
         pageMotion = new PageMotion(findViewById(R.id.content_host));
         backgroundMotion = new BackgroundMotion(findViewById(R.id.scene_a), findViewById(R.id.scene_b), (View) findViewById(R.id.sidebar).getParent());
+        blueAtmosphere = new BlueAtmosphere(findViewById(R.id.scene_motion));
         TextView version = findViewById(R.id.launcher_version);
         try { version.setText("v" + getPackageManager().getPackageInfo(getPackageName(), 0).versionName); }
         catch (PackageManager.NameNotFoundException ignored) { version.setText(""); }
@@ -174,6 +176,8 @@ public final class MainActivity extends Activity {
     }
     @Override public void onWindowFocusChanged(boolean focused) {
         super.onWindowFocusChanged(focused);
+        if (blueAtmosphere != null) blueAtmosphere.show(focused && wallpaperResumed
+                && "blue_motion".equals(wallpaper()) && motionEnabled());
         if (focused && wallpaperResumed) scheduleScreensaver(); else idleTimer.stop();
         if (focused) focusPendingHomeApp();
         if(focused && restoreLanguageFocus) {
@@ -218,6 +222,7 @@ public final class MainActivity extends Activity {
             restoreLastOpenedApp();
         }
         wallpaperResumed=true; scheduleWallpaperRotation(); scheduleScreensaver();
+        updateBackground();
         updateHomeGreeting(); updateSaverCacheStatus(); updateSleepTimerIndicator();
         if("settings".equals(page) && "audit".equals(settingsCategory)) refreshApplicationAudit();
         UpdateManager.maybeCheck(this);
@@ -225,12 +230,16 @@ public final class MainActivity extends Activity {
         if (status != null) status.setText(HomeChoice.status(this));
         TextView homeWarning = content.findViewById(R.id.home_remote_warning);
         if (homeWarning != null) homeWarning.setVisibility(HomeChoice.needsRemoteHomeCheck(this) ? View.VISIBLE : View.GONE);
+        TextView bridgeStatus = content.findViewById(R.id.home_bridge_status);
+        if (bridgeStatus != null) bridgeStatus.setText(getString(HomeChoice.bridgeEnabled(this)
+                ? R.string.home_bridge_enabled : R.string.home_bridge_disabled));
         updateShizukuStatus();
         worker.execute(this::refreshApps);
     }
     @Override protected void onPause() {
         if (movingPackage != null) finishMove(false);
         wallpaperResumed=false; wallpaperTimer.removeCallbacks(sleepStatusTick); wallpaperTimer.removeCallbacks(wallpaperRotationTick); idleTimer.stop();
+        if (blueAtmosphere != null) blueAtmosphere.show(false);
         super.onPause();
     }
     private void scheduleScreensaver() {
@@ -819,6 +828,15 @@ public final class MainActivity extends Activity {
             try { getPackageManager().getActivityInfo(new android.content.ComponentName(this, MainActivity.class.getPackage().getName() + ".HomeEntry"), PackageManager.MATCH_DISABLED_COMPONENTS); available = true; }
             catch (PackageManager.NameNotFoundException ignored) { }
             if (available) { addSettingAction(detail, getString(R.string.make_home), () -> HomeChoice.request(this)); addSettingAction(detail, getString(R.string.choose_home), () -> HomeChoice.chooseOther(this)); }
+            TextView bridgeStatus = label(getString(HomeChoice.bridgeEnabled(this)
+                    ? R.string.home_bridge_enabled : R.string.home_bridge_disabled), 14, 0xffb9c7dc);
+            bridgeStatus.setId(R.id.home_bridge_status);
+            bridgeStatus.setPadding(0, dp(20), 0, dp(8));
+            detail.addView(bridgeStatus);
+            addSettingAction(detail, getString(R.string.home_bridge_action), () -> HomeChoice.openBridgeSettings(this));
+            TextView bridgeHint = label(getString(R.string.home_bridge_hint), 13, 0xffb9c7dc);
+            bridgeHint.setPadding(0, dp(8), 0, dp(18));
+            detail.addView(bridgeHint);
             addSettingAction(detail, getString(R.string.android_settings), () -> {
                 try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
                 catch (RuntimeException error) { Toast.makeText(this, getString(R.string.settings_unavailable), Toast.LENGTH_SHORT).show(); }
@@ -1349,6 +1367,8 @@ public final class MainActivity extends Activity {
     }
     private void updateBackground() {
         String selected=wallpaper();
+        if (blueAtmosphere != null) blueAtmosphere.show(wallpaperResumed && hasWindowFocus()
+                && "blue_motion".equals(selected) && motionEnabled());
         WallpaperCatalog.Entry entry=WallpaperCatalog.find(this,selected);
         boolean ready=selected.equals(loadedWallpaper) && sharpWallpaper!=null;
         // Keep the previous scene during asynchronous decoding instead of flashing a placeholder.

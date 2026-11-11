@@ -19,6 +19,7 @@ final class WallpaperCatalog {
         entries.add(new Entry("aurora",R.id.wallpaper_aurora,R.string.wallpaper_aurora,R.drawable.wallpaper_aurora,R.drawable.wallpaper_aurora_thumb));
         entries.add(new Entry("como",R.id.wallpaper_como,R.string.wallpaper_como,R.drawable.wallpaper_como,R.drawable.wallpaper_como_thumb));
         entries.add(new Entry("blue",R.id.wallpaper_blue,R.string.wallpaper_blue,0,R.drawable.blue_wallpaper));
+        entries.add(new Entry("blue_motion",R.id.wallpaper_blue_motion,R.string.wallpaper_blue_motion,0,R.drawable.blue_wallpaper));
         entries.add(new Entry("plain",R.id.wallpaper_plain,R.string.wallpaper_plain,0,0));
         return entries;
     }

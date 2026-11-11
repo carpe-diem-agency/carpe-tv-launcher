@@ -116,6 +116,10 @@
       production-signed APK from the actual GitHub release link, without ADB.
       Test direct TV-browser download and a phone-to-TV transfer path separately;
       document the exact extra app, if that device needs one.
+- [ ] Recheck Play Protect with the new optional Home Accessibility service in
+      an ordinarily downloaded, production-signed APK. The earlier service-bearing
+      candidate was blocked; the service-free candidate installed. Do not publish
+      the new service until the ordinary installation path passes without bypasses.
 - [x] Repeat ordinary TV Bro installation with a newly signed local APK after
       removing the Accessibility Home bridge. The earlier signed 0.2.7 APK
       was blocked by Play Protect; the revised APK, signed with the same

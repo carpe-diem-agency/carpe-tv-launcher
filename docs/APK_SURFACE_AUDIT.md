@@ -25,8 +25,11 @@ broadcast but should remain in the release threat review. The sleep receiver,
 screensaver, updater screen, system-setup screen and installer callback are not
 exported.
 
-The earlier signed candidate still contains the Accessibility service and was
-blocked by Play Protect during TV Bro installation. Do not distribute it. The
-revised unsigned build removes that service; its final signed APK must be
-checked again after signing. Home behavior,
-permission prompts and rollback still need tests on another Android TV model.
+The inspected 0.2.8 artifact above did not contain an Accessibility service.
+An earlier signed candidate with a Home Accessibility service was blocked by
+Play Protect during TV Bro installation. A new **optional** Home bridge is under
+development; this table does not describe that new candidate. Rebuild the APK,
+inspect its merged manifest and repeat ordinary TV Bro installation and Play
+Protect testing before shipping it. Home behavior, permission prompts and
+rollback still need tests on another Android TV model. Never ask users to
+bypass Play Protect.
