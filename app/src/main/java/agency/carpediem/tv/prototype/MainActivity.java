@@ -667,12 +667,12 @@ public final class MainActivity extends Activity {
             LinearLayout choices=appearance.findViewById(R.id.wallpaper_choices);
             for (WallpaperCatalog.Entry entry:WallpaperCatalog.entries(this)) {
                 LinearLayout card=new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL);
-                LinearLayout.LayoutParams cardSize=new LinearLayout.LayoutParams(dp(170),-2); cardSize.setMarginEnd(dp(10)); choices.addView(card,cardSize);
+                LinearLayout.LayoutParams cardSize=new LinearLayout.LayoutParams(dp(205),-2); cardSize.setMarginEnd(dp(12)); choices.addView(card,cardSize);
                 android.widget.ImageButton preview=new android.widget.ImageButton(this); preview.setId(entry.viewId); preview.setTag(entry);
                 preview.setBackgroundResource(R.drawable.control_background); preview.setPadding(0,0,0,0);
                 if (entry.thumbnail!=0) preview.setImageResource(entry.thumbnail); else preview.setImageDrawable(new android.graphics.drawable.ColorDrawable(getColor(R.color.cd_background)));
                 preview.setScaleType(ImageView.ScaleType.CENTER_CROP); preview.setForeground(getDrawable(R.drawable.wallpaper_foreground));
-                preview.setContentDescription(getString(entry.title)); card.addView(preview,new LinearLayout.LayoutParams(-1,dp(96)));
+                preview.setContentDescription(getString(entry.title)); card.addView(preview,new LinearLayout.LayoutParams(-1,dp(116)));
                 preview.setOutlineProvider(new android.view.ViewOutlineProvider() { @Override public void getOutline(View view, android.graphics.Outline outline) { outline.setRoundRect(0,0,view.getWidth(),view.getHeight(),dp(12)); } });
                 preview.setClipToOutline(true); preview.setSelected(entry.key.equals(wallpaper()));
                 TextView caption=label(getString(entry.title),12,0xffdbe3f1); caption.setSingleLine(true); caption.setEllipsize(android.text.TextUtils.TruncateAt.END); caption.setPadding(0,dp(8),0,0); card.addView(caption);
