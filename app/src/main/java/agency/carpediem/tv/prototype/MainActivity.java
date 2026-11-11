@@ -40,6 +40,10 @@ import java.util.concurrent.Executors;
 
 /** Carpe TV launcher; Home role and optional OEM bridge are enabled explicitly. */
 public final class MainActivity extends Activity {
+    private android.content.SharedPreferences launcherPreferences() {
+        return LauncherSettings.get(this);
+    }
+
     @Override protected void attachBaseContext(Context base) {
         base = AppLanguage.wrap(base);
         android.content.res.Configuration configuration =
@@ -161,7 +165,7 @@ public final class MainActivity extends Activity {
                 .addOnGlobalFocusChangeListener((oldFocus, newFocus) -> updateSidebarSelection(newFocus));
         // The rail is stable across pages; configure its state fades once.
         configureStateFade(findViewById(R.id.sidebar));
-        android.content.SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        android.content.SharedPreferences preferences = launcherPreferences();
         boolean welcome = state == null && !preferences.getBoolean("welcome_seen", false)
                 && !HomeChoice.isSelected(this);
         renderPage();
@@ -327,7 +331,7 @@ public final class MainActivity extends Activity {
     private List<AppItem> readCache() {
         List<AppItem> result = new ArrayList<>();
         try {
-            JSONArray data = new JSONArray(getPreferences(MODE_PRIVATE).getString("apps", "[]"));
+            JSONArray data = new JSONArray(launcherPreferences().getString("apps", "[]"));
             for (int i = 0; i < data.length(); i++) {
                 JSONObject item = data.getJSONObject(i);
                 String pkg = item.getString("package");
@@ -340,11 +344,11 @@ public final class MainActivity extends Activity {
         JSONArray data = new JSONArray();
         try {
             for (AppItem app : apps) data.put(new JSONObject().put("package", app.pkg).put("label", app.label));
-            getPreferences(MODE_PRIVATE).edit().putString("apps", data.toString()).apply();
+            launcherPreferences().edit().putString("apps", data.toString()).apply();
         } catch (Exception ignored) { /* A cache failure must not prevent displaying apps. */ }
     }
     private void seedFirstRunFavorites(List<AppItem> apps) {
-        android.content.SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        android.content.SharedPreferences prefs = launcherPreferences();
         if (prefs.contains("apps") || prefs.contains("favorite_order") || prefs.contains("favorites") || apps.isEmpty()) return;
         List<String> selected = new ArrayList<>();
         String[] preferred = {
@@ -391,7 +395,7 @@ public final class MainActivity extends Activity {
         }
     }
     private void restoreLastOpenedApp() {
-        android.content.SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        android.content.SharedPreferences prefs = launcherPreferences();
         String pkg = prefs.getString("last_opened_package", null);
         if (pkg == null) {
             openPage("home");
@@ -433,7 +437,7 @@ public final class MainActivity extends Activity {
     private void showWelcome(boolean markSeen) {
         if (destroyed || isFinishing()) return;
         Runnable rememberChoice = () -> {
-            if (markSeen) getPreferences(MODE_PRIVATE).edit().putBoolean("welcome_seen", true).commit();
+            if (markSeen) launcherPreferences().edit().putBoolean("welcome_seen", true).commit();
         };
         android.app.Dialog dialog = new android.app.Dialog(this);
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
@@ -717,36 +721,36 @@ public final class MainActivity extends Activity {
                 preview.setClipToOutline(true); preview.setSelected(entry.key.equals(wallpaper()));
                 TextView caption=label(getString(entry.title),12,0xffdbe3f1); caption.setSingleLine(true); caption.setEllipsize(android.text.TextUtils.TruncateAt.END); caption.setPadding(0,dp(8),0,0); card.addView(caption);
                 preview.setOnClickListener(v -> {
-                    getPreferences(MODE_PRIVATE).edit().putString("wallpaper",entry.key).putLong(WallpaperRotation.CHANGED_AT,System.currentTimeMillis()).apply();
+                    launcherPreferences().edit().putString("wallpaper",entry.key).putLong(WallpaperRotation.CHANGED_AT,System.currentTimeMillis()).apply();
                     for (WallpaperCatalog.Entry other:WallpaperCatalog.entries(this)) appearance.findViewById(other.viewId).setSelected(other.key.equals(entry.key));
                     chosen.setText(getString(R.string.selected_prefix)+wallpaperName()); requestWallpaper(); updateBackground(); scheduleWallpaperRotation();
                 });
             }
             Switch dynamic=appearance.findViewById(R.id.dynamic_wallpapers); dynamic.setTypeface(font);
-            dynamic.setChecked(getPreferences(MODE_PRIVATE).getBoolean(WallpaperRotation.ENABLED,false));
+            dynamic.setChecked(launcherPreferences().getBoolean(WallpaperRotation.ENABLED,false));
             dynamic.setOnCheckedChangeListener((view,enabled) -> {
-                getPreferences(MODE_PRIVATE).edit().putBoolean(WallpaperRotation.ENABLED,enabled).putLong(WallpaperRotation.CHANGED_AT,System.currentTimeMillis()).apply();
+                launcherPreferences().edit().putBoolean(WallpaperRotation.ENABLED,enabled).putLong(WallpaperRotation.CHANGED_AT,System.currentTimeMillis()).apply();
                 scheduleWallpaperRotation();
             });
             TextView dimLabel = appearance.findViewById(R.id.dim_label); dimLabel.setTypeface(font);
             TextView dimValue = appearance.findViewById(R.id.dim_value); dimValue.setTypeface(font);
-            SeekBar dim = appearance.findViewById(R.id.wallpaper_dim); dim.setProgress(getPreferences(MODE_PRIVATE).getInt("dim", RECOMMENDED_DIM));
+            SeekBar dim = appearance.findViewById(R.id.wallpaper_dim); dim.setProgress(launcherPreferences().getInt("dim", RECOMMENDED_DIM));
             dimLabel.setText(getString(R.string.wallpaper_dim)); dimValue.setText(dim.getProgress() + "%");
             dim.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                public void onProgressChanged(SeekBar bar, int value, boolean user) { dimValue.setText(value + "%"); if (user) { getPreferences(MODE_PRIVATE).edit().putInt("dim", value).apply(); updateBackground(); } }
+                public void onProgressChanged(SeekBar bar, int value, boolean user) { dimValue.setText(value + "%"); if (user) { launcherPreferences().edit().putInt("dim", value).apply(); updateBackground(); } }
                 public void onStartTrackingTouch(SeekBar bar) {}
                 public void onStopTrackingTouch(SeekBar bar) {}
             });
             Button resetDim=appearance.findViewById(R.id.dim_reset); resetDim.setTypeface(font);
             resetDim.setText(getString(R.string.dim_reset_recommended,RECOMMENDED_DIM));
             resetDim.setOnClickListener(v -> {
-                getPreferences(MODE_PRIVATE).edit().putInt("dim",RECOMMENDED_DIM).apply();
+                launcherPreferences().edit().putInt("dim",RECOMMENDED_DIM).apply();
                 dim.setProgress(RECOMMENDED_DIM); updateBackground();
             });
             Switch animations = appearance.findViewById(R.id.animations); animations.setTypeface(font);
-            animations.setChecked(getPreferences(MODE_PRIVATE).getBoolean("animations", true));
+            animations.setChecked(launcherPreferences().getBoolean("animations", true));
             animations.setOnCheckedChangeListener((button, checked) -> {
-                getPreferences(MODE_PRIVATE).edit().putBoolean("animations", checked).apply();
+                launcherPreferences().edit().putBoolean("animations", checked).apply();
                 configureStateFade(findViewById(android.R.id.content));
             });
             LinearLayout language = new LinearLayout(this);
@@ -1043,13 +1047,13 @@ public final class MainActivity extends Activity {
         dialog.show(); dialog.getWindow().setLayout(dp(550),-2);
         if(selectedView!=null) selectedView.requestFocus();
     }
-    private String wallpaper() { return WallpaperCatalog.find(this,getPreferences(MODE_PRIVATE).getString("wallpaper", "alpine")).key; }
+    private String wallpaper() { return WallpaperCatalog.find(this,launcherPreferences().getString("wallpaper", "alpine")).key; }
     private String wallpaperName() { return getString(WallpaperCatalog.find(this,wallpaper()).title); }
     private void scheduleWallpaperRotation() {
         wallpaperTimer.removeCallbacks(wallpaperRotationTick);
         if(destroyed || !wallpaperResumed) return;
         long now=System.currentTimeMillis();
-        android.content.SharedPreferences prefs=getPreferences(MODE_PRIVATE);
+        android.content.SharedPreferences prefs=launcherPreferences();
         if(WallpaperRotation.advanceIfDue(this,prefs,now)) {
             requestWallpaper(); updateBackground();
             TextView label=findViewById(R.id.wallpaper_label);
@@ -1460,7 +1464,7 @@ public final class MainActivity extends Activity {
         // Solid and gradient choices have the same appearance on every page.
         // Replacing that full-screen drawable on each rail move wastes GPU work.
         String key=selected+":"+ready+(ready ? ":"+page+":"+("home".equals(page)
-                ? getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM) : 0) : ":shared");
+                ? launcherPreferences().getInt("dim",RECOMMENDED_DIM) : 0) : ":shared");
         if(key.equals(backgroundKey)) return;
         Drawable next;
         if(ready) {
@@ -1468,7 +1472,7 @@ public final class MainActivity extends Activity {
             android.graphics.drawable.BitmapDrawable photo=new android.graphics.drawable.BitmapDrawable(getResources(),image);
             photo.setGravity(Gravity.FILL); photo.setFilterBitmap(true);
             if("home".equals(page)) {
-                int alpha=Math.round(getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM)*2.55f);
+                int alpha=Math.round(launcherPreferences().getInt("dim",RECOMMENDED_DIM)*2.55f);
                 next=new android.graphics.drawable.LayerDrawable(new Drawable[]{photo,new android.graphics.drawable.ColorDrawable(Color.argb(alpha,8,15,30))});
             } else next=photo;
         } else if("plain".equals(selected)) next=new android.graphics.drawable.ColorDrawable(getColor(R.color.cd_background));
@@ -1480,9 +1484,9 @@ public final class MainActivity extends Activity {
     private List<String> getFavorites() {
         if (movingOrder != null) return new ArrayList<>(movingOrder);
         List<String> items = new ArrayList<>();
-        String saved = getPreferences(MODE_PRIVATE).getString("favorite_order", null);
+        String saved = launcherPreferences().getString("favorite_order", null);
         if (saved == null) {
-            items.addAll(getPreferences(MODE_PRIVATE).getStringSet("favorites", java.util.Collections.emptySet()));
+            items.addAll(launcherPreferences().getStringSet("favorites", java.util.Collections.emptySet()));
             java.util.Collections.sort(items);
             return items;
         }
@@ -1491,7 +1495,7 @@ public final class MainActivity extends Activity {
         return items;
     }
     private void saveFavorites(List<String> items) {
-        getPreferences(MODE_PRIVATE).edit().putString("favorite_order", new JSONArray(items).toString()).apply();
+        launcherPreferences().edit().putString("favorite_order", new JSONArray(items).toString()).apply();
         if (!"home".equals(page)) {
             LinearLayout old = pageViews.remove("home"); if (old != null) pageMotion.discardCached(old);
         }
@@ -1686,7 +1690,7 @@ public final class MainActivity extends Activity {
         }
         dialog.show(); dialog.getWindow().setLayout(dp(300), -2); rows.getChildAt(0).requestFocus();
     }
-    private boolean motionEnabled() { return getPreferences(MODE_PRIVATE).getBoolean("animations", true) && android.animation.ValueAnimator.areAnimatorsEnabled(); }
+    private boolean motionEnabled() { return launcherPreferences().getBoolean("animations", true) && android.animation.ValueAnimator.areAnimatorsEnabled(); }
     private void showSleepNow() {
         // Power is global. Dismiss the previous page before its confirmation appears.
         if (!"home".equals(page)) openPage("home");
@@ -1835,7 +1839,7 @@ public final class MainActivity extends Activity {
             boolean animated=motionEnabled();
             if(!animated) intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivity(intent,AppLaunchMotion.options(artwork,animated));
-            getPreferences(MODE_PRIVATE).edit().putString("last_opened_package",pkg).apply();
+            launcherPreferences().edit().putString("last_opened_package",pkg).apply();
             launchedAppAwaitingReturn = pkg;
         }
         catch (RuntimeException error) { Toast.makeText(this, getString(R.string.app_launch_failed), Toast.LENGTH_SHORT).show(); }

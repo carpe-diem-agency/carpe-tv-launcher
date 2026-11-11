@@ -73,7 +73,7 @@ public final class ScreensaverActivity extends Activity {
     private void rebuild() {
         String current=slides.isEmpty()?"":slides.get(index).key;slides.clear();
         for(SaverMedia item:cache.entries()) slides.add(new Slide(item));
-        String selected=Screensaver.prefs(this).getString("wallpaper","alpine");
+        String selected=LauncherSettings.get(this).getString("wallpaper","alpine");
         List<WallpaperCatalog.Entry> offline=WallpaperCatalog.entries(this);
         for(WallpaperCatalog.Entry e:offline) if(e.photo!=0&&e.key.equals(selected)) slides.add(new Slide(e));
         for(WallpaperCatalog.Entry e:offline) if(e.photo!=0&&!e.key.equals(selected)) slides.add(new Slide(e));

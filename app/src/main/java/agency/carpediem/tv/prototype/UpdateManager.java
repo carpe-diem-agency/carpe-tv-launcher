@@ -260,12 +260,21 @@ final class UpdateManager {
     private static void backup(Context c) throws Exception {
         File directory = new File(c.getFilesDir(), "update-rollback"); if (!directory.exists() && !directory.mkdirs()) throw new UpdateError(c,R.string.backup_failed);
         try (InputStream in = new FileInputStream(c.getApplicationInfo().sourceDir); OutputStream out = new FileOutputStream(new File(directory,"previous.apk"))) { byte[] b = new byte[32768]; int n; while ((n=in.read(b)) != -1) out.write(b,0,n); }
-        JSONObject settings = new JSONObject();
-        for (Map.Entry<String, ?> entry : c.getSharedPreferences("MainActivity", Context.MODE_PRIVATE).getAll().entrySet()) {
-            Object value = entry.getValue(); settings.put(entry.getKey(), value instanceof Set ? new JSONArray((Set<?>) value) : value);
-        }
-        JSONObject export = new JSONObject(); export.put("schemaVersion",1); export.put("versionCode",version(installed(c))); export.put("preferences",settings);
+        JSONObject export = new JSONObject();
+        export.put("schemaVersion", 2);
+        export.put("versionCode", version(installed(c)));
+        export.put("launcherPreferences", preferencesJson(LauncherSettings.get(c)));
+        export.put("languageAndScreensaverPreferences", preferencesJson(c.getSharedPreferences("MainActivity", Context.MODE_PRIVATE)));
+        export.put("legacyHomePreferences", preferencesJson(c.getSharedPreferences(MainActivity.class.getPackage().getName() + ".HomeEntry", Context.MODE_PRIVATE)));
         try (Writer out = new OutputStreamWriter(new FileOutputStream(new File(directory,"preferences.json")), "UTF-8")) { out.write(export.toString()); }
+    }
+    private static JSONObject preferencesJson(SharedPreferences preferences) throws Exception {
+        JSONObject result = new JSONObject();
+        for (Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
+            Object value = entry.getValue();
+            result.put(entry.getKey(), value instanceof Set ? new JSONArray((Set<?>) value) : value);
+        }
+        return result;
     }
     static void install(Activity activity) {
         if (!"ready".equals(state(activity))) return;

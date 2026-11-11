@@ -114,6 +114,26 @@ screen remain release checks. The Shizuku guide intentionally prevents ADB
 screenshots, so its wording and visible controls were checked through Android's
 UI hierarchy instead of a captured image.
 
+### Home alias preference regression — 2026-11-12
+
+On MiTV-AFMU1, the isolated public preview had a separate focus regression:
+launching `HomeEntry` after a process stop focused the left Home navigation item
+even though YouTube was the last opened favorite. Android's activity-specific
+`getPreferences()` had written two files: `MainActivity.xml` held
+`last_opened_package`, while `HomeEntry.xml` held the Home-alias settings. The
+launcher now uses one stable preference file for both entry points and imports
+alias-only settings without replacing existing main settings. The screensaver
+reads the same selected wallpaper. The updater's local JSON checkpoint now
+exports the launcher, language/screensaver, and legacy alias preference files.
+
+Before the device install, the installed preview APK and preference files were
+copied to private local rollback files. `assembleDebug`, `assembleDebugAndroidTest`,
+and `lintDebug` passed. A controlled process stop followed by an explicit
+`HomeEntry` launch focused YouTube again; the isolated `homealias` instrumentation
+probe passed and its temporary test package was removed. This validates focus
+when Carpe TV is launched as Home. It does **not** validate the physical Home
+button on Xiaomi firmware; that route still opens Google TV.
+
 **Current public-source status (2026-11-11):** This file retains historical
 measurements of the personal/internal launcher. The public APK no longer
 contains the Accessibility Home bridge used in some checks below. For the
