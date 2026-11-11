@@ -150,6 +150,10 @@ final class HomeFocusProbe {
         test.runOnMainSync(() -> screen.findViewById(page).requestFocus());
         SystemClock.sleep(250);
         test.runOnMainSync(() -> screen.findViewById(power).requestFocus());
+        test.runOnMainSync(() -> require(!screen.findViewById(R.id.nav_home).isSelected()
+                && !screen.findViewById(R.id.nav_apps).isSelected()
+                && !screen.findViewById(R.id.nav_settings).isSelected(),
+                "Toolbar focus must not highlight the sidebar"));
         for (int expected : new int[]{wifi, bluetooth, timer}) {
             key(test, KeyEvent.KEYCODE_DPAD_RIGHT);
             int[] actual={View.NO_ID};

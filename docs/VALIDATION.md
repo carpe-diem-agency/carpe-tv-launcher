@@ -414,3 +414,8 @@ not prove native Android/Google TV compatibility with a mismatched density.
 - Saved the installed isolated preview APK to `/private/tmp/carpe-preview-before-setup-checklist.apk` before updating it. The Device settings now present Home and optional system actions as two focusable cards with distinct vector icons. The system-access card is green only when the access is ready.
 - On MiTV-AFMU1 Android 14, the preview held the Android Home role, but an injected Home key from Android Settings resumed `com.google.android.apps.tv.launcherx/.home.HomeActivity`. Manually returning to Carpe TV did not mark Home as verified. The Device card therefore reports that Google TV still opens from Home. This is an injected-key test; the owner also reported the same result with the physical remote.
 - The final 1920×1080 device capture shows both cards without clipping. D-pad Right from the Device category focused the Home card. `assembleDebug` and `lintDebug` passed for the isolated preview. No stock package was disabled or removed. The Home routing gap remains a release blocker for claiming that Carpe TV fully replaces Home on this Xiaomi firmware.
+
+### Toolbar focus and sidebar highlight — 2026-11-11
+
+- On MiTV-AFMU1, focusing a top action previously left the current page highlighted in the left rail. The isolated preview now clears that rail selection while the toolbar or Apps search has focus and restores it when focus returns to page content.
+- Saved the previous installed preview APK as `/private/tmp/carpe-publicpreview-before-focus-fix.apk`, then installed only the isolated preview. `HomeFocusProbe`, `SettingsFocusProbe` and `ReorderProbe` all passed on the stick. This change does not alter the unresolved OEM Home routing.

@@ -157,6 +157,8 @@ public final class MainActivity extends Activity {
         bindNavigation(R.id.nav_home, "home");
         bindNavigation(R.id.nav_apps, "apps");
         bindNavigation(R.id.nav_settings, "settings");
+        findViewById(android.R.id.content).getViewTreeObserver()
+                .addOnGlobalFocusChangeListener((oldFocus, newFocus) -> updateSidebarSelection(newFocus));
         // The rail is stable across pages; configure its state fades once.
         configureStateFade(findViewById(R.id.sidebar));
         android.content.SharedPreferences preferences = getPreferences(MODE_PRIVATE);
@@ -218,6 +220,21 @@ public final class MainActivity extends Activity {
         View view = getCurrentFocus();
         return view != null && (view.getId() == R.id.nav_home
                 || view.getId() == R.id.nav_apps || view.getId() == R.id.nav_settings);
+    }
+    private boolean isHeaderAction(View view) {
+        if (view == null) return false;
+        int id = view.getId();
+        return id == R.id.home_power || id == R.id.home_wifi || id == R.id.home_bluetooth
+                || id == R.id.home_timer || id == R.id.apps_power || id == R.id.apps_wifi
+                || id == R.id.apps_bluetooth || id == R.id.apps_timer || id == R.id.apps_search
+                || id == R.id.settings_power || id == R.id.settings_wifi
+                || id == R.id.settings_bluetooth || id == R.id.settings_timer;
+    }
+    private void updateSidebarSelection(View focused) {
+        boolean show = !isHeaderAction(focused) && movingPackage == null;
+        findViewById(R.id.nav_home).setSelected(show && "home".equals(page));
+        findViewById(R.id.nav_apps).setSelected(show && "apps".equals(page));
+        findViewById(R.id.nav_settings).setSelected(show && "settings".equals(page));
     }
     @Override protected void onResume() {
         super.onResume();
@@ -1192,9 +1209,7 @@ public final class MainActivity extends Activity {
         libraryEntry = null;
         content.removeAllViews();
         updateBackground();
-        findViewById(R.id.nav_home).setSelected("home".equals(page));
-        findViewById(R.id.nav_apps).setSelected("apps".equals(page));
-        findViewById(R.id.nav_settings).setSelected("settings".equals(page));
+        updateSidebarSelection(getCurrentFocus());
         if ("home".equals(page)) {
             View header = getLayoutInflater().inflate(R.layout.home_header, content, false);
             ((TextView) header.findViewById(R.id.home_time)).setTypeface(Typeface.create(font, Typeface.BOLD));
@@ -1263,9 +1278,7 @@ public final class MainActivity extends Activity {
         if (cached == null) renderCurrentPage();
         else {
             updateBackground();
-            findViewById(R.id.nav_home).setSelected("home".equals(page));
-            findViewById(R.id.nav_apps).setSelected("apps".equals(page));
-            findViewById(R.id.nav_settings).setSelected("settings".equals(page));
+            updateSidebarSelection(getCurrentFocus());
             EditText search = content.findViewById(R.id.apps_search);
             if (search != null && search.length() > 0) search.setText("");
             View entry = findPageTile(content, focusedPackage);
