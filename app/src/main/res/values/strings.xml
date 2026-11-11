@@ -16,6 +16,10 @@
     <string name="version_prefix">"Version "</string>
     <string name="developer_info">"\n\nDeveloped by Carpe Diem Agency\ncarpediem.agency"</string>
     <string name="updates">"Updates"</string>
+    <string name="report_problem">"Report a problem"</string>
+    <string name="report_problem_hint">"Scan with your phone to open a GitHub issue. Do not include passwords, IP addresses or serial numbers."</string>
+    <string name="open_issue">"Open on TV"</string>
+    <string name="developer_site">"Developer website"</string>
     <string name="font_license">"Montserrat license"</string>
     <string name="third_party_notices">"Third-party notices"</string>
     <string name="code_license">"Source code license · Apache-2.0"</string>

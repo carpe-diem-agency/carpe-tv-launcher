@@ -823,11 +823,13 @@ public final class MainActivity extends Activity {
             shizukuHint.setPadding(0, dp(8), 0, dp(16)); detail.addView(shizukuHint);
         } else {
             LinearLayout brand = new LinearLayout(this); brand.setGravity(Gravity.CENTER_VERTICAL);
-            ImageView mark = new ImageView(this); mark.setImageResource(R.drawable.launcher_icon);
+            ImageView mark = new ImageView(this); mark.setImageResource(R.drawable.brand_icon);
             mark.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             LinearLayout.LayoutParams markSize = new LinearLayout.LayoutParams(dp(52), dp(52)); markSize.setMarginEnd(dp(16));
             brand.addView(mark, markSize); brand.addView(label(getString(R.string.app_name), 28, Color.WHITE)); detail.addView(brand);
             TextView info = label(getString(R.string.version_prefix) + UpdateManager.appVersion(this) + getString(R.string.developer_info), 16, 0xffb9c7dc); info.setPadding(0, dp(20), 0, dp(24)); detail.addView(info);
+            addSettingAction(detail, getString(R.string.report_problem), this::showFeedback);
+            addSettingAction(detail, getString(R.string.developer_site), () -> openExternalPage("https://carpediem.agency/"));
             addSettingAction(detail, getString(R.string.updates), () -> startActivity(new Intent(this, UpdatesActivity.class)));
             addSettingAction(detail, getString(R.string.code_license), () -> showAssetNotice(
                     getString(R.string.code_license), "licenses/Apache-2.0.txt"));
@@ -840,6 +842,49 @@ public final class MainActivity extends Activity {
         linkSettingsFocus(detail);
         configureStateFade(detail);
         } finally {renderingPage=previousRendering;}
+    }
+    private void openExternalPage(String url) {
+        try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))); }
+        catch (RuntimeException unavailable) { Toast.makeText(this, R.string.action_unavailable, Toast.LENGTH_SHORT).show(); }
+    }
+    private void showFeedback() {
+        final String issueUrl = "https://github.com/carpe-diem-agency/carpe-tv-launcher/issues/new?template=bug.yml";
+        View previousFocus = getCurrentFocus();
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setGravity(Gravity.CENTER_HORIZONTAL);
+        panel.setPadding(dp(28), dp(24), dp(28), dp(24));
+        panel.setBackground(surface(0xff172337, 20));
+        TextView title = label(getString(R.string.report_problem), 24, Color.WHITE);
+        panel.addView(title);
+        TextView hint = label(getString(R.string.report_problem_hint), 14, 0xffb9c7dc);
+        hint.setTypeface(font); hint.setGravity(Gravity.CENTER);
+        hint.setPadding(0, dp(10), 0, dp(18)); panel.addView(hint);
+        try {
+            com.google.zxing.common.BitMatrix bits = new com.google.zxing.qrcode.QRCodeWriter()
+                    .encode(issueUrl, com.google.zxing.BarcodeFormat.QR_CODE, 256, 256);
+            android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(256, 256, android.graphics.Bitmap.Config.ARGB_8888);
+            for (int y = 0; y < 256; y++) for (int x = 0; x < 256; x++)
+                bitmap.setPixel(x, y, bits.get(x, y) ? Color.BLACK : Color.WHITE);
+            ImageView qr = new ImageView(this); qr.setImageBitmap(bitmap);
+            qr.setBackgroundColor(Color.WHITE); qr.setPadding(dp(8), dp(8), dp(8), dp(8));
+            panel.addView(qr, new LinearLayout.LayoutParams(dp(204), dp(204)));
+        } catch (com.google.zxing.WriterException error) {
+            TextView fallback = label(issueUrl, 12, 0xffb9c7dc); panel.addView(fallback);
+        }
+        Button open = action(getString(R.string.open_issue), () -> { dialog.dismiss(); openExternalPage(issueUrl); });
+        LinearLayout.LayoutParams openSize = new LinearLayout.LayoutParams(-1, dp(52)); openSize.topMargin = dp(18);
+        panel.addView(open, openSize);
+        Button close = action(getString(R.string.close), dialog::dismiss);
+        LinearLayout.LayoutParams closeSize = new LinearLayout.LayoutParams(-1, dp(52)); closeSize.topMargin = dp(8);
+        panel.addView(close, closeSize);
+        dialog.setContentView(panel);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.getWindow().setWindowAnimations(motionEnabled() ? R.style.LumaDialogMotion : 0);
+        dialog.setOnDismissListener(ignored -> { if (previousFocus != null && previousFocus.isAttachedToWindow()) previousFocus.requestFocus(); });
+        dialog.show(); dialog.getWindow().setLayout(dp(430), -2); open.requestFocus();
     }
     private void showAssetNotice(String title, String assetPath) {
         String notice;

@@ -60,8 +60,8 @@ if 'cp app/build/outputs/apk/release/app-release.apk dist/' + asset_name not in 
 if 'dist/' + asset_name + ' dist/SHA256SUMS dist/update.json' not in release_workflow:
     errors.append('Release workflow must attach the APK, checksum and updater metadata')
 pages_workflow = (root/'.github/workflows/pages.yml').read_text()
-for media in ('wallpaper_alpine.jpg', 'home-preview.jpg', 'google-tv-home-test-stick.png', 'settings-preview.jpg', 'interface-preview.mp4'):
-    if not (root/'docs/assets'/media).is_file() or 'assets/'+media not in install_page:
+for media in ('wallpaper_alpine.jpg', 'brand-icon.png', 'manrope.ttf', 'OFL-Manrope.txt', 'home-preview.jpg', 'google-tv-home-test-stick.png', 'settings-preview.jpg', 'interface-preview.mp4'):
+    if not (root/'docs/assets'/media).is_file() or (media != 'OFL-Manrope.txt' and 'assets/'+media not in install_page):
         errors.append('Install page preview missing: '+media)
     if 'cp docs/assets/'+media+' site/assets/'+media not in pages_workflow:
         errors.append('Pages workflow does not publish preview: '+media)

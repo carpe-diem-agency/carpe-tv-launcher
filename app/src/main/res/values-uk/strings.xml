@@ -16,6 +16,10 @@
     <string name="version_prefix">"Версія "</string>
     <string name="developer_info">"\n\nРозробник — Carpe Diem Agency\ncarpediem.agency"</string>
     <string name="updates">"Оновлення"</string>
+    <string name="report_problem">"Повідомити про проблему"</string>
+    <string name="report_problem_hint">"Відскануй телефоном, щоб створити звернення на GitHub. Не додавай паролі, IP-адреси чи серійні номери."</string>
+    <string name="open_issue">"Відкрити на ТВ"</string>
+    <string name="developer_site">"Сайт розробника"</string>
     <string name="font_license">"Ліцензія Montserrat"</string>
     <string name="third_party_notices">"Сторонні компоненти та ліцензії"</string>
     <string name="code_license">"Ліцензія коду · Apache-2.0"</string>

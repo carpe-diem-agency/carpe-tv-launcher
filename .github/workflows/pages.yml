@@ -73,6 +73,9 @@ jobs:
           cp docs/index.html site/index.html
           cp docs/robots.txt docs/sitemap.xml site/
           cp docs/assets/wallpaper_alpine.jpg site/assets/wallpaper_alpine.jpg
+          cp docs/assets/brand-icon.png site/assets/brand-icon.png
+          cp docs/assets/manrope.ttf site/assets/manrope.ttf
+          cp docs/assets/OFL-Manrope.txt site/assets/OFL-Manrope.txt
           cp docs/assets/home-preview.jpg site/assets/home-preview.jpg
           cp docs/assets/google-tv-home-test-stick.png site/assets/google-tv-home-test-stick.png
           cp docs/assets/settings-preview.jpg site/assets/settings-preview.jpg
