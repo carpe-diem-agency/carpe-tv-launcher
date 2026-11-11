@@ -127,8 +127,15 @@ public final class MainActivity extends Activity {
         if (BuildConfig.DEBUG && intent.getBooleanExtra("internal_welcome_preview", false))
             content.post(() -> showWelcome(false));
         if (intent.getBooleanExtra("from_home", false) || intent.hasCategory(Intent.CATEGORY_HOME)) {
+            boolean returningFromLaunchedApp = launchedAppAwaitingReturn != null;
             launchedAppAwaitingReturn = null;
-            restoreLastOpenedApp();
+            if (returningFromLaunchedApp) restoreLastOpenedApp();
+            else {
+                openPage("home");
+                View lastTile = findPageTile(content, pageFocus.get("home"));
+                if (lastTile != null) lastTile.requestFocus();
+                else findViewById(R.id.nav_home).requestFocus();
+            }
         }
     }
     @Override public void onCreate(Bundle state) {
@@ -156,8 +163,7 @@ public final class MainActivity extends Activity {
                 && !HomeChoice.isSelected(this);
         renderPage();
         if (welcome) content.post(() -> showWelcome(true));
-        if (state == null && !welcome && (preferences.contains("last_opened_package")
-                || getIntent().getBooleanExtra("from_home", false)
+        if (state == null && !welcome && (getIntent().getBooleanExtra("from_home", false)
                 || getIntent().hasCategory(Intent.CATEGORY_HOME))) restoreLastOpenedApp();
         openTestUpdates(getIntent());
         restoreLanguageFocus = state != null && state.getBoolean("languageFocus",false);

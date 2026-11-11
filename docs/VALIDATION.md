@@ -1,5 +1,28 @@
 # Validation baseline — 2026-11-03
 
+## Public preview UX recheck — 2026-11-11
+
+On Xiaomi MiTV-AFMU1 (Android 14), the isolated `publicpreview` APK and
+instrumentation APK built and installed. These focused probes passed on the
+device: `homefocus` (including Home within Carpe TV preserving the selected
+favorite), `settingsfocus`, `feedback` (Issue QR and Back focus), and
+`pairinglimit` (English and Ukrainian phone pages load; five rejected codes
+close the local session). The test package
+was separate from the selected Home launcher.
+
+The navigation probe also passed 36 normal/rapid page changes. On this run,
+focused-card frames had median 10.57 ms and p95 15.02 ms (862 frames); page
+transition frames had median 31.39 ms and p95 56.38 ms (315 frames). A
+reduced-motion comparison still measured page p95 55.97 ms (36 frames), so
+this single pair of runs does not identify animation as the sole cause of
+slow page frames. Further profiling and visual review remain necessary.
+
+The physical remote's Home routing from YouTube into the future public release,
+phone scanning of the Issue QR, and a complete visual review of every settings
+screen remain release checks. The Shizuku guide intentionally prevents ADB
+screenshots, so its wording and visible controls were checked through Android's
+UI hierarchy instead of a captured image.
+
 **Current public-source status (2026-11-11):** This file retains historical
 measurements of the personal/internal launcher. The public APK no longer
 contains the Accessibility Home bridge used in some checks below. For the
