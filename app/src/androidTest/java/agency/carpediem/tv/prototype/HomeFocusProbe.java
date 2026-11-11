@@ -31,6 +31,14 @@ final class HomeFocusProbe {
             key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,header);
             key(test,KeyEvent.KEYCODE_DPAD_DOWN);focus(test,screen,tile.getId());
         }
+        String homeTile = (String) tiles.get(Math.min(4, tiles.size() - 1)).getTag();
+        test.runOnMainSync(() -> screen.findViewById(R.id.nav_apps).requestFocus());
+        SystemClock.sleep(300);
+        test.runOnMainSync(screen::onBackPressed);
+        SystemClock.sleep(300);
+        test.runOnMainSync(() -> require(screen.getCurrentFocus() != null
+                && homeTile.equals(screen.getCurrentFocus().getTag()),
+                "Back from library must return to the last Home tile"));
         View artwork=tiles.get(0).findViewById(R.id.app_artwork);
         boolean[] animated={false},reduced={false};test.runOnMainSync(() -> {
             animated[0]=AppLaunchMotion.options(artwork,true)!=null;
@@ -97,7 +105,7 @@ final class HomeFocusProbe {
             if(previous==null)screen.getPreferences(0).edit().remove("last_opened_package").commit();
             else screen.getPreferences(0).edit().putString("last_opened_package",previous).commit();
         }
-        result.putString("home_focus","PASS: toolbar order on all pages, Home and app refresh retain tile focus, Power activation hides Settings, launch motion fallback valid");
+        result.putString("home_focus","PASS: toolbar order, Back/Home and app refresh retain tile focus, Power hides Settings, launch motion fallback valid");
     }
     private static void checkToolbar(Instrumentation test, MainActivity screen, int page, int power,
                                      int wifi, int bluetooth, int timer) {

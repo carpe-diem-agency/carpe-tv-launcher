@@ -1628,7 +1628,14 @@ public final class MainActivity extends Activity {
         icon.setScaleType(banner ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER); icon.setImageDrawable(artwork);
     }
     @Override public void onBackPressed() {
-        if (!"home".equals(page)) { openPage("home"); findViewById(R.id.nav_home).requestFocus(); return; }
+        if (!"home".equals(page)) {
+            openPage("home");
+            View lastTile = findPageTile(content, pageFocus.get("home"));
+            if (lastTile == null) lastTile = findPageTile(content, null);
+            if (lastTile != null) lastTile.requestFocus();
+            else findViewById(R.id.nav_home).requestFocus();
+            return;
+        }
         findViewById(R.id.nav_home).requestFocus();
     }
     private int dp(float value) { return (int) (value * getResources().getDisplayMetrics().density + .5f); }
