@@ -265,7 +265,7 @@ public final class MainActivity extends Activity {
             for (ResolveInfo info : pm.queryIntentActivities(query, 0)) {
                 if (info.activityInfo == null) continue;
                 String pkg = info.activityInfo.packageName;
-                if (!pkg.equals(getPackageName()) && !items.containsKey(pkg)) {
+                if (!isCarpeLauncher(pkg) && !items.containsKey(pkg)) {
                     items.put(pkg, new AppItem(pkg, info.loadLabel(pm).toString()));
                 }
             }
@@ -278,6 +278,12 @@ public final class MainActivity extends Activity {
         if (!sameApps(readCache(), apps)) writeCache(apps);
         runOnUiThread(() -> showApps(apps));
         prefetchArtwork(apps);
+    }
+    private boolean isCarpeLauncher(String pkg) {
+        return pkg.equals(getPackageName())
+                || pkg.equals("agency.carpediem.tv")
+                || pkg.equals("agency.carpediem.tv.prototype")
+                || pkg.equals("agency.carpediem.tv.publicpreview");
     }
     private void prefetchArtwork(List<AppItem> apps) {
         List<AppItem> ordered = new ArrayList<>(); List<String> favorites = getFavorites();
@@ -305,7 +311,8 @@ public final class MainActivity extends Activity {
             JSONArray data = new JSONArray(getPreferences(MODE_PRIVATE).getString("apps", "[]"));
             for (int i = 0; i < data.length(); i++) {
                 JSONObject item = data.getJSONObject(i);
-                result.add(new AppItem(item.getString("package"), item.getString("label")));
+                String pkg = item.getString("package");
+                if (!isCarpeLauncher(pkg)) result.add(new AppItem(pkg, item.getString("label")));
             }
         } catch (Exception ignored) { result.clear(); }
         return result;

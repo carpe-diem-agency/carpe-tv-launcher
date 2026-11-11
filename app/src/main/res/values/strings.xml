@@ -210,7 +210,7 @@
     <string name="sleep_remaining">Sleep in %1$d min</string>
     <string name="sleep_cancel">Cancel timer</string>
     <string name="sleep_help">Works while another app is playing.</string>
-    <string name="sleep_access">System access (Shizuku) is required. Enable it, return here and choose a duration.</string>
+    <string name="sleep_access">Enable system access to put the device to sleep on a timer.</string>
     <string name="sleep_alarm">Allow alarms and reminders for Carpe TV, then choose a duration again.</string>
     <string name="sleep_failed">Sleep failed. Check system access (Shizuku).</string>
     <string name="sleep_set">Sleep timer set</string>

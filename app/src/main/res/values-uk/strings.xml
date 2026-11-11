@@ -210,7 +210,7 @@
     <string name="sleep_remaining">Сон через %1$d хв</string>
     <string name="sleep_cancel">Скасувати таймер</string>
     <string name="sleep_help">Працює й під час перегляду в інших програмах.</string>
-    <string name="sleep_access">Потрібен системний доступ Shizuku. Увімкніть його, поверніться сюди й оберіть тривалість.</string>
+    <string name="sleep_access">Щоб приспати приставку за таймером, увімкніть системний доступ.</string>
     <string name="sleep_alarm">Дозвольте будильники й нагадування для Carpe TV, а потім знову оберіть тривалість.</string>
     <string name="sleep_failed">Сон не спрацював. Перевірте системний доступ Shizuku.</string>
     <string name="sleep_set">Таймер сну встановлено</string>
