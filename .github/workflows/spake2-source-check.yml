@@ -1,0 +1,40 @@
+name: Rebuild bundled SPAKE2 source
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify and unpack the exact source bundle
+        run: |
+          echo 'af64a8a6f5273ded0ce2635b807c68ed0741384db32cf871f6af71d495f63e07  compliance/source/spake2-java-2.2.1-with-submodule.tar.gz' | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/spake2-source"
+          tar -xzf compliance/source/spake2-java-2.2.1-with-submodule.tar.gz -C "$RUNNER_TEMP/spake2-source"
+      - name: Install Android native build tools on the runner
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            'platforms;android-35' 'build-tools;35.0.0' \
+            'ndk;27.2.12479018' 'cmake;3.22.1'
+      - name: Build upstream Android library
+        working-directory: ${{ runner.temp }}/spake2-source/spake2-java-2.2.1
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon :android:assembleRelease
+          test -s android/build/outputs/aar/android-release.aar
+          unzip -l android/build/outputs/aar/android-release.aar 'jni/*/libspake2.so'
+      - name: Save build result for review
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: spake2-source-build-${{ github.sha }}
+          retention-days: 14
+          path: ${{ runner.temp }}/spake2-source/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar
