@@ -30,7 +30,7 @@
     <string name="choose_home">"Choose another launcher"</string>
     <string name="home_service">"Home button service"</string>
     <string name="version_prefix">"Version "</string>
-    <string name="developer_info">"\n\nDeveloped by Carpe Diem Agency\ncarpediem.agency"</string>
+    <string name="developer_info">"\n\nCompany — Carpe Diem Agency\ncarpediem.agency"</string>
     <string name="updates">"Updates"</string>
     <string name="report_problem">"Report a problem"</string>
     <string name="report_problem_hint">"Scan with your phone to create a GitHub issue. A GitHub account is required. Do not include passwords, IP addresses or serial numbers."</string>
