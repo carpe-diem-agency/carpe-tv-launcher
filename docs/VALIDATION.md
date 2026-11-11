@@ -134,6 +134,16 @@ probe passed and its temporary test package was removed. This validates focus
 when Carpe TV is launched as Home. It does **not** validate the physical Home
 button on Xiaomi firmware; that route still opens Google TV.
 
+An additional read-only resolver check still selected Google TV's
+`launcherx/.home.HomeActivity`, while the preview's `HomeEntry` remained enabled
+and registered as a preferred activity. A reversible component-only experiment
+could not proceed: Android rejected both shell `disable-user` and `enable` for
+Google TV's protected Home component with `SecurityException`. No component
+state changed; the resolver still selected Google TV afterward. Disabling the
+entire Google TV package is not a replacement for this test because an earlier
+controlled trial routed Home to Xiaomi's recovery activity. The stock package
+and the current Home selection were left intact.
+
 **Current public-source status (2026-11-11):** This file retains historical
 measurements of the personal/internal launcher. The public APK no longer
 contains the Accessibility Home bridge used in some checks below. For the
