@@ -6,20 +6,22 @@
 
 - Android TV / Google TV, Android 8.0 (API 26)+. System controls were tested only on
   Xiaomi TV Stick `MiTV-AFMU1`, Android TV 14 — [device matrix](../README.en.md#tested-devices).
-- Retain a working APK and ADB access before changing system apps. An APK is not a
-  full private-data backup. Keep the stock launcher installed and do not clear its data.
+- Keep the stock launcher installed and do not clear its data.
 - Apps & background is included in 0.2.7 internal preview; older APKs may not
   include it. Check the individual release notes.
 - System mutations support primary Android user 0. Root is not required.
 
 ## 1. Install Carpe TV
 
-**Without a computer:** open the [latest release](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest)
-in a browser on your TV and download `carpe-tv.apk`. If the TV has no browser,
-download the same file on your phone and transfer it using a method supported
-by your TV. You may need a file receiver from Google Play. Until the public APK
-is released, the project page shows a preview only; the install link will appear
-after the release.
+**Without a computer:** open the
+[Carpe TV page](https://carpe-diem-agency.github.io/carpe-tv-launcher/)
+on your TV and select **Download APK**. If your TV has no browser, download the
+APK from the same page on your phone and transfer the file to your TV. Some
+devices need a file receiver app from Google Play.
+
+The page currently shows a preview only. The download button will appear after
+the public release. [GitHub Releases](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases)
+will provide the same APK as a fallback.
 
 1. Open the downloaded APK on the TV. If Android asks which app to use, choose
    **Package Installer**. On [Android 8+](https://developer.android.com/studio/publish#install-unknown-apps), allow installation for
@@ -89,6 +91,9 @@ our Stick retained the Carpe TV authorization. Without a running Shizuku server,
 state remains visible but system mutations are blocked. Disabled analytics stays disabled.
 
 ## 4. Disable Xiaomi analytics
+
+Before changing a system package, retain a working APK and a verified route
+back to the stock Home app. An APK is not a full backup of private app data.
 
 
 1. **Settings → Apps & background → Xiaomi Analytics**.
