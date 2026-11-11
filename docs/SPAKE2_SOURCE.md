@@ -25,3 +25,7 @@ JitPack artifact is `2.2.1`; provenance was checked by tag and submodule,
 but binary reproduction from this source has **not** been demonstrated.
 The bundle does not settle the application-code/relinking or installation
 information requirements for a signed APK. Keep that publication gate open.
+
+## Source rebuild check
+
+The manual [GitHub Actions run #1](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42990630242) succeeded on 2026-11-11 at commit `86aa698`. It verified the bundle checksum, installed the Android NDK and CMake on the runner, built the upstream Android release AAR, and uploaded the resulting AAR as an artifact. This shows that the archived source can be built with the workflow's toolchain. It does not show that its native bytes match the JitPack AAR in Carpe TV, that a user can replace the library in the signed APK, or that the LGPL-3.0 distribution obligations are satisfied. The public release gate remains open.

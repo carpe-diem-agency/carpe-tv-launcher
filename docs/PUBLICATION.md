@@ -36,6 +36,10 @@
       a separate draft-release asset, verify its SHA-256 and include it in the
       release checksums. This does not prove binary reproducibility or LGPL
       relinking compliance; see [source record](SPAKE2_SOURCE.md).
+- [x] Rebuild that source bundle in a manual GitHub Actions job on 2026-11-11;
+      [run #1](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42990630242)
+      passed and uploaded an AAR. This establishes source buildability, not
+      binary equivalence or a working signed-APK relinking path.
 - [ ] Complete distribution review of libadb-android and its LGPL-3.0
       `spake2-android` 2.2.1 transitive component, including native-library
       source and relinking obligations. Bundled license text alone is not clearance.
