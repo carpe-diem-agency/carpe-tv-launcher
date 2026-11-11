@@ -32,7 +32,7 @@ jobs:
         env:
           EVENT_PATH: ${{ github.event_path }}
         run: |
-          jq -e '([.release.assets[].name] | index("carpe-tv.apk") != null and index("SHA256SUMS") != null and index("update.json") != null)' "$EVENT_PATH"
+          jq -e '([.release.assets[].name] | index("carpe-tv.apk") != null and index("SHA256SUMS") != null and index("update.json") != null and index("spake2-java-2.2.1-with-submodule.tar.gz") != null)' "$EVENT_PATH"
       - name: Check whether a stable APK already exists
         id: stable
         if: ${{ github.event_name != 'release' }}
@@ -41,7 +41,7 @@ jobs:
         run: |
           url="https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest"
           if curl --fail --silent --show-error -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "$url" \
-            | jq -e '([.assets[]?.name] | index("carpe-tv.apk") != null and index("SHA256SUMS") != null and index("update.json") != null)' >/dev/null; then
+            | jq -e '([.assets[]?.name] | index("carpe-tv.apk") != null and index("SHA256SUMS") != null and index("update.json") != null and index("spake2-java-2.2.1-with-submodule.tar.gz") != null)' >/dev/null; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
@@ -50,6 +50,23 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Verify latest stable release assets before showing download
+        if: ${{ github.event_name == 'release' || steps.stable.outputs.ready == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_PATH: ${{ github.event_path }}
+        run: |
+          tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '.tag_name')"
+          if [ "$GITHUB_EVENT_NAME" = release ]; then
+            event_tag="$(jq -r '.release.tag_name' "$EVENT_PATH")"
+            test "$tag" = "$event_tag"
+          fi
+          mkdir -p "$RUNNER_TEMP/pages-release"
+          gh release download "$tag" --dir "$RUNNER_TEMP/pages-release" \
+            --pattern 'carpe-tv.apk' --pattern 'SHA256SUMS' \
+            --pattern 'update.json' --pattern 'spake2-java-2.2.1-with-submodule.tar.gz'
+          python3 scripts/verify_pages_release.py "$RUNNER_TEMP/pages-release" \
+            --repository "$GITHUB_REPOSITORY" --tag "$tag"
       - name: Prepare only the public install page
         run: |
           mkdir -p site/assets

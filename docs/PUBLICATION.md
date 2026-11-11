@@ -21,8 +21,10 @@
 - [x] Prepare a gated GitHub Pages workflow that publishes only the install
       page, its reviewed media and sitemap in a public repository. Before a
       stable APK exists, the page shows a source preview without a download
-      action or structured download metadata. A stable release with the named
-      APK, checksum and updater metadata switches the page to installation mode.
+      action or structured download metadata. A stable release switches the
+      page to installation mode only after all four release assets are present
+      and the downloaded APK and source archive match `SHA256SUMS`, while
+      `update.json` matches the APK hash, size, package ID and release URL.
 - [x] Enable GitHub Pages from Actions and verify the live Ukrainian source
       preview at `https://carpe-diem-agency.github.io/carpe-tv-launcher/`.
 - [ ] Publish and test that install page only after the public stable release
