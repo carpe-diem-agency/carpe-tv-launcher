@@ -64,13 +64,24 @@ candidate installed through TV Bro without the Play Protect block; its exact
 hash and remaining Home test are in [the installation test](PLAY_PROTECT_TEST.md).
 Earlier signed candidates containing the Accessibility Home bridge are obsolete.
 
+Before adding GitHub release secrets, the owner should copy the keystore and
+its passwords to storage independent of the development Mac, protect them from
+other people, and perform a **restore check**: copy the backup to a temporary
+location, read its signing-certificate SHA-256 with `keytool -list -v`, and
+compare it with the fingerprint in the linked device test record. Delete the
+temporary restored copy afterward. Keep the backup location and recovery
+method in a private record, not this repository. A second folder on the same
+Mac is not an independent backup. Until this check succeeds, keep the release workflow in
+draft preparation and do not publish a stable APK.
+
 The manual Release workflow builds a signed APK, verifies its signature and
 artwork, then attaches the APK, the SPAKE2 source bundle, SHA256SUMS and
 update.json to a **draft**
 pre-release. Reviewers should check the resulting APK on real Android TV
 devices and approve publication only after the [publication checklist](PUBLICATION.md)
-is complete. A public repository, stable release and update feed are separate
-manual decisions.
+is complete. Its tag must exactly equal `v` plus the APK's `versionName`; for
+the current `0.2.7` build, the only matching tag is `v0.2.7`. A public
+repository, stable release and update feed are separate manual decisions.
 
 For the first public candidate, use the **same production key** for the draft
 and later updates. Test the downloaded draft APK as a fresh install without
@@ -97,9 +108,10 @@ The public `.github/workflows/pages.yml` deploys only the page, its preview
 media, `robots.txt` and `sitemap.xml`. Pages is enabled from GitHub Actions at
 `https://carpe-diem-agency.github.io/carpe-tv-launcher/`. Until a stable APK
 exists, it publishes a source preview without a download action. A stable
-release containing `carpe-tv.apk`, `SHA256SUMS` and `update.json` changes the
-page to installation mode. Later source pushes retain that mode when the latest
-stable release has those three assets. Do not select branch `/docs` publishing
+release containing `carpe-tv.apk`, `SHA256SUMS`, `update.json` and the SPAKE2
+source archive changes the page to installation mode only after Pages downloads
+them and checks both file hashes and the update metadata. Later source pushes
+repeat the same gate against the latest stable release. Do not select branch `/docs` publishing
 in parallel. The live APK download, Android installer, phone transfer, both
 languages and rollback link still need final release testing. If the release
 asset name changes, update the page, workflow check and instructions together.
