@@ -86,7 +86,6 @@ public final class MainActivity extends Activity {
     private TextView auditMemory;
     private int auditGeneration;
     private TextView systemAccessStatus;
-    private Button systemAccessSetup;
     private boolean systemOperation;
     private AlertDialog systemConfirmation;
     private void refreshSystemAccessUi(){runOnUiThread(()->{if(!destroyed)refreshApplicationAudit();});}
@@ -122,6 +121,7 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        HomeChoice.recordHomeReturn(this, intent);
         setIntent(intent);
         openTestUpdates(intent);
         if (BuildConfig.DEBUG && intent.getBooleanExtra("internal_welcome_preview", false))
@@ -140,6 +140,7 @@ public final class MainActivity extends Activity {
     }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        HomeChoice.recordHomeReturn(this, getIntent());
         rikka.shizuku.Shizuku.addRequestPermissionResultListener(systemPermissionResult);
         rikka.shizuku.Shizuku.addBinderReceivedListenerSticky(systemBinderReady);
         rikka.shizuku.Shizuku.addBinderDeadListener(systemBinderDead);
@@ -228,8 +229,7 @@ public final class MainActivity extends Activity {
         updateHomeGreeting(); updateSaverCacheStatus(); updateSleepTimerIndicator();
         if("settings".equals(page) && "audit".equals(settingsCategory)) refreshApplicationAudit();
         UpdateManager.maybeCheck(this);
-        TextView status = content.findViewById(R.id.home_status);
-        if (status != null) status.setText(HomeChoice.status(this));
+        updateHomeSetupStatus();
         TextView homeWarning = content.findViewById(R.id.home_remote_warning);
         if (homeWarning != null) homeWarning.setVisibility(HomeChoice.needsRemoteHomeCheck(this) ? View.VISIBLE : View.GONE);
         updateShizukuStatus();
@@ -831,6 +831,24 @@ public final class MainActivity extends Activity {
             addSettingAction(detail, getString(R.string.open_library), () -> openPage("apps"));
         } else if ("device".equals(category)) {
             detail.addView(label(getString(R.string.device), 24, Color.WHITE));
+            TextView setupIntro = label(getString(R.string.setup_checklist_intro), 14, 0xffb9c7dc);
+            setupIntro.setTypeface(font);
+            setupIntro.setPadding(0, dp(10), 0, dp(16)); detail.addView(setupIntro);
+            boolean available = false;
+            try { getPackageManager().getActivityInfo(new android.content.ComponentName(this, MainActivity.class.getPackage().getName() + ".HomeEntry"), PackageManager.MATCH_DISABLED_COMPONENTS); available = true; }
+            catch (PackageManager.NameNotFoundException ignored) { }
+            if (available) addSetupCard(detail, R.drawable.ic_setup_home, R.string.setup_home_title,
+                    R.id.home_status, R.id.home_setup_icon,
+                    () -> { if (HomeChoice.isSelected(this)) HomeChoice.startRemoteCheck(this); else HomeChoice.request(this); });
+            addSetupCard(detail, R.drawable.ic_setup_access, R.string.setup_system_title,
+                    R.id.shizuku_status, R.id.system_setup_icon,
+                    () -> startActivity(new Intent(this, SystemSetupActivity.class)));
+            updateHomeSetupStatus();
+            updateShizukuStatus();
+            addSettingAction(detail, getString(R.string.android_settings), () -> {
+                try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
+                catch (RuntimeException error) { Toast.makeText(this, getString(R.string.settings_unavailable), Toast.LENGTH_SHORT).show(); }
+            });
             android.view.Display display = getWindowManager().getDefaultDisplay();
             android.view.Display.Mode mode = display.getMode();
             android.graphics.Point output = new android.graphics.Point();
@@ -846,31 +864,9 @@ public final class MainActivity extends Activity {
             specifications.setPadding(dp(18), dp(14), dp(18), dp(14));
             specifications.setBackgroundResource(R.drawable.control_background);
             LinearLayout.LayoutParams specsSize = new LinearLayout.LayoutParams(-1, -2);
-            specsSize.bottomMargin = dp(14);
+            specsSize.topMargin = dp(18);
             detail.addView(specifications, specsSize);
-            TextView home = label(HomeChoice.status(this), 14, 0xffb9c7dc); home.setId(R.id.home_status); home.setPadding(0, dp(16), 0, dp(16)); detail.addView(home);
-            TextView warning = label(getString(R.string.home_remote_check), 14, 0xffffd68a);
-            warning.setId(R.id.home_remote_warning);
-            warning.setPadding(0, 0, 0, dp(12));
-            warning.setVisibility(HomeChoice.needsRemoteHomeCheck(this) ? View.VISIBLE : View.GONE);
-            detail.addView(warning);
-            boolean available = false;
-            try { getPackageManager().getActivityInfo(new android.content.ComponentName(this, MainActivity.class.getPackage().getName() + ".HomeEntry"), PackageManager.MATCH_DISABLED_COMPONENTS); available = true; }
-            catch (PackageManager.NameNotFoundException ignored) { }
-            if (available) { addSettingAction(detail, getString(R.string.make_home), () -> HomeChoice.request(this)); addSettingAction(detail, getString(R.string.choose_home), () -> HomeChoice.chooseOther(this)); }
-            addSettingAction(detail, getString(R.string.android_settings), () -> {
-                try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
-                catch (RuntimeException error) { Toast.makeText(this, getString(R.string.settings_unavailable), Toast.LENGTH_SHORT).show(); }
-            });
-            TextView extra = label(getString(R.string.optional_system_controls), 16, 0xffb9c7dc);
-            extra.setPadding(0, dp(24), 0, dp(8)); detail.addView(extra);
-            systemAccessSetup = action(getString(R.string.setup_title), () -> startActivity(new Intent(this, SystemSetupActivity.class)));
-            systemAccessSetup.setId(View.generateViewId());
-            LinearLayout.LayoutParams setupSize = new LinearLayout.LayoutParams(-1, dp(52));
-            setupSize.topMargin = dp(10); detail.addView(systemAccessSetup, setupSize);
-            TextView shizuku = label("", 14, 0xffb9c7dc);
-            shizuku.setId(R.id.shizuku_status); shizuku.setPadding(0, dp(16), 0, dp(8));
-            detail.addView(shizuku); updateShizukuStatus();
+            if (available) addSettingAction(detail, getString(R.string.choose_home), () -> HomeChoice.chooseOther(this));
             // Shizuku's own phone-oriented screen has no reliable D-pad focus.
             // The launcher provides a remote-first setup flow above instead.
         } else {
@@ -1070,6 +1066,41 @@ public final class MainActivity extends Activity {
     private void addSettingAction(LinearLayout detail, String text, Runnable callback) {
         Button button = action(text, callback); button.setId(View.generateViewId());
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(52)); params.topMargin = dp(10); detail.addView(button, params);
+    }
+    private void addSetupCard(LinearLayout detail, int icon, int title, int statusId, int iconId, Runnable callback) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setPadding(dp(16), dp(11), dp(16), dp(11));
+        card.setBackgroundResource(R.drawable.setup_card_background);
+        card.setFocusable(true);
+        card.setClickable(true);
+        card.setContentDescription(getString(title));
+        card.setOnClickListener(v -> callback.run());
+        configureStateFade(card);
+        ImageView picture = new ImageView(this);
+        picture.setId(iconId);
+        picture.setImageResource(icon);
+        picture.setImageTintList(android.content.res.ColorStateList.valueOf(0xffb9c7dc));
+        card.addView(picture, new LinearLayout.LayoutParams(dp(32), dp(32)));
+        LinearLayout text = new LinearLayout(this);
+        text.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textSize = new LinearLayout.LayoutParams(0, -2, 1);
+        textSize.leftMargin = dp(16);
+        card.addView(text, textSize);
+        TextView heading = label(getString(title), 17, Color.WHITE);
+        text.addView(heading);
+        TextView status = label("", 13, 0xffb9c7dc);
+        status.setTypeface(font);
+        status.setId(statusId);
+        status.setPadding(0, dp(5), 0, 0);
+        text.addView(status);
+        TextView arrow = label("›", 25, 0xff9db2cd);
+        arrow.setTypeface(font);
+        card.addView(arrow);
+        LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(-1, dp(82));
+        size.bottomMargin = dp(10);
+        detail.addView(card, size);
     }
     private View firstFocusable(android.view.ViewGroup group) {
         for (int i = 0; i < group.getChildCount(); i++) {
@@ -1500,13 +1531,11 @@ public final class MainActivity extends Activity {
                 return true;
             }
             if (focused != null && isWithin(focused, detail)) {
-                int direction = key == android.view.KeyEvent.KEYCODE_DPAD_UP
-                        ? View.FOCUS_UP : key == android.view.KeyEvent.KEYCODE_DPAD_DOWN
-                        ? View.FOCUS_DOWN : 0;
-                if (direction != 0) {
-                    View next = focused.focusSearch(direction);
+                if (key == android.view.KeyEvent.KEYCODE_DPAD_UP || key == android.view.KeyEvent.KEYCODE_DPAD_DOWN) {
+                    View next = key == android.view.KeyEvent.KEYCODE_DPAD_UP
+                            ? focused.focusSearch(View.FOCUS_UP) : focused.focusSearch(View.FOCUS_DOWN);
                     if (next == null || !isWithin(next, detail)) {
-                        if (direction == View.FOCUS_UP) findViewById(R.id.settings_power).requestFocus();
+                        if (key == android.view.KeyEvent.KEYCODE_DPAD_UP) findViewById(R.id.settings_power).requestFocus();
                         return true;
                     }
                 }
@@ -1686,11 +1715,28 @@ public final class MainActivity extends Activity {
     }
     private void updateShizukuStatus() {
         TextView status = findViewById(R.id.shizuku_status);
-        if (status != null) status.setText(SystemAccess.ready() ? R.string.system_access_ready
-                : SystemAccess.running() ? R.string.system_access_permission : R.string.shizuku_stopped_short);
-        if (systemAccessSetup != null)
-            systemAccessSetup.setBackgroundResource(SystemAccess.ready()
-                    ? R.drawable.system_access_on : R.drawable.system_access_off);
+        if (status != null) {
+            boolean ready = SystemAccess.ready();
+            status.setText(ready ? R.string.setup_system_ready
+                    : SystemAccess.running() ? R.string.setup_system_permission : R.string.setup_system_off);
+            status.setTextColor(ready ? 0xff9ce0c3 : 0xffb9c7dc);
+            View picture = findViewById(R.id.system_setup_icon);
+            if (picture instanceof ImageView) ((ImageView)picture).setImageTintList(
+                    android.content.res.ColorStateList.valueOf(ready ? 0xff9ce0c3 : 0xffb9c7dc));
+        }
+    }
+    private void updateHomeSetupStatus() {
+        TextView status = findViewById(R.id.home_status);
+        if (status == null) return;
+        boolean selected = HomeChoice.isSelected(this);
+        boolean verified = HomeChoice.isRemoteVerified(this);
+        status.setText(verified ? R.string.setup_home_ready
+                : selected && !HomeChoice.platformResolvesToCarpe(this) ? R.string.setup_home_route_conflict
+                : selected ? R.string.setup_home_unverified : R.string.setup_home_off);
+        status.setTextColor(verified ? 0xff9ce0c3 : 0xffb9c7dc);
+        View picture = findViewById(R.id.home_setup_icon);
+        if (picture instanceof ImageView) ((ImageView)picture).setImageTintList(
+                android.content.res.ColorStateList.valueOf(verified ? 0xff9ce0c3 : 0xffb9c7dc));
     }
     private void openBluetooth() {
         // Prefer the platform contract; several TV OEMs do not implement it.

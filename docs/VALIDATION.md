@@ -374,3 +374,9 @@ not prove native Android/Google TV compatibility with a mismatched density.
 
 - Replaced the detached QR, instructions and settings button with one guide: scan QR on phone → open Wireless debugging and select pairing by code on TV → enter the six digits on the phone. The settings button sits beside the TV step. The long introduction hides during pairing so the QR and all three actions fit at 1920×1080.
 - Built and installed only `agency.carpediem.tv.publicpreview`, after saving its previous APK to `/private/tmp/carpe-preview-before-guided-qr.apk`. `SystemSetupFocusProbe` passed on MiTV-AFMU1 Android 14: every instruction was fully visible and D-pad Down from the QR action reached the settings button. The temporary androidTest package was uninstalled. No real code was entered and no system launcher setting changed.
+
+### Device setup checklist and Home route — 2026-11-11
+
+- Saved the installed isolated preview APK to `/private/tmp/carpe-preview-before-setup-checklist.apk` before updating it. The Device settings now present Home and optional system actions as two focusable cards with distinct vector icons. The system-access card is green only when the access is ready.
+- On MiTV-AFMU1 Android 14, the preview held the Android Home role, but an injected Home key from Android Settings resumed `com.google.android.apps.tv.launcherx/.home.HomeActivity`. Manually returning to Carpe TV did not mark Home as verified. The Device card therefore reports that Google TV still opens from Home. This is an injected-key test; the owner also reported the same result with the physical remote.
+- The final 1920×1080 device capture shows both cards without clipping. D-pad Right from the Device category focused the Home card. `assembleDebug` and `lintDebug` passed for the isolated preview. No stock package was disabled or removed. The Home routing gap remains a release blocker for claiming that Carpe TV fully replaces Home on this Xiaomi firmware.

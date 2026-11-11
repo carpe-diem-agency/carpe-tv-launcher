@@ -1,0 +1,4 @@
+<resources>
+    <item name="home_setup_icon" type="id"/>
+    <item name="system_setup_icon" type="id"/>
+</resources>
