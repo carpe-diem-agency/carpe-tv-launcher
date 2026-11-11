@@ -29,3 +29,22 @@ information requirements for a signed APK. Keep that publication gate open.
 ## Source rebuild check
 
 The manual [GitHub Actions run #1](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42990630242) succeeded on 2026-11-11 at commit `86aa698`. It verified the bundle checksum, installed the Android NDK and CMake on the runner, built the upstream Android release AAR, and uploaded the resulting AAR as an artifact. This shows that the archived source can be built with the workflow's toolchain. It does not show that its native bytes match the JitPack AAR in Carpe TV, that a user can replace the library in the signed APK, or that the LGPL-3.0 distribution obligations are satisfied. The public release gate remains open.
+
+## Building with a replacement AAR
+
+The launcher accepts an explicitly supplied Android AAR in place of libadb's
+transitive `spake2-android` artifact:
+
+```sh
+./gradlew :app:assembleRelease -Pspake2Aar=/absolute/path/to/android-release.aar
+```
+
+The AAR can be built from the staged source with the commands in
+`.github/workflows/spake2-source-check.yml`. The path must point to an existing
+`.aar` file. A local release build using this property and the original
+unmodified dependency AAR succeeded on 2026-11-11; the release dependency
+report no longer contained the transitive `spake2-android` module. This proves
+the dependency substitution path works for that AAR, but a modified library
+has not yet been built, installed, or run on a device. A rebuilt APK needs its
+own signing key; it cannot be installed as an update over an APK signed by a
+different key. Keep the signed-APK replacement and installation check open.

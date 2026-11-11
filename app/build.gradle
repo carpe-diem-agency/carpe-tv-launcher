@@ -32,7 +32,18 @@ android {
 
 dependencies {
  implementation "com.google.zxing:core:3.5.4"
- implementation "com.github.MuntashirAkon:libadb-android:3.1.1"
+ implementation("com.github.MuntashirAkon:libadb-android:3.1.1") {
+     if (project.hasProperty('spake2Aar')) {
+         exclude group: 'com.github.MuntashirAkon.spake2-java', module: 'spake2-android'
+     }
+ }
+ if (project.hasProperty('spake2Aar')) {
+     def replacement = file(project.property('spake2Aar'))
+     if (!replacement.isFile() || !replacement.name.endsWith('.aar')) {
+         throw new GradleException("spake2Aar must name an existing Android AAR: ${replacement}")
+     }
+     implementation files(replacement)
+ }
  implementation "org.conscrypt:conscrypt-android:2.8.0"
  implementation "org.bouncycastle:bcpkix-jdk15to18:1.86"
  implementation "dev.rikka.shizuku:api:13.1.5"
