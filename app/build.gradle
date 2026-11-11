@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'agency.carpediem.tv.prototype'
     compileSdk 34
-    defaultConfig { applicationId 'agency.carpediem.tv'; minSdk 26; targetSdk 34; versionCode 14; versionName '0.2.7'; testInstrumentationRunner 'agency.carpediem.tv.prototype.NavigationProbe' }
+    defaultConfig { applicationId 'agency.carpediem.tv'; minSdk 26; targetSdk 34; versionCode 15; versionName '0.2.8'; testInstrumentationRunner 'agency.carpediem.tv.prototype.NavigationProbe' }
     buildFeatures { buildConfig true; aidl true }
     defaultConfig { buildConfigField 'String', 'UPDATE_FEED_URL', '\"' + (findProperty('updateFeedUrl') ?: '').replace('\\', '\\\\').replace('"', '\\"') + '\"' }
     signingConfigs {

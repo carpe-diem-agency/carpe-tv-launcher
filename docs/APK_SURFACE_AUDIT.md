@@ -2,7 +2,7 @@
 
 Inspected the built `app-release-unsigned.apk` with Android build-tools `aapt`
 on 2026-11-11. The artifact is Carpe TV `agency.carpediem.tv`, version
-`0.2.7` (code 14), min SDK 26, target SDK 34, approximately 16 MB. This is
+`0.2.8` (code 15), min SDK 26, target SDK 34, approximately 16 MB. This is
 an artifact inventory, not a security certification or a multi-device test.
 
 | Permission in APK | Used for |

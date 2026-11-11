@@ -82,7 +82,7 @@ update.json to a **draft**
 pre-release. Reviewers should check the resulting APK on real Android TV
 devices and approve publication only after the [publication checklist](PUBLICATION.md)
 is complete. Its tag must exactly equal `v` plus the APK's `versionName`; for
-the current `0.2.7` build, the only matching tag is `v0.2.7`. A public
+the current `0.2.8` build, the only matching tag is `v0.2.8`. A public
 repository, stable release and update feed are separate manual decisions.
 
 For the first public candidate, use the **same production key** for the draft

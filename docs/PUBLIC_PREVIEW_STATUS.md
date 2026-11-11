@@ -29,7 +29,7 @@ debug test on one stick, not a release or multi-device soak result. Details
 are in [performance checks](PERFORMANCE_CHECK.md).
 The release media check finds the three documented CC0 landscape photos and
 none of the known private artwork. This is not a complete rights or secret
-audit. The built unsigned APK is `agency.carpediem.tv`, version 0.2.7,
+audit. The current unsigned APK is `agency.carpediem.tv`, version 0.2.8,
 approximately 16 MB; its manifest permissions and exported components are
 recorded in the [APK surface audit](APK_SURFACE_AUDIT.md). See the
 [publication checklist](PUBLICATION.md) for the remaining gates.
@@ -65,3 +65,10 @@ controls and spacing. An isolated debug build opened it on the same stick at
 buttons without clipping. This only verifies the unavailable-access state.
 Scheduling and the active countdown still require a signed build with the
 optional system-access setup and separate device checks.
+
+The next public version was then advanced to **0.2.8 (code 15)** so it cannot
+be confused with the installed personal 0.2.7. The unsigned release APK
+rebuilt, its package/version readback and media check passed, and the four
+permissions in the APK matched the recorded inventory. The 0.2.8 bytes have
+not yet been installed from a GitHub release; the on-device release UI check
+above used the preceding 0.2.7 source with the same controls.

@@ -1,5 +1,31 @@
 # Temporary signed release APK check — MiTV-AFMU1
 
+## Current release-variant UI smoke check, 2026-11-11
+
+The source at `d6e3dee` built an unsigned `agency.carpediem.tv` release APK.
+The artifact check found the three approved nature photos, required license
+texts and notices, and none of the known private artwork. For this runtime
+check only, the APK was signed with the local Android **debug certificate**;
+it is not a distributable release or a valid test of the production signing
+identity. The test APK SHA-256 was
+`cadfec847dfea9b244fbb452866c72a5193f375dbfde22f9a422df49ff8529b5`.
+`apksigner verify` passed with v2 and v3 signatures.
+
+The APK installed beside the personal launcher on MiTV-AFMU1. Cold launch
+reported 606 ms (`am start -W`). The Ukrainian welcome screen fit at
+1920×1080; **Спершу оглянути** opened the launcher without changing Home.
+Settings showed Power, Wi-Fi, Bluetooth and Timer in that order at the top.
+Activating Power returned to Home, with no Settings panel behind it. The
+compact timer panel opened from the top control without clipped text or
+buttons. Because the test app did not have system access, this checked only
+the timer's setup state, not scheduling or a running countdown.
+
+ADB screenshots recorded those states privately. The personal launcher was
+returned to the foreground and the test package was uninstalled. Android's
+Home role still belonged to `agency.carpediem.tv.prototype`. Physical remote
+Home, projector review, installation from the GitHub asset, production signing
+and rollback on another device remain separate release gates.
+
 ## Current navigation candidate, 2026-11-11
 
 ### One-APK TV Bro installation check
