@@ -23,7 +23,9 @@ for probe in feedback homefocus languagestate; do
   if ! grep -q 'INSTRUMENTATION_CODE: -1' <<< "${result}" || grep -q 'INSTRUMENTATION_RESULT: failure=' <<< "${result}"; then
     echo "Probe failed: ${probe}" >&2
     echo 'Recent Android crash and focus diagnostics:' >&2
-    adb shell dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp|mObscuringWindow' >&2 || true
+    adb shell dumpsys window | grep -E 'mCurrentFocus|mFocusedApp|mObscuringWindow|mTopFocusedDisplayId' >&2 || true
+    adb shell dumpsys activity activities | grep -E 'topResumedActivity|mResumedActivity|ResumedActivity|agency.carpediem.tv|com.google.android.tvlauncher' | tail -35 >&2 || true
+    adb shell dumpsys power | grep -E 'mWakefulness=|Display Power: state=|mScreenOn=' | head -12 >&2 || true
     adb logcat -d -t 3000 -v brief | grep -E -A 35 -B 3 \
       'FATAL EXCEPTION|Process: agency.carpediem.tv|InputDispatcher|Focus event|E AndroidRuntime' | tail -180 >&2 || true
     exit 1

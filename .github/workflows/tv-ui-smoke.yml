@@ -31,6 +31,6 @@ jobs:
           arch: x86
           profile: tv_1080p
           ram-size: 3072M
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim
           disable-animations: false
           script: bash scripts/run_emulator_ui_smoke.sh
