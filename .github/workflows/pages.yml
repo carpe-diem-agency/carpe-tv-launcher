@@ -72,7 +72,7 @@ jobs:
           mkdir -p site/assets
           cp docs/index.html site/index.html
           cp docs/robots.txt docs/sitemap.xml site/
-          cp docs/assets/wallpaper_alpine.webp site/assets/wallpaper_alpine.webp
+          cp docs/assets/site-ambient.webp site/assets/site-ambient.webp
           cp docs/assets/brand-icon.png site/assets/brand-icon.png
           cp docs/assets/manrope.ttf site/assets/manrope.ttf
           cp docs/assets/OFL-Manrope.txt site/assets/OFL-Manrope.txt

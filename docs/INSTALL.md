@@ -19,7 +19,7 @@ on your TV and select **Download APK**. If your TV has no browser, download the
 APK from the same page on your phone and transfer the file to your TV. Some
 devices need a file receiver app from Google Play.
 
-The page currently shows a preview only. The download button will appear after
+The page currently shows a preview only. The download button becomes active after
 the public release. [GitHub Releases](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases)
 will provide the same APK as a fallback.
 

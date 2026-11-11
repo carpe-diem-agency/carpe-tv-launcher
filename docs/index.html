@@ -22,7 +22,7 @@
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Carpe TV","applicationCategory":"MultimediaApplication","operatingSystem":"Android TV, Google TV","description":"Free remote-first home screen launcher for Android TV and Google TV.","isAccessibleForFree":true,"url":"https://carpe-diem-agency.github.io/carpe-tv-launcher/"}</script>
   <link rel="icon" type="image/png" href="assets/brand-icon.png">
   <link rel="preload" href="assets/manrope.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="assets/wallpaper_alpine.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/site-ambient.webp" as="image" type="image/webp">
   <title>Carpe TV — безплатний лаунчер для Android TV і Google TV</title>
   <style>
     @font-face { font-family: "Manrope"; src: url("assets/manrope.ttf") format("truetype"); font-style: normal; font-weight: 200 800; font-display: swap; }
@@ -45,7 +45,7 @@
       background: #101b2e;
       isolation: isolate;
     }
-    body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, rgba(7, 17, 33, .92), rgba(7, 17, 33, .52) 68%, rgba(7, 17, 33, .38)), url("assets/wallpaper_alpine.webp") center / cover; transform: translateZ(0); }
+    body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, rgba(7, 17, 33, .38), rgba(7, 17, 33, .1) 68%, rgba(7, 17, 33, .2)), url("assets/site-ambient.webp") center / cover; transform: translateZ(0); }
     a, button { -webkit-tap-highlight-color: transparent; }
     a:focus-visible, button:focus-visible, .download:focus {
       outline: 4px solid var(--focus);
@@ -332,7 +332,7 @@
     for (const button of buttons) button.addEventListener('click', () => selectLanguage(button.dataset.language));
     if (!navigator.language.toLowerCase().startsWith('uk')) selectLanguage('en');
     // A remote user can press OK immediately after the TV browser opens the page.
-    requestAnimationFrame(() => document.querySelector('.intro:not([hidden]) ' + (document.documentElement.dataset.releaseReady === 'true' ? '.download' : '.preview-only.secondary'))?.focus({ preventScroll: true }));
+    requestAnimationFrame(() => document.querySelector('.intro:not([hidden]) ' + (document.documentElement.dataset.releaseReady === 'true' ? '.download.release-only' : '.github-link'))?.focus({ preventScroll: true }));
   </script>
 </body>
 </html>

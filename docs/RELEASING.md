@@ -105,7 +105,7 @@ and a phone. It includes search/social metadata, two reviewed preview screens
 and a short real transition recording. The final release-media review remains
 open; see [screenshots](screenshots/README.md). It links its main button directly to the stable
 release asset `releases/latest/download/carpe-tv.apk`, with a fallback link to
-the release list. The page uses the same verified CC0 alpine photo as the app.
+the release list. The page uses a separate, generated background image; the app's alpine wallpaper remains a distinct asset.
 The local page has been checked at TV and phone viewport sizes, including
 keyboard focus and both languages; its download link cannot work until a
 **stable** release with exactly that asset name is public.

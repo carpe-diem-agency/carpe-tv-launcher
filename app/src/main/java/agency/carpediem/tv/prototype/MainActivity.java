@@ -425,7 +425,8 @@ public final class MainActivity extends Activity {
         });
         panel.addView(explore, new LinearLayout.LayoutParams(-1, dp(52)));
         Button choose = action(getString(R.string.make_home), () -> {
-            rememberChoice.run(); dialog.dismiss(); HomeChoice.request(this);
+            // Keep onboarding available if Android's Home chooser is dismissed.
+            dialog.dismiss(); HomeChoice.request(this);
         });
         LinearLayout.LayoutParams second = new LinearLayout.LayoutParams(-1, dp(52)); second.topMargin = dp(10);
         panel.addView(choose, second);
@@ -1207,6 +1208,14 @@ public final class MainActivity extends Activity {
         if(wifi!=null) wifi.setNextFocusDownId(tileId);
         View bluetooth=findViewById(R.id.home_bluetooth);
         if(bluetooth!=null) bluetooth.setNextFocusDownId(tileId);
+        View sleepTimer=findViewById(R.id.home_timer);
+        if(sleepTimer!=null) sleepTimer.setNextFocusDownId(tileId);
+    }
+    private int homeHeaderForColumn(int column) {
+        if (column == 0) return R.id.home_power;
+        if (column < 3) return R.id.home_wifi;
+        if (column == 3) return R.id.home_bluetooth;
+        return R.id.home_timer;
     }
     private int pageOrder(String value) { return "home".equals(value) ? 0 : "apps".equals(value) ? 1 : 2; }
     private void updateHomeGreeting() {
@@ -1292,7 +1301,7 @@ public final class MainActivity extends Activity {
             tile.setNextFocusRightId(i % 5 == 4 || i + 1 == tiles.size() ? tile.getId() : tiles.get(i + 1).getId());
             if (i >= 5) tile.setNextFocusUpId(tiles.get(i - 5).getId());
             else if ("apps".equals(page)) tile.setNextFocusUpId(R.id.apps_search);
-            else if ("home".equals(page)) tile.setNextFocusUpId(R.id.home_wifi);
+            else if ("home".equals(page)) tile.setNextFocusUpId(homeHeaderForColumn(i % 5));
             tile.setNextFocusDownId(i + 5 < tiles.size() ? tiles.get(i + 5).getId() : tile.getId());
         }
         if (row != null && count % 5 != 0) {
@@ -1441,7 +1450,7 @@ public final class MainActivity extends Activity {
             View tile=tiles.get(i); row.addView(tile);
             tile.setNextFocusRightId(i%5==4 || i+1==tiles.size()?tile.getId():tiles.get(i+1).getId());
             tile.setNextFocusLeftId(i%5==0?R.id.nav_home:tiles.get(i-1).getId());
-            tile.setNextFocusUpId(i>=5?tiles.get(i-5).getId():R.id.home_wifi);
+            tile.setNextFocusUpId(i>=5?tiles.get(i-5).getId():homeHeaderForColumn(i%5));
             tile.setNextFocusDownId(i+5<tiles.size()?tiles.get(i+5).getId():tile.getId());
         }
         if(row!=null) for(int i=tiles.size()%5;i>0 && i<5;i++) {

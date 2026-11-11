@@ -71,13 +71,13 @@ class PagesReleaseTest(unittest.TestCase):
         self.assertNotIn('"downloadUrl"', source)
         page = self.assets / 'index.html'
         page.write_text(source)
-        result = subprocess.run([sys.executable, str(PAGE_SCRIPT), str(page)],
+        result = subprocess.run([sys.executable, str(PAGE_SCRIPT), str(page), str(self.manifest)],
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         enabled = page.read_text()
         self.assertIn('data-release-ready="true"', enabled)
         self.assertIn('"downloadUrl"', enabled)
-        self.assertNotEqual(subprocess.run([sys.executable, str(PAGE_SCRIPT), str(page)],
+        self.assertNotEqual(subprocess.run([sys.executable, str(PAGE_SCRIPT), str(page), str(self.manifest)],
                                            capture_output=True).returncode, 0)
 
 
