@@ -53,8 +53,8 @@ The follow-up [GitHub Actions run #2](https://github.com/carpe-diem-agency/carpe
 at commit `33552fc` also passed: after rebuilding the source AAR, the runner
 built an unsigned Carpe TV release APK with that AAR supplied through
 `-Pspake2Aar`. This verifies the source-to-APK build path on a clean runner.
-The resulting APK was not signed or installed, and this was the unmodified
-upstream source, so the device and modified-library checks remain open.
+The workflow artifact was not signed or installed in that run, and this was the
+unmodified upstream source, so the modified-library check remains open.
 
 The subsequent [run #3](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42992685963)
 at commit `563b24f` passed a stronger packaging check: SHA-256 of each
@@ -62,3 +62,18 @@ source-built `libspake2.so` in the AAR matched the corresponding file in the
 unsigned APK for `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64`. This verifies
 which native files entered that build. It still does not verify installation
 of a modified library or resolve the signed-distribution requirements.
+
+## Isolated signed device check
+
+On 2026-11-11, the AAR from run #3 was downloaded and supplied to an offline
+local `assembleRelease -PisolatedPreview -Pspake2Aar=…` build. The unsigned
+APK passed `scripts/check_release_apk.py`; its four packaged SPAKE2 native
+libraries matched the source-built AAR byte for byte. The APK was signed with
+a disposable test certificate, installed under the isolated
+`agency.carpediem.tv.publicpreview` ID on MiTV-AFMU1, and launched. Home and
+the app library rendered, and D-pad navigation worked. The test APK was then
+removed, leaving the personal Home role unchanged. This establishes that the
+source-built library can run inside a signed launcher APK on the tested stick.
+It does not prove that a recipient can install a modified SPAKE2 build over a
+production-signed release. Production signing, modified-library replacement,
+and the LGPL release review remain open.
