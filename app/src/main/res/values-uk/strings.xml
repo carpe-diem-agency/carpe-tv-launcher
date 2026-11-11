@@ -245,8 +245,10 @@
 <string name="setup_step_phone">QR на телефоні</string>
 <string name="setup_step_code">Код на ТВ</string>
 <string name="setup_step_ready">Доступ готовий</string>
-<string name="setup_code_example">Android покаже на ТВ шість цифр. Введи їх на сторінці Carpe TV, що відкриється після сканування QR-коду телефоном. Наприклад, 123456 — це зразок, не твій код.</string>
-<string name="setup_scan_first">На приставці відкрий «Параметри розробника» → «Налагодження через Wi-Fi» → «Підключити пристрій за допомогою коду». Android покаже шість цифр. Скануй QR-код телефоном і введи ці цифри на сторінці Carpe TV.</string>
+<string name="setup_guide_scan">Скануй QR-код телефоном. Сторінка Carpe TV відкриється в браузері.</string>
+<string name="setup_guide_settings">На ТВ відкрий «Налагодження через Wi-Fi» → «Підключити пристрій за допомогою коду».</string>
+<string name="setup_guide_enter">Перепиши шість цифр з ТВ на сторінку в телефоні.</string>
+<string name="setup_scan_first">Виконай три кроки поруч із QR-кодом.</string>
 <string name="setup_phone_unavailable">Не вдалося відкрити локальну сторінку. Перевір Wi-Fi приставки.</string>
 <string name="setup_pair">Показати QR-код</string>
 <string name="setup_start">Увімкнути додаткові дії</string>

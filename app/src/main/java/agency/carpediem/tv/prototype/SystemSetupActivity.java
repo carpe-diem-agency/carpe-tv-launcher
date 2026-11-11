@@ -36,10 +36,12 @@ public final class SystemSetupActivity extends Activity {
     private final AtomicInteger pairingPort = new AtomicInteger();
     private LocalAdbDiscovery discovery;
     private LocalPairingServer server;
-    private TextView status, address, codeExample;
+    private TextView status, address;
     private final TextView[] stepNumbers = new TextView[3];
     private final TextView[] stepTitles = new TextView[3];
+    private final View[] introduction = new View[4];
     private ImageView qr;
+    private LinearLayout pairingGuide;
     private Button openSettings, startButton, grantButton;
     private Typeface font;
     private boolean busy, destroyed;
@@ -69,37 +71,52 @@ public final class SystemSetupActivity extends Activity {
         LinearLayout.LayoutParams headingSize = new LinearLayout.LayoutParams(-1, -2);
         headingSize.topMargin = dp(18);
         panel.addView(whatIsShizuku, headingSize);
+        introduction[0] = whatIsShizuku;
         TextView explanation = label(getString(R.string.setup_what_is_shizuku), 15, 0xffdce8fa);
         explanation.setPadding(dp(18), dp(14), dp(18), dp(14));
         explanation.setBackgroundResource(R.drawable.control_background);
         LinearLayout.LayoutParams explanationSize = new LinearLayout.LayoutParams(-1, -2);
         explanationSize.topMargin = dp(12);
         panel.addView(explanation, explanationSize);
+        introduction[1] = explanation;
         TextView intro = label(getString(R.string.setup_phone_intro), 15, 0xffbdcce2);
         intro.setPadding(0, dp(15), 0, dp(8));
         panel.addView(intro);
-        addStepRow(panel);
+        introduction[2] = intro;
+        introduction[3] = addStepRow(panel);
         status = label("", 15, 0xffa8d6ff);
         status.setPadding(0, dp(8), 0, dp(8));
         panel.addView(status);
         Button first = button(getString(R.string.setup_pair), this::beginPairing);
         panel.addView(first, buttonSize());
+        pairingGuide = new LinearLayout(this);
+        pairingGuide.setOrientation(LinearLayout.HORIZONTAL);
+        pairingGuide.setPadding(dp(18), dp(14), dp(18), dp(14));
+        pairingGuide.setBackgroundResource(R.drawable.control_background);
+        pairingGuide.setVisibility(View.GONE);
+        LinearLayout.LayoutParams guideSize = new LinearLayout.LayoutParams(-1, -2);
+        guideSize.topMargin = dp(12);
+        panel.addView(pairingGuide, guideSize);
+        LinearLayout qrColumn = new LinearLayout(this);
+        qrColumn.setOrientation(LinearLayout.VERTICAL);
+        pairingGuide.addView(qrColumn, new LinearLayout.LayoutParams(dp(212), -2));
         qr = new ImageView(this);
-        qr.setVisibility(View.GONE);
-        LinearLayout.LayoutParams qrSize = new LinearLayout.LayoutParams(dp(190), dp(190));
-        qrSize.topMargin = dp(12);
-        panel.addView(qr, qrSize);
-        address = label("", 14, Color.WHITE);
-        address.setVisibility(View.GONE);
-        panel.addView(address);
-        codeExample = label(getString(R.string.setup_code_example), 14, 0xffc4d2e8);
-        codeExample.setPadding(dp(18), dp(12), dp(18), dp(12));
-        codeExample.setBackgroundResource(R.drawable.control_background);
-        LinearLayout.LayoutParams exampleSize = new LinearLayout.LayoutParams(-1, -2);
-        exampleSize.topMargin = dp(12);
-        panel.addView(codeExample, exampleSize);
+        qrColumn.addView(qr, new LinearLayout.LayoutParams(dp(190), dp(190)));
+        address = label("", 11, 0xffaebdd3);
+        address.setMaxLines(2);
+        qrColumn.addView(address);
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams actionSize = new LinearLayout.LayoutParams(0, -2, 1f);
+        actionSize.setMarginStart(dp(20));
+        pairingGuide.addView(actions, actionSize);
+        addGuideStep(actions, 1, R.string.setup_guide_scan);
+        addGuideStep(actions, 2, R.string.setup_guide_settings);
         openSettings = button(getString(R.string.setup_open_settings), this::openDeveloperSettings);
-        panel.addView(openSettings, buttonSize());
+        LinearLayout.LayoutParams settingsSize = buttonSize();
+        settingsSize.setMarginStart(dp(40));
+        actions.addView(openSettings, settingsSize);
+        addGuideStep(actions, 3, R.string.setup_guide_enter);
         startButton = button(getString(R.string.setup_start), this::startServiceOnDevice);
         panel.addView(startButton, buttonSize());
         grantButton = button(getString(R.string.shizuku_grant), () -> {
@@ -125,7 +142,7 @@ public final class SystemSetupActivity extends Activity {
         button.setOnClickListener(v -> action.run());
         return button;
     }
-    private void addStepRow(LinearLayout panel) {
+    private View addStepRow(LinearLayout panel) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams rowSize = new LinearLayout.LayoutParams(-1, -2);
@@ -151,6 +168,26 @@ public final class SystemSetupActivity extends Activity {
             stepTitles[i] = title;
         }
         setStep(0);
+        return row;
+    }
+    private void addGuideStep(LinearLayout parent, int number, int labelId) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams rowSize = new LinearLayout.LayoutParams(-1, -2);
+        rowSize.bottomMargin = dp(10);
+        parent.addView(row, rowSize);
+        TextView badge = label(String.valueOf(number), 14, Color.WHITE);
+        badge.setGravity(android.view.Gravity.CENTER);
+        GradientDrawable disk = new GradientDrawable();
+        disk.setShape(GradientDrawable.OVAL);
+        disk.setColor(0xff315fa8);
+        badge.setBackground(disk);
+        row.addView(badge, new LinearLayout.LayoutParams(dp(30), dp(30)));
+        TextView title = label(getString(labelId), 14, Color.WHITE);
+        LinearLayout.LayoutParams titleSize = new LinearLayout.LayoutParams(0, -2, 1f);
+        titleSize.setMarginStart(dp(10));
+        row.addView(title, titleSize);
     }
     private void setStep(int current) {
         for (int i = 0; i < stepNumbers.length; i++) {
@@ -178,10 +215,9 @@ public final class SystemSetupActivity extends Activity {
         boolean ready = SystemAccess.ready();
         boolean running = SystemAccess.running();
         boolean pairing = server != null && !paired;
+        for (View view : introduction) view.setVisibility(pairing || paired ? View.GONE : View.VISIBLE);
         setStep(paired ? 2 : pairing ? 1 : 0);
-        if (paired) { qr.setVisibility(View.GONE); address.setVisibility(View.GONE); }
-        codeExample.setVisibility(pairing ? View.VISIBLE : View.GONE);
-        openSettings.setVisibility(pairing ? View.VISIBLE : View.GONE);
+        pairingGuide.setVisibility(pairing ? View.VISIBLE : View.GONE);
         startButton.setVisibility(paired && !running ? View.VISIBLE : View.GONE);
         grantButton.setVisibility(running && !ready ? View.VISIBLE : View.GONE);
         startButton.setEnabled(paired && !ready);
@@ -225,10 +261,10 @@ public final class SystemSetupActivity extends Activity {
             stopSession(); status.setText(R.string.setup_phone_unavailable); return;
         }
         busy = true;
+        for (View view : introduction) view.setVisibility(View.GONE);
         setStep(1);
         status.setText(R.string.setup_scan_first);
-        codeExample.setVisibility(View.VISIBLE);
-        openSettings.setVisibility(View.VISIBLE);
+        pairingGuide.setVisibility(View.VISIBLE);
         startButton.setVisibility(View.GONE);
         grantButton.setVisibility(View.GONE);
         discovery = new LocalAdbDiscovery(this);
@@ -244,8 +280,8 @@ public final class SystemSetupActivity extends Activity {
         Bitmap image = Bitmap.createBitmap(bits.getWidth(), bits.getHeight(), Bitmap.Config.ARGB_8888);
         for (int y = 0; y < bits.getHeight(); y++)
             for (int x = 0; x < bits.getWidth(); x++) image.setPixel(x, y, bits.get(x, y) ? Color.BLACK : Color.WHITE);
-        qr.setImageBitmap(image); qr.setVisibility(View.VISIBLE);
-        address.setText(url); address.setVisibility(View.VISIBLE);
+        qr.setImageBitmap(image);
+        address.setText(url);
     }
     private void openDeveloperSettings() {
         if (server == null) { status.setText(R.string.setup_phone_unavailable); return; }

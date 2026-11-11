@@ -245,8 +245,10 @@
 <string name="setup_step_phone">QR on phone</string>
 <string name="setup_step_code">Code on TV</string>
 <string name="setup_step_ready">Access ready</string>
-<string name="setup_code_example">Android shows six digits on your TV. Enter them on the Carpe TV page that opens when you scan the QR code with your phone. For example, 123456 is a sample, not your code.</string>
-<string name="setup_scan_first">On your TV, open Developer options → Wireless debugging → Pair device with pairing code. Android will show six digits. Scan the QR code with your phone and enter those digits on the Carpe TV page.</string>
+<string name="setup_guide_scan">Scan the QR code with your phone. The Carpe TV page opens in your browser.</string>
+<string name="setup_guide_settings">On your TV, open Wireless debugging → Pair device with pairing code.</string>
+<string name="setup_guide_enter">Enter the six digits shown on your TV into the page on your phone.</string>
+<string name="setup_scan_first">Follow the three steps beside the QR code.</string>
 <string name="setup_phone_unavailable">Could not open the local pairing page. Check the TV Wi-Fi connection.</string>
 <string name="setup_pair">Show QR code</string>
 <string name="setup_start">Enable extra actions</string>
