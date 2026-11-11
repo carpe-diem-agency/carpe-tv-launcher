@@ -32,6 +32,11 @@ jobs:
           ./gradlew --no-daemon :android:assembleRelease
           test -s android/build/outputs/aar/android-release.aar
           unzip -l android/build/outputs/aar/android-release.aar 'jni/*/libspake2.so'
+      - name: Build Carpe TV with source-built SPAKE2
+        run: |
+          ./gradlew --no-daemon :app:assembleRelease \
+            -Pspake2Aar="$RUNNER_TEMP/spake2-source/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar"
+          test -s app/build/outputs/apk/release/app-release-unsigned.apk
       - name: Save build result for review
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
