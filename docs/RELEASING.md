@@ -93,20 +93,16 @@ The local page has been checked at TV and phone viewport sizes, including
 keyboard focus and both languages; its download link cannot work until a
 **stable** release with exactly that asset name is public.
 
-The prepared `.github/workflows/pages.yml` deploys only the install page,
-its approved preview media, `robots.txt` and `sitemap.xml` after a **stable
-release is published in a public repository**.
-It checks that the release has `carpe-tv.apk`, `SHA256SUMS` and `update.json`.
-Before that release, set **Settings → Pages → Build and deployment → GitHub
-Actions** and restrict the `github-pages` environment to the intended branch.
-Do not select branch `/docs` publishing in parallel. The expected address is
-`https://carpe-diem-agency.github.io/carpe-tv-launcher/`; verify the actual URL reported
-by the deployment. Test it in a TV browser and on a phone, including the APK
-download, Android installer prompt, both languages, and rollback link. The
-page and APK do not become public merely because this workflow file exists.
-GitHub Pages may be public even for a private repository, so leave Pages
-disabled until publication. If the release asset name changes, update the
-page, workflow check and update instructions together.
+The public `.github/workflows/pages.yml` deploys only the page, its preview
+media, `robots.txt` and `sitemap.xml`. Pages is enabled from GitHub Actions at
+`https://carpe-diem-agency.github.io/carpe-tv-launcher/`. Until a stable APK
+exists, it publishes a source preview without a download action. A stable
+release containing `carpe-tv.apk`, `SHA256SUMS` and `update.json` changes the
+page to installation mode. Later source pushes retain that mode when the latest
+stable release has those three assets. Do not select branch `/docs` publishing
+in parallel. The live APK download, Android installer, phone transfer, both
+languages and rollback link still need final release testing. If the release
+asset name changes, update the page, workflow check and instructions together.
 
 For each update, increase versionCode and keep the same application ID and
 signing key. Do not use the debug key for a public release.
