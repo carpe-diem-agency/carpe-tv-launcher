@@ -41,3 +41,25 @@ installer reported **App installed** without a Play Protect block. The signed
 app's first-run screen opened. The public test package and downloaded APK were
 then removed, the server stopped, and the personal Home holder confirmed.
 This does not validate a future GitHub release URL or physical Home behavior.
+
+## Separate Home helper experiment · 2026-11-11
+
+To check whether separating the Home accessibility service from the main APK
+would avoid the installation block, we built a minimal, independently packaged
+debug APK (`agency.carpediem.tv.homehelper.experiment`). Its service listened only
+for Google TV window-state events, requested no window content, and intentionally
+performed no action. Its SHA-256 was
+`a324e0fda2d4cc93ccce06f0a95ac6836cecd4cbf1eb69f1ae8101239856f0b4`.
+
+TV Bro downloaded the APK from a temporary local HTTP server. Android's package
+installer offered **Install**, then Google Play Protect blocked it with the
+warning that the app could request access to sensitive data. The app was not
+installed or enabled. The temporary server was stopped. This shows that simply
+putting the same type of service in a separate APK does not make ordinary TV Bro
+installation work on this stick. The fixture is not a distributable solution.
+
+We also tried a narrower system-component route: disabling only Google TV's
+`home.HomeActivity` through shell, while leaving the Google TV package enabled.
+Android rejected the command with `SecurityException: Shell cannot change
+component state`. A readback still resolved Home to Google TV and showed the
+Google TV package enabled. No system component was changed.
