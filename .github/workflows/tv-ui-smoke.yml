@@ -27,9 +27,9 @@ jobs:
         uses: ReactiveCircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808 # v2
         with:
           api-level: 34
-          target: google-tv
+          target: android-tv
           arch: x86
           ram-size: 3072M
-          emulator-options: -no-window -gpu software -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
           disable-animations: false
           script: bash scripts/run_emulator_ui_smoke.sh
