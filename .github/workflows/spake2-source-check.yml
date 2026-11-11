@@ -38,7 +38,7 @@ jobs:
           import os
           source = Path(os.environ['RUNNER_TEMP']) / 'spake2-source/spake2-java-2.2.1/android/src/main/cpp/spake2-c/spake2.c'
           marker = 'CARPE_SPAKE2_RELINK_PROBE_2026'
-          source.write_text('__attribute__((used)) const char carpe_relink_probe[] = "' + marker + '";\n' + source.read_text())
+          source.write_text('__attribute__((used, retain, visibility("default"))) const char carpe_relink_probe[] = "' + marker + '";\n' + source.read_text())
           PYCODE
       - name: Build upstream Android library
         working-directory: ${{ runner.temp }}/spake2-source/spake2-java-2.2.1
