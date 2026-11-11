@@ -4,9 +4,9 @@ On 2026-11-11 the current public-preview source tree was copied to a temporary s
 
 `scripts/check_repository.py` also passed. A targeted search found no previously used device IP, email address, serial number or MAC address in the public-preview source and docs. These checks do not inspect the private repository's history, prove the absence of every possible secret, or cover future commits. Run the scanner again against the final fresh Git history and the signed APK before publication; never publish the temporary scan report if it contains findings.
 
-The fresh public-preview tree was initialized as a **local-only** Git repository
-on 2026-11-11. Its 182 staged files contain no APK, keystore, signing file or
-local Android properties. Gitleaks 8.30.1 scanned the working tree (about
-6.94 MB after ignore rules) with redacted output and reported zero findings.
-No commit or remote push was made. Rescan the committed history and final
-release artifact before publication.
+The clean-history source was subsequently published to the separate public
+`carpe-diem-agency/carpe-tv-launcher` repository. On 2026-11-11, Gitleaks
+8.30.1 also scanned **all 18 commits** reachable from local refs at commit
+`8124f35` using `gitleaks git . --redact`: **0 findings**. The redacted JSON
+report is kept outside the repository. This scan does not cover future
+commits or the final signed APK, so both must be checked again before release.

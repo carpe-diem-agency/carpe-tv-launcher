@@ -65,7 +65,9 @@
       it becomes usable only after the repository and a stable release are public.
 - [ ] Finish history scan and dependency/permission review. A dedicated
       [source-tree secret scan](SECRET_SCAN.md) found zero Gitleaks findings on
-      2026-11-11; the final fresh Git history still needs scanning. The current
+      2026-11-11; all 18 current public-history commits at `8124f35` also
+      scanned with zero findings. Repeat after final changes and scan the
+      signed APK. The current
       APK [permission and component inventory](APK_SURFACE_AUDIT.md)
       and [runtime dependency inventory](DEPENDENCY_AUDIT.md) are initial evidence,
       not final clearance.
