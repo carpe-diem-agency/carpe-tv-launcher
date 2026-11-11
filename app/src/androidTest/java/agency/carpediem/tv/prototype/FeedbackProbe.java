@@ -5,6 +5,7 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.graphics.Bitmap;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -37,6 +38,19 @@ final class FeedbackProbe {
                 "Issue QR code is missing from the active dialog");
         require(contains(dialog, screen.getString(R.string.open_issue)),
                 "Issue browser fallback is missing");
+        Bitmap screenshot = test.getUiAutomation().takeScreenshot();
+        require(screenshot != null, "Could not capture the rendered Issue QR");
+        try {
+            int width = screenshot.getWidth(), height = screenshot.getHeight();
+            int[] pixels = new int[width * height];
+            screenshot.getPixels(pixels, 0, width, 0, 0, width, height);
+            com.google.zxing.BinaryBitmap code = new com.google.zxing.BinaryBitmap(
+                    new com.google.zxing.common.HybridBinarizer(
+                            new com.google.zxing.RGBLuminanceSource(width, height, pixels)));
+            String decoded = new com.google.zxing.qrcode.QRCodeReader().decode(code).getText();
+            require("https://github.com/carpe-diem-agency/carpe-tv-launcher/issues/new?template=bug.yml".equals(decoded),
+                    "Rendered Issue QR points to the wrong page: " + decoded);
+        } finally { screenshot.recycle(); }
         test.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
         SystemClock.sleep(250);
         test.runOnMainSync(() -> {
@@ -44,7 +58,7 @@ final class FeedbackProbe {
             require(focus != null && focus.getId() == R.id.nav_settings,
                     "Closing issue dialog did not restore previous focus");
         });
-        result.putString("feedback", "PASS: GitHub Issue QR, browser fallback and Back focus");
+        result.putString("feedback", "PASS: rendered Issue QR decodes to bug form, browser fallback and Back focus");
     }
     private static boolean contains(AccessibilityNodeInfo node, String value) {
         if ((node.getText() != null && value.contentEquals(node.getText()))

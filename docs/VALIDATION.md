@@ -15,6 +15,15 @@ Power confirmation and launch motion. The Home-focus probe now closes the
 Power confirmation before checking navigation behind it. These tests do not
 prove physical Home from another app; that release check remains open.
 
+## Rendered feedback QR — 2026-11-11
+
+On the same isolated preview, the feedback dialog was captured at the Stick's
+1920×1080 output size. An independent ZXing QR reader decoded the rendered
+image to `https://github.com/carpe-diem-agency/carpe-tv-launcher/issues/new?template=bug.yml`.
+The dialog retained the browser action, and Back restored focus to Settings.
+This verifies the TV image and encoded destination; a phone-browser Issue
+submission remains a separate end-to-end check.
+
 ## Shared-background navigation check — 2026-11-11
 
 On the isolated public preview on MiTV-AFMU1, the selected blue wallpaper was
