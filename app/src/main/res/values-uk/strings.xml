@@ -2,6 +2,7 @@
     <string name="appearance">"Зовнішній вигляд"</string>
     <string name="favorites">"Обрані програми"</string>
     <string name="device">"Пристрій"</string>
+    <string name="device_specs">"Модель · %1$s\nAndroid · %2$s (API %3$d)\nВідеовихід · %4$d × %5$d · %6$.1f Гц\nCarpe TV · %7$s"</string>
     <string name="about">"Про лаунчер"</string>
     <string name="selected_prefix">"Вибрано: "</string>
     <string name="wallpaper_dim">"Затемнення фону"</string>
@@ -57,7 +58,7 @@
     <string name="check_prompt">"Перевір наявність нової версії"</string>
     <string name="megabytes">"%.1f МБ"</string>
     <string name="private_test_prefix">"Приватний тест · локальна мережа\n"</string>
-    <string name="allow_install">"Дозволити встановлення"</string>
+    <string name="allow_install">"Дозволити"</string>
     <string name="permission_help">"Перший раз дозволь «Встановлювати невідомі додатки» для Carpe TV.\nПовернись сюди та натисни «Встановити». Завантаження працює у фоні."</string>
     <string name="auto_download_prefix">"Автозавантаження · "</string>
     <string name="on">"увімкнено"</string>
@@ -93,7 +94,7 @@
     <string name="update_draft">"Тестовий або неопублікований реліз"</string>
     <string name="update_missing_metadata">"Реліз не містить опису update.json"</string>
     <string name="update_channel_invalid">"Непідтримуваний канал"</string>
-    <string name="update_current">"У тебе актуальна версія"</string>
+    <string name="update_current">"У вас актуальна версія"</string>
     <string name="update_available_prefix">"Доступна версія "</string>
     <string name="storage_unavailable">"Сховище недоступне"</string>
     <string name="update_preparing">"Готуємо фонове завантаження…"</string>
@@ -124,6 +125,7 @@
     <string name="update_confirm">"Підтвердь встановлення у вікні Android"</string>
     <string name="update_repeat_install">"Відкрий оновлення й повтори встановлення"</string>
     <string name="update_success_prefix">"Оновлено до "</string>
+    <string name="update_success">"У вас актуальна версія"</string>
     <string name="update_install_cancelled">"Встановлення скасовано. Поточна версія працює."</string>
     <string name="update_installer_failed">"Android не встановив оновлення. Можна повторити."</string>
     <string name="home">"Головна"</string>

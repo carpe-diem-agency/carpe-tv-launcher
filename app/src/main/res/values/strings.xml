@@ -2,6 +2,7 @@
     <string name="appearance">"Appearance"</string>
     <string name="favorites">"Favorite apps"</string>
     <string name="device">"Device"</string>
+    <string name="device_specs">"Model · %1$s\nAndroid · %2$s (API %3$d)\nDisplay output · %4$d × %5$d · %6$.1f Hz\nCarpe TV · %7$s"</string>
     <string name="about">"About"</string>
     <string name="selected_prefix">"Selected: "</string>
     <string name="wallpaper_dim">"Wallpaper dimming"</string>
@@ -57,7 +58,7 @@
     <string name="check_prompt">"Check for a new version"</string>
     <string name="megabytes">"%.1f MB"</string>
     <string name="private_test_prefix">"Private test · local network\n"</string>
-    <string name="allow_install">"Allow installation"</string>
+    <string name="allow_install">"Allow"</string>
     <string name="permission_help">"First, enable “Install unknown apps” for Carpe TV.\nThen return here and select Install. Downloads continue in the background."</string>
     <string name="auto_download_prefix">"Automatic downloads · "</string>
     <string name="on">"on"</string>
@@ -93,7 +94,7 @@
     <string name="update_draft">"This release is a draft or prerelease"</string>
     <string name="update_missing_metadata">"This release has no update.json metadata"</string>
     <string name="update_channel_invalid">"Unsupported update channel"</string>
-    <string name="update_current">"You are up to date"</string>
+    <string name="update_current">"You’re up to date"</string>
     <string name="update_available_prefix">"Available version "</string>
     <string name="storage_unavailable">"Storage is unavailable"</string>
     <string name="update_preparing">"Preparing background download…"</string>
@@ -124,6 +125,7 @@
     <string name="update_confirm">"Confirm installation in the Android window"</string>
     <string name="update_repeat_install">"Open Updates and try installing again"</string>
     <string name="update_success_prefix">"Updated to "</string>
+    <string name="update_success">"You’re up to date"</string>
     <string name="update_install_cancelled">"Installation canceled. Your current version still works."</string>
     <string name="update_installer_failed">"Android could not install the update. You can try again."</string>
     <string name="home">"Home"</string>

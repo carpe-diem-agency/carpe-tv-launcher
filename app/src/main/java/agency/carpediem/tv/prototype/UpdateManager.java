@@ -53,6 +53,7 @@ final class UpdateManager {
     }
     static String message(Context c,boolean noFeed) {
         String key=prefs(c).getString("messageKey","");
+        if (key.equals("update_success_prefix")) return AppLanguage.text(c,R.string.update_success);
         if(!key.isEmpty()) {
             int id=c.getResources().getIdentifier(key,"string",c.getPackageName());
             if(id!=0) return AppLanguage.text(c,id)+prefs(c).getString("messageSuffix","");
@@ -62,7 +63,7 @@ final class UpdateManager {
         if(state.equals("available")) { try { return AppLanguage.text(c,R.string.update_available_prefix)+metadata(c).optString("versionName"); } catch(Exception ignored) { } }
         if(state.equals("error")) return AppLanguage.text(c,R.string.update_action_failed);
         String legacy=prefs(c).getString("message","");
-        if(legacy.startsWith("Оновлено") || legacy.startsWith("Updated")) return AppLanguage.text(c,R.string.update_success_prefix)+appVersion(c);
+        if(legacy.startsWith("Оновлено") || legacy.startsWith("Updated")) return AppLanguage.text(c,R.string.update_success);
         return AppLanguage.text(c,noFeed ? R.string.update_no_channel : R.string.check_prompt);
     }
     static final class UpdateError extends IOException {

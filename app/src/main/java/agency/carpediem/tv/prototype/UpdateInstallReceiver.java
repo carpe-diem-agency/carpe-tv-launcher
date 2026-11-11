@@ -18,7 +18,7 @@ public final class UpdateInstallReceiver extends BroadcastReceiver {
         } else if (status == PackageInstaller.STATUS_SUCCESS) {
             UpdateManager.cleanupDownload(c);
             UpdateManager.prefs(c).edit().remove("sessionId").remove("metadata").apply();
-            UpdateManager.setState(c,"idle",R.string.update_success_prefix,UpdateManager.appVersion(c));
+            UpdateManager.setState(c,"idle",R.string.update_success);
         } else {
             UpdateManager.prefs(c).edit().remove("sessionId").apply();
             UpdateManager.setState(c,"ready", status == PackageInstaller.STATUS_FAILURE_ABORTED ? R.string.update_install_cancelled : R.string.update_installer_failed);

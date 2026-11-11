@@ -118,6 +118,15 @@
     .showcase figcaption { padding: 12px 4px 0; color: var(--muted); font-size: clamp(15px, 1.15vw, 18px); }
     .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .shots img { border-radius: 15px; }
+    .devices { padding: 0 0 58px; }
+    .devices h2 { margin: 0 0 10px; font-size: clamp(29px, 3vw, 46px); letter-spacing: -.04em; }
+    .devices > p { margin: 0 0 22px; color: var(--muted); font-size: clamp(17px, 1.4vw, 21px); line-height: 1.5; }
+    .device-list { display: grid; gap: 11px; }
+    .device-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; align-items: center; gap: 18px; padding: 18px 22px; border: 1px solid var(--edge); border-radius: 18px; background: var(--surface); }
+    .device-row strong { font-size: clamp(17px, 1.3vw, 21px); }
+    .device-row span { color: var(--muted); font-size: clamp(15px, 1.1vw, 18px); }
+    .device-state { justify-self: end; padding: 8px 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; white-space: nowrap; }
+    .device-state.tested { color: #c7e7d9; border-color: rgba(151,221,189,.4); }
     .comparison { padding: 8px 0 58px; }
     .comparison h2 { margin: 0 0 10px; font-size: clamp(29px, 3vw, 46px); letter-spacing: -.04em; }
     .comparison > p { max-width: 68ch; margin: 0 0 25px; color: var(--muted); font-size: clamp(17px, 1.4vw, 21px); line-height: 1.5; }
@@ -153,6 +162,9 @@
       .compare-grid { grid-template-columns: 1fr; }
       .benefits { grid-template-columns: 1fr; }
       .trust-grid { grid-template-columns: 1fr; }
+      .device-row { grid-template-columns: 1fr auto; gap: 8px 14px; }
+      .device-row span { grid-column: 1; }
+      .device-state { grid-column: 2; grid-row: 1 / span 2; }
     }
     /* TV browsers often expose a 960 × 540 CSS viewport on a 1920 × 1080 output. */
     @media (min-width: 851px) and (max-height: 700px) {
@@ -286,6 +298,24 @@
           <figure><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Home with favorite apps over a mountain lake wallpaper"><figcaption>Home</figcaption></figure>
           <figure><img src="assets/settings-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Settings with wallpaper and dimming controls"><figcaption>Settings</figcaption></figure>
         </div>
+      </div>
+    </section>
+    <section class="devices" data-copy="uk" aria-labelledby="devices-title-uk">
+      <h2 id="devices-title-uk">Пристрої</h2>
+      <p>Позначаємо окремо те, що перевірили на приставці, і те, що ще чекає тесту. Вибір Home та системні дії можуть відрізнятися між прошивками.</p>
+      <div class="device-list">
+        <div class="device-row"><strong>Xiaomi TV Stick 4K · MiTV-AFMU1</strong><span>Android TV 14 · головна, пульт, бібліотека, оновлення в тестовій збірці</span><span class="device-state tested">Перевірено частково</span></div>
+        <div class="device-row"><strong>Xiaomi Mi Box</strong><span>Окремий тест заплановано</span><span class="device-state">Не перевірено</span></div>
+        <div class="device-row"><strong>Інші Android TV / Google TV</strong><span>Потребують перевірки на конкретній моделі</span><span class="device-state">Не перевірено</span></div>
+      </div>
+    </section>
+    <section class="devices" data-copy="en" hidden aria-labelledby="devices-title-en">
+      <h2 id="devices-title-en">Devices</h2>
+      <p>We distinguish device testing from planned support. Home selection and system controls can differ across firmware.</p>
+      <div class="device-list">
+        <div class="device-row"><strong>Xiaomi TV Stick 4K · MiTV-AFMU1</strong><span>Android TV 14 · Home UI, remote, app library, test build updater</span><span class="device-state tested">Partly tested</span></div>
+        <div class="device-row"><strong>Xiaomi Mi Box</strong><span>Device test planned</span><span class="device-state">Untested</span></div>
+        <div class="device-row"><strong>Other Android TV / Google TV</strong><span>Needs testing on each model</span><span class="device-state">Untested</span></div>
       </div>
     </section>
     <section class="trust" data-copy="uk" aria-labelledby="trust-title-uk">

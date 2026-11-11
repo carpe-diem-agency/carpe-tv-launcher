@@ -792,6 +792,23 @@ public final class MainActivity extends Activity {
             addSettingAction(detail, getString(R.string.open_library), () -> openPage("apps"));
         } else if ("device".equals(category)) {
             detail.addView(label(getString(R.string.device), 24, Color.WHITE));
+            android.view.Display display = getWindowManager().getDefaultDisplay();
+            android.view.Display.Mode mode = display.getMode();
+            android.graphics.Point output = new android.graphics.Point();
+            display.getRealSize(output);
+            int outputWidth = mode != null ? mode.getPhysicalWidth() : output.x;
+            int outputHeight = mode != null ? mode.getPhysicalHeight() : output.y;
+            float refreshRate = mode != null ? mode.getRefreshRate() : display.getRefreshRate();
+            TextView specifications = label(getString(R.string.device_specs,
+                    android.os.Build.MODEL, android.os.Build.VERSION.RELEASE,
+                    android.os.Build.VERSION.SDK_INT, outputWidth, outputHeight,
+                    refreshRate, UpdateManager.appVersion(this)), 14, 0xffd8e4f3);
+            specifications.setLineSpacing(dp(5), 1f);
+            specifications.setPadding(dp(18), dp(14), dp(18), dp(14));
+            specifications.setBackgroundResource(R.drawable.control_background);
+            LinearLayout.LayoutParams specsSize = new LinearLayout.LayoutParams(-1, -2);
+            specsSize.bottomMargin = dp(14);
+            detail.addView(specifications, specsSize);
             TextView home = label(HomeChoice.status(this), 14, 0xffb9c7dc); home.setId(R.id.home_status); home.setPadding(0, dp(16), 0, dp(16)); detail.addView(home);
             TextView warning = label(getString(R.string.home_remote_check), 14, 0xffffd68a);
             warning.setId(R.id.home_remote_warning);
