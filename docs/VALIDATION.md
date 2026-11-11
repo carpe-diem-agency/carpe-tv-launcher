@@ -144,6 +144,21 @@ entire Google TV package is not a replacement for this test because an earlier
 controlled trial routed Home to Xiaomi's recovery activity. The stock package
 and the current Home selection were left intact.
 
+### Language recreation and remote flow — 2026-11-12
+
+On the isolated preview, device instrumentation passed Home focus, Settings
+focus, Issue QR/Back navigation, and favorite tile reordering. The language
+recreation probe then exposed a real crash: Android delivered a final focus
+change while clearing the old Activity view tree, and the sidebar selection
+handler dereferenced navigation views that had already been removed. The
+handler now ignores that teardown callback. The probe was updated to use the
+same stable launcher preference file as production code, so it restores the
+actual last-opened-app setting after the test. `assembleDebug`,
+`assembleDebugAndroidTest`, and `lintDebug` passed; the updated APK was installed
+on MiTV-AFMU1 and the language recreation probe passed. This covers Activity
+recreation with Settings and language focus after opening an app; it is not a
+claim that every translated string has been visually reviewed.
+
 **Current public-source status (2026-11-11):** This file retains historical
 measurements of the personal/internal launcher. The public APK no longer
 contains the Accessibility Home bridge used in some checks below. For the

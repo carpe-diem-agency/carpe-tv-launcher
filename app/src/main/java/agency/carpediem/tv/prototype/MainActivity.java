@@ -235,10 +235,16 @@ public final class MainActivity extends Activity {
                 || id == R.id.settings_bluetooth || id == R.id.settings_timer;
     }
     private void updateSidebarSelection(View focused) {
+        // Android can dispatch a final focus-cleared callback while recreate()
+        // removes the old content view. There is no sidebar left to update.
+        View home = findViewById(R.id.nav_home);
+        View apps = findViewById(R.id.nav_apps);
+        View settings = findViewById(R.id.nav_settings);
+        if (home == null || apps == null || settings == null) return;
         boolean show = !isHeaderAction(focused) && movingPackage == null;
-        findViewById(R.id.nav_home).setSelected(show && "home".equals(page));
-        findViewById(R.id.nav_apps).setSelected(show && "apps".equals(page));
-        findViewById(R.id.nav_settings).setSelected(show && "settings".equals(page));
+        home.setSelected(show && "home".equals(page));
+        apps.setSelected(show && "apps".equals(page));
+        settings.setSelected(show && "settings".equals(page));
     }
     @Override protected void onResume() {
         super.onResume();

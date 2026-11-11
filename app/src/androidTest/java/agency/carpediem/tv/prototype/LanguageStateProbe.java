@@ -21,7 +21,8 @@ final class LanguageStateProbe {
         MainActivity original = (MainActivity) test.startActivitySync(
                 new Intent(test.getTargetContext(), MainActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-        String previous = original.getPreferences(0).getString("last_opened_package", null);
+        boolean hadLast = launcherPrefs.contains("last_opened_package");
+        String previous = launcherPrefs.getString("last_opened_package", null);
         AtomicReference<MainActivity> recreated = new AtomicReference<>();
         Application application = original.getApplication();
         Application.ActivityLifecycleCallbacks callbacks = new Application.ActivityLifecycleCallbacks() {
@@ -38,7 +39,7 @@ final class LanguageStateProbe {
         application.registerActivityLifecycleCallbacks(callbacks);
         try {
             test.runOnMainSync(() -> {
-                original.getPreferences(0).edit().putString("last_opened_package", "com.google.android.youtube.tv").commit();
+                launcherPrefs.edit().putString("last_opened_package", "com.google.android.youtube.tv").commit();
                 original.findViewById(R.id.nav_settings).requestFocus();
             });
             SystemClock.sleep(350);
@@ -65,8 +66,8 @@ final class LanguageStateProbe {
             result.putString("language_state", "PASS: Settings and language focus survive recreation after an app launch");
         } finally {
             application.unregisterActivityLifecycleCallbacks(callbacks);
-            if (previous == null) original.getPreferences(0).edit().remove("last_opened_package").commit();
-            else original.getPreferences(0).edit().putString("last_opened_package", previous).commit();
+            if (hadLast) launcherPrefs.edit().putString("last_opened_package", previous).commit();
+            else launcherPrefs.edit().remove("last_opened_package").commit();
             android.content.SharedPreferences.Editor welcome = launcherPrefs.edit();
             if (hadWelcome) welcome.putBoolean("welcome_seen", previousWelcome);
             else welcome.remove("welcome_seen");
