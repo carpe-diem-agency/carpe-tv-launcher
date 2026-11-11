@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# The focus map and safe areas are designed for a landscape TV canvas.
+size="$(adb shell wm size)"
+case "$size" in
+  *1920x1080*|*3840x2160*) ;;
+  *) echo "Expected a landscape TV display, got: $size" >&2; exit 1 ;;
+esac
+
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 
