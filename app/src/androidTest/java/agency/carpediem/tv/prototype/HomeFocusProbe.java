@@ -9,6 +9,7 @@ import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,9 +46,7 @@ final class HomeFocusProbe {
             test.runOnMainSync(() -> require(screen.findViewById(R.id.home_time)!=null
                     && screen.findViewById(R.id.home_time).isShown(),
                     "Home page hidden before D-pad Up from favorite " + column));
-            boolean[] windowFocused={false};
-            test.runOnMainSync(() -> windowFocused[0]=screen.hasWindowFocus());
-            require(windowFocused[0],"Activity window not focused before D-pad Up from favorite " + column);
+            awaitWindowFocus(test,screen,"favorite " + column);
             int header = i == 0 ? R.id.home_power : i < 3 ? R.id.home_wifi
                     : i == 3 ? R.id.home_bluetooth : R.id.home_timer;
             key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,header);
@@ -186,6 +185,19 @@ final class HomeFocusProbe {
         return tiles;
     }
     private static void key(Instrumentation test,int key) {test.sendKeyDownUpSync(key);SystemClock.sleep(150);}
+    private static void awaitWindowFocus(Instrumentation test, Activity screen, String position) {
+        long deadline=SystemClock.uptimeMillis()+10000;
+        boolean[] focused={false};
+        do {
+            test.runOnMainSync(() -> focused[0]=screen.hasWindowFocus());
+            if(focused[0]) return;
+            SystemClock.sleep(100);
+        } while(SystemClock.uptimeMillis()<deadline);
+        AccessibilityNodeInfo active=test.getUiAutomation().getRootInActiveWindow();
+        String activePackage=active==null ? "none" : String.valueOf(active.getPackageName());
+        throw new AssertionError("Activity window not focused at " + position
+                + "; active window package=" + activePackage);
+    }
     private static void focus(Instrumentation test,Activity screen,int id) {
         int[] actual={View.NO_ID};boolean[] home={false};test.runOnMainSync(() -> {if(screen.getCurrentFocus()!=null)actual[0]=screen.getCurrentFocus().getId();View heading=screen.findViewById(R.id.home_time);home[0]=heading!=null&&heading.isShown();});
         require(actual[0]==id && home[0],"Unexpected focus "+actual[0]+" expected "+id+"; home="+home[0]);
