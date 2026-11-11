@@ -37,6 +37,22 @@ jobs:
           ./gradlew --no-daemon :app:assembleRelease \
             -Pspake2Aar="$RUNNER_TEMP/spake2-source/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar"
           test -s app/build/outputs/apk/release/app-release-unsigned.apk
+          python3 - <<'PYCODE'
+          import hashlib, os, zipfile
+          aar = os.path.join(os.environ['RUNNER_TEMP'], 'spake2-source/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar')
+          apk = 'app/build/outputs/apk/release/app-release-unsigned.apk'
+          with zipfile.ZipFile(aar) as source, zipfile.ZipFile(apk) as packaged:
+              names = sorted(n for n in source.namelist() if n.startswith('jni/') and n.endswith('/libspake2.so'))
+              if len(names) != 4:
+                  raise SystemExit(f'Expected four SPAKE2 ABI libraries, found {len(names)}')
+              for name in names:
+                  apk_name = 'lib/' + name.removeprefix('jni/')
+                  a = hashlib.sha256(source.read(name)).digest()
+                  b = hashlib.sha256(packaged.read(apk_name)).digest()
+                  if a != b:
+                      raise SystemExit(f'APK native library differs from source AAR: {apk_name}')
+                  print('Verified source-built native library:', apk_name)
+          PYCODE
       - name: Save build result for review
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
