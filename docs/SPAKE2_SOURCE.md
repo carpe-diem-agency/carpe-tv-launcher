@@ -44,24 +44,23 @@ The AAR can be built from the staged source with the commands in
 `.aar` file. A local release build using this property and the original
 unmodified dependency AAR succeeded on 2026-11-11; the release dependency
 report no longer contained the transitive `spake2-android` module. This proves
-the dependency substitution path works for that AAR, but a modified library
-has not yet been built, installed, or run on a device. A rebuilt APK needs its
+the dependency substitution path works for that AAR. A rebuilt APK needs its
 own signing key; it cannot be installed as an update over an APK signed by a
-different key. Keep the signed-APK replacement and installation check open.
+different key.
 
 The follow-up [GitHub Actions run #2](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42991685259)
 at commit `33552fc` also passed: after rebuilding the source AAR, the runner
 built an unsigned Carpe TV release APK with that AAR supplied through
 `-Pspake2Aar`. This verifies the source-to-APK build path on a clean runner.
 The workflow artifact was not signed or installed in that run, and this was the
-unmodified upstream source, so the modified-library check remains open.
+unmodified upstream source.
 
 The subsequent [run #3](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42992685963)
 at commit `563b24f` passed a stronger packaging check: SHA-256 of each
 source-built `libspake2.so` in the AAR matched the corresponding file in the
 unsigned APK for `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64`. This verifies
-which native files entered that build. It still does not verify installation
-of a modified library or resolve the signed-distribution requirements.
+which native files entered that build. It does not resolve the
+signed-distribution requirements.
 
 ## Isolated signed device check
 
@@ -74,6 +73,16 @@ a disposable test certificate, installed under the isolated
 the app library rendered, and D-pad navigation worked. The test APK was then
 removed, leaving the personal Home role unchanged. This establishes that the
 source-built library can run inside a signed launcher APK on the tested stick.
-It does not prove that a recipient can install a modified SPAKE2 build over a
-production-signed release. Production signing, modified-library replacement,
-and the LGPL release review remain open.
+The manual [modified-library run #4](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42999102098)
+at commit `d15875f` added a test-only exported marker to SPAKE2 source, built
+the AAR and unsigned release APK, and verified the marker plus matching native
+library hashes in all four APK ABIs. `scripts/check_release_apk.py` passed on
+the downloaded APK. We signed it with a disposable test certificate, installed
+it under the public `agency.carpediem.tv` ID on MiTV-AFMU1, and confirmed the
+welcome screen and app library rendered with D-pad navigation. We then
+uninstalled that test package. The personal `agency.carpediem.tv.prototype`
+package and Android Home role remained in place. This proves the technical
+source-edit-to-signed-APK-to-device path for this test. It does not establish
+an update path over the eventual production-signed APK or complete the LGPL
+distribution review. The marker is only a build probe and is not in the
+normal release dependency.

@@ -42,14 +42,19 @@
       binary equivalence or a working signed-APK relinking path.
 - [x] Build an unsigned Carpe TV APK with the source-built AAR on a clean runner;
       [run #2](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42991685259)
-      passed. Signing, device installation and a modified-library replacement
-      still need verification.
+      passed. Signing and device installation were subsequently checked with
+      disposable test certificates.
 - [x] Verify native packaging in
       [run #3](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42992685963):
       all four SPAKE2 ABI libraries in the unsigned APK match the source-built
       AAR byte for byte. An isolated signed build with that AAR also installed
-      and ran on MiTV-AFMU1; see [source record](SPAKE2_SOURCE.md). A modified
-      library and production-signed replacement remain open.
+      and ran on MiTV-AFMU1; see [source record](SPAKE2_SOURCE.md).
+- [x] Verify a test-only source modification in
+      [run #4](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42999102098):
+      its native marker survived into all four APK ABIs. The downloaded APK
+      passed the release artifact check, was signed with a disposable test
+      certificate, installed and navigated on MiTV-AFMU1, then removed.
+      Production-signed replacement and the LGPL distribution review remain open.
 - [ ] Complete distribution review of libadb-android and its LGPL-3.0
       `spake2-android` 2.2.1 transitive component, including native-library
       source and relinking obligations. Bundled license text alone is not clearance.
