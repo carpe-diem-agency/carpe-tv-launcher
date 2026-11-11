@@ -69,7 +69,7 @@
     <string name="understood">"Got it"</string>
     <string name="home_unknown">"unknown"</string>
     <string name="home_prefix">"Selected Home: "</string>
-    <string name="home_remote_check">"This device may open its stock Home. Test the remote Home button before changing system apps."</string>
+    <string name="home_remote_check">"Test the remote Home button after selection: some devices still open the stock screen. Keep it enabled until return works."</string>
     <string name="welcome_title">Welcome to Carpe TV</string>
     <string name="welcome_message">Explore Carpe TV, then make it your Home screen when you’re ready. You can switch back in Settings.</string>
     <string name="welcome_explore">Explore first</string>

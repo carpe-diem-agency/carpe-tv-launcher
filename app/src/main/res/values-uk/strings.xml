@@ -69,7 +69,7 @@
     <string name="understood">"Зрозуміло"</string>
     <string name="home_unknown">"не визначено"</string>
     <string name="home_prefix">"Вибраний Home: "</string>
-    <string name="home_remote_check">"Приставка може відкрити штатний екран. Перевір кнопку Home на пульті перед змінами системних програм."</string>
+    <string name="home_remote_check">"Перевір Home на пульті після вибору: деякі приставки все одно відкривають штатний екран. Не вимикай його, доки не перевіриш повернення."</string>
     <string name="welcome_title">Вітаємо в Carpe TV</string>
     <string name="welcome_message">Оглянь Carpe TV, а коли будеш готовий — зроби його головним екраном. Повернути попередній екран можна в налаштуваннях.</string>
     <string name="welcome_explore">Спершу оглянути</string>

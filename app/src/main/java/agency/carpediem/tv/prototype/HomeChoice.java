@@ -50,10 +50,10 @@ final class HomeChoice {
     }
     static boolean needsRemoteHomeCheck(Context context) {
         if (!isSelected(context)) return false;
-        ResolveInfo info = context.getPackageManager().resolveActivity(
-                new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY);
-        return info != null && info.activityInfo != null
-                && !context.getPackageName().equals(info.activityInfo.packageName);
+        // The Home role and resolveActivity can both report this launcher while
+        // an OEM remote still opens its own Home. Only the physical key proves
+        // the routing, so keep the reminder visible after selection.
+        return true;
     }
     static boolean isSelected(Context context) {
         if (Build.VERSION.SDK_INT >= 29) {
