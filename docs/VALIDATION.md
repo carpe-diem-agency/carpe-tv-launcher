@@ -28,6 +28,19 @@ repeat ordinary sideload installation and rollback tests with the exact
 release candidate. The current public build must not claim that the Home role
 alone works on this Xiaomi firmware.
 
+## System setup wording and remote focus — 2026-11-11
+
+An isolated `agency.carpediem.tv.publicpreview` debug APK with the revised
+Shizuku explanation was built and installed on MiTV-AFMU1. Before replacement,
+the previous preview APK was copied outside the repository for rollback, and
+the Home role holder was recorded. `SystemSetupFocusProbe` passed: all visible
+wizard buttons were reached by D-pad Down in order, then D-pad Up returned to
+the first action. The probe did not start pairing or change system packages.
+The instrumentation APK was removed afterward. The Home role still belonged
+to the preview package, Accessibility remained unset, and the preview launcher
+was returned to the foreground. `FLAG_SECURE` prevents a screenshot of this
+wizard; a projector visual review of the revised text remains open.
+
 ## Public preview UX recheck — 2026-11-11
 
 On Xiaomi MiTV-AFMU1 (Android 14), the isolated `publicpreview` APK and
