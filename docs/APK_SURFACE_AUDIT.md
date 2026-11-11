@@ -33,3 +33,15 @@ inspect its merged manifest and repeat ordinary TV Bro installation and Play
 Protect testing before shipping it. Home behavior, permission prompts and
 rollback still need tests on another Android TV model. Never ask users to
 bypass Play Protect.
+
+### Feature-branch recheck — 2026-11-11
+
+Built `app-release-unsigned.apk` from `feature/home-bridge-animated-blue` and
+inspected it with Android Build Tools `aapt`. The package remains
+`agency.carpediem.tv` 0.2.8/code 15, min SDK 26, target SDK 34, and about 16 MB.
+The `uses-permission` list is unchanged. The merged manifest now declares one
+exported `HomeBridgeService` protected by `BIND_ACCESSIBILITY_SERVICE`; its
+metadata limits events to Google TV window-state changes and disables window
+content retrieval. No audio or video resource was added for the animated blue
+wallpaper. This is an unsigned, local inventory only; it does not clear the
+Play Protect or ordinary-installation gate.
