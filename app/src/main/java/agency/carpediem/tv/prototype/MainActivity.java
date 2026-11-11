@@ -1133,6 +1133,13 @@ public final class MainActivity extends Activity {
             content.addView(header);
             header.findViewById(R.id.home_power).setOnClickListener(v -> showSleepNow());
             header.findViewById(R.id.home_timer).setOnClickListener(v -> SleepTimer.show(this));
+            for (int id : new int[]{R.id.home_power, R.id.home_wifi,
+                    R.id.home_bluetooth, R.id.home_timer}) {
+                // The top row is a focus boundary; Android TV otherwise sometimes
+                // searches past it and lands on the sidebar during a second Up.
+                header.findViewById(id).setOnKeyListener((v, key, event) ->
+                        key == android.view.KeyEvent.KEYCODE_DPAD_UP);
+            }
             updateSleepTimerIndicator();
             header.findViewById(R.id.home_wifi).setOnClickListener(v -> openWifi());
         header.findViewById(R.id.home_bluetooth).setOnClickListener(v -> openBluetooth());
@@ -1337,7 +1344,16 @@ public final class MainActivity extends Activity {
             tile.setNextFocusRightId(i % 5 == 4 || i + 1 == tiles.size() ? tile.getId() : tiles.get(i + 1).getId());
             if (i >= 5) tile.setNextFocusUpId(tiles.get(i - 5).getId());
             else if ("apps".equals(page)) tile.setNextFocusUpId(R.id.apps_search);
-            else if ("home".equals(page)) tile.setNextFocusUpId(homeHeaderForColumn(i % 5));
+            else if ("home".equals(page)) {
+                final int headerId = homeHeaderForColumn(i % 5);
+                tile.setNextFocusUpId(headerId);
+                tile.setOnKeyListener((v, key, event) -> {
+                    if (key != android.view.KeyEvent.KEYCODE_DPAD_UP) return false;
+                    if (event.getAction() == android.view.KeyEvent.ACTION_UP) return true;
+                    View header = findViewById(headerId);
+                    return header != null && header.requestFocus();
+                });
+            }
             tile.setNextFocusDownId(i + 5 < tiles.size() ? tiles.get(i + 5).getId() : tile.getId());
         }
         if (row != null && count % 5 != 0) {
