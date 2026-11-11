@@ -466,7 +466,7 @@ public final class MainActivity extends Activity {
                 View target = firstFocusable(detail);
                 if (target != null) target.requestFocus();
             });
-            int symbol = entry[0].equals("audit") ? R.drawable.ic_apps : entry[0].equals("screensaver") ? R.drawable.ic_screensaver : entry[0].equals("appearance") ? R.drawable.ic_monitor : entry[0].equals("favorites") ? R.drawable.ic_heart : entry[0].equals("device") ? R.drawable.ic_settings : R.drawable.ic_info;
+            int symbol = entry[0].equals("audit") ? R.drawable.ic_apps : entry[0].equals("screensaver") ? R.drawable.ic_screensaver : entry[0].equals("appearance") ? R.drawable.ic_monitor : entry[0].equals("favorites") ? R.drawable.ic_heart : entry[0].equals("device") ? R.drawable.ic_device : R.drawable.ic_info;
             android.graphics.drawable.Drawable categoryIcon=getDrawable(symbol).mutate();
             categoryIcon.setBounds(0,0,dp(22),dp(22));
             category.setCompoundDrawablesRelative(categoryIcon,null,null,null); category.setCompoundDrawablePadding(dp(12));
