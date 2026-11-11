@@ -19,6 +19,7 @@
     <string name="report_problem">"Report a problem"</string>
     <string name="report_problem_hint">"Scan with your phone to create a GitHub issue. A GitHub account is required. Do not include passwords, IP addresses or serial numbers."</string>
     <string name="open_issue">"Open on TV"</string>
+    <string name="issue_qr">"QR code to create a GitHub issue"</string>
     <string name="developer_site">"Developer website"</string>
     <string name="font_license">"Montserrat license"</string>
     <string name="third_party_notices">"Third-party notices"</string>

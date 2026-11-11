@@ -19,6 +19,7 @@
     <string name="report_problem">"Повідомити про проблему"</string>
     <string name="report_problem_hint">"Скануй телефоном, щоб створити GitHub Issue. Потрібен акаунт GitHub. Не додавай паролі, IP-адреси чи серійні номери."</string>
     <string name="open_issue">"Відкрити на ТВ"</string>
+    <string name="issue_qr">"QR-код для створення GitHub Issue"</string>
     <string name="developer_site">"Сайт розробника"</string>
     <string name="font_license">"Ліцензія Montserrat"</string>
     <string name="third_party_notices">"Сторонні компоненти та ліцензії"</string>

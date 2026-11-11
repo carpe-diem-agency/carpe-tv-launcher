@@ -870,6 +870,7 @@ public final class MainActivity extends Activity {
             for (int y = 0; y < 256; y++) for (int x = 0; x < 256; x++)
                 bitmap.setPixel(x, y, bits.get(x, y) ? Color.BLACK : Color.WHITE);
             ImageView qr = new ImageView(this); qr.setImageBitmap(bitmap);
+            qr.setContentDescription(getString(R.string.issue_qr));
             qr.setBackgroundColor(Color.WHITE); qr.setPadding(dp(8), dp(8), dp(8), dp(8));
             panel.addView(qr, new LinearLayout.LayoutParams(dp(204), dp(204)));
         } catch (com.google.zxing.WriterException error) {
