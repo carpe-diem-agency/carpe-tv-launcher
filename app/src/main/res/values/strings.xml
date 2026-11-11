@@ -241,7 +241,7 @@
 <string name="setup_title">System actions</string>
 <string name="setup_shizuku_heading">What is Shizuku?</string>
 <string name="setup_what_is_shizuku">Shizuku is a separate app for approved system commands without root. Carpe TV uses it for sleep on a timer and for managing selected system apps. Installing Shizuku alone does not disable anything.</string>
-<string name="setup_phone_intro">Your Home screen, app launching, and choosing Carpe TV as Home work without Shizuku. For system actions, install Shizuku on the TV. First setup needs a phone on the same Wi-Fi network; later, you can start access with the remote.</string>
+<string name="setup_phone_intro">App launching and choosing Carpe TV as Home do not require Shizuku. On some TVs the physical Home button may still open the stock screen; Shizuku alone does not fix that. For optional system actions, install Shizuku. First-time pairing needs a phone on the same Wi-Fi.</string>
 <string name="setup_code_example">Android shows six digits on your TV. Enter them on the Carpe TV page that opens when you scan the QR code with your phone. For example, 123456 is a sample, not your code.</string>
 <string name="setup_scan_first">Scan the QR code with your phone first. Then open Developer options → Wireless debugging → Pair using pairing code. Enter the TV code on your phone.</string>
 <string name="setup_phone_unavailable">Could not open the local pairing page. Check the TV Wi-Fi connection.</string>
