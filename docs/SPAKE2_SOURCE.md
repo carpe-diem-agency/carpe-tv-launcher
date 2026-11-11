@@ -32,6 +32,9 @@ The manual [GitHub Actions run #1](https://github.com/carpe-diem-agency/carpe-tv
 
 ## Building with a replacement AAR
 
+For the full recipient-facing sequence, including the toolchain, signing and
+side-by-side installation limits, see [rebuilding with a modified library](RELINKING.md).
+
 The launcher accepts an explicitly supplied Android AAR in place of libadb's
 transitive `spake2-android` artifact:
 

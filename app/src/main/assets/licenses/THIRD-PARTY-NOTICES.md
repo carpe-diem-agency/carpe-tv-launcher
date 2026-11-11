@@ -1,4 +1,4 @@
-# Third-party software in Carpe TV 0.2.7
+# Third-party software in Carpe TV
 
 This file identifies the third-party runtime components resolved for the
 Android release build. It is not a license for Carpe TV's own source code.
@@ -20,7 +20,8 @@ The accompanying files in this directory contain the applicable license texts.
 `libadb-android` is used under its Apache-2.0 option. Its SPAKE2 dependency
 has a separate LGPL-3.0 license; see `SPAKE2-LGPL-3.0.txt` and
 `GPL-3.0.txt`. The exact native source revision and retrieval instructions are
-in the public source document `docs/SPAKE2_SOURCE.md`. A source archive named
+in the public source document `docs/SPAKE2_SOURCE.md`; the rebuild procedure is
+in `docs/RELINKING.md`. A source archive named
 `spake2-java-2.2.1-with-submodule.tar.gz` accompanies release APKs. The release team must
 complete the corresponding-source and relinking review before distribution.
 

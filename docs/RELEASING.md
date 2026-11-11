@@ -85,6 +85,10 @@ is complete. Its tag must exactly equal `v` plus the APK's `versionName`; for
 the current `0.2.8` build, the only matching tag is `v0.2.8`. A public
 repository, stable release and update feed are separate manual decisions.
 
+The [modified-library rebuild guide](RELINKING.md) documents how a recipient
+can substitute the bundled LGPL library; it does not replace the pending
+distribution review.
+
 For the first public candidate, use the **same production key** for the draft
 and later updates. Test the downloaded draft APK as a fresh install without
 ADB: open it through a TV browser, grant the source app's install permission,
