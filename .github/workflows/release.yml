@@ -43,8 +43,8 @@ jobs:
           import base64, os, pathlib, re
           version = re.search(r"versionName '([^']+)'", pathlib.Path('app/build.gradle').read_text()).group(1)
           tag = os.environ['RELEASE_TAG']
-          if not re.fullmatch(r'v'+re.escape(version)+r'(?:-[0-9A-Za-z.-]+)?', tag):
-              raise SystemExit('Tag must match versionName and contain only a valid version suffix')
+          if tag != 'v' + version:
+              raise SystemExit('Tag must exactly match v + APK versionName')
           for name in ('KEYSTORE_BASE64','ANDROID_STORE_PASSWORD','ANDROID_KEY_ALIAS','ANDROID_KEY_PASSWORD','RELEASE_CERT_SHA256'):
               if not os.environ.get(name): raise SystemExit('Release signing secrets are not configured')
           if not re.fullmatch(r'[0-9a-fA-F]{64}', os.environ['RELEASE_CERT_SHA256'].replace(':','')):

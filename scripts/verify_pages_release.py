@@ -56,6 +56,8 @@ if not isinstance(data.get('versionCode'), int) or data['versionCode'] < 1:
     parser.error('update.json has no valid versionCode')
 if not isinstance(data.get('versionName'), str) or not data['versionName']:
     parser.error('update.json has no valid versionName')
+if args.tag != 'v' + data['versionName']:
+    parser.error('Release tag does not match update.json versionName')
 if not isinstance(data.get('minSdk'), int) or data['minSdk'] < 26:
     parser.error('update.json has an unexpected minSdk')
 print(f'Pages release assets verified: {args.tag}, {data["versionName"]}')

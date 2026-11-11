@@ -24,7 +24,9 @@
       action or structured download metadata. A stable release switches the
       page to installation mode only after all four release assets are present
       and the downloaded APK and source archive match `SHA256SUMS`, while
-      `update.json` matches the APK hash, size, package ID and release URL.
+      `update.json` matches the APK hash, size, package ID, release URL and
+      exact version tag. The draft-release workflow also requires the tag to
+      equal `v` plus the APK's `versionName`.
 - [x] Enable GitHub Pages from Actions and verify the live Ukrainian source
       preview at `https://carpe-diem-agency.github.io/carpe-tv-launcher/`.
 - [ ] Publish and test that install page only after the public stable release

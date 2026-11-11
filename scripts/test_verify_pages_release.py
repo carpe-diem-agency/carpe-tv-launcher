@@ -54,6 +54,11 @@ class PagesReleaseTest(unittest.TestCase):
         self.save_manifest()
         self.assertNotEqual(self.verify(), 0)
 
+    def test_version_not_matching_tag(self):
+        self.data['versionName'] = '1.0.1'
+        self.save_manifest()
+        self.assertNotEqual(self.verify(), 0)
+
     def test_missing_source_archive(self):
         self.source.unlink()
         self.assertNotEqual(self.verify(), 0)
