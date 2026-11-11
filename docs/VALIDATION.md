@@ -1,5 +1,33 @@
 # Validation baseline — 2026-11-03
 
+## OEM Home route and optional bridge experiment — 2026-11-11
+
+On Xiaomi MiTV-AFMU1 (Android TV 14), `agency.carpediem.tv.publicpreview`
+held the Android Home role, but an injected Home key from YouTube opened
+`com.google.android.apps.tv.launcherx/.home.HomeActivity`. Android's
+`cmd package set-home-activity` reported success yet did not change the
+resolver or this result. This reproduces the OEM routing gap in the current
+public-source behavior; the physical remote remains a separate check.
+
+An isolated experimental APK with an opt-in Accessibility service was built
+and installed over the preview. The service listened only for Google TV window
+changes, had no screen-content capability, and ran only while Carpe TV held the
+Home role. With the service temporarily enabled, YouTube → injected Home
+returned to the preview launcher with the YouTube tile focused. Switching the
+Home role to Google TV while leaving the service enabled made the same sequence
+land on Google TV, confirming the rollback guard. The role was then restored
+to the previously selected preview; the temporary Accessibility setting was
+removed (`enabled_accessibility_services=null`, `accessibility_enabled=0`).
+
+The experiment is saved on local branch `experiment/oem-home-bridge` and is
+**not in the public APK source**. An earlier signed APK with this kind of
+service was blocked by Play Protect when installed through TV Bro, while the
+same candidate without it installed. See
+[PLAY_PROTECT_TEST.md](PLAY_PROTECT_TEST.md). Before promoting any bridge,
+repeat ordinary sideload installation and rollback tests with the exact
+release candidate. The current public build must not claim that the Home role
+alone works on this Xiaomi firmware.
+
 ## Public preview UX recheck — 2026-11-11
 
 On Xiaomi MiTV-AFMU1 (Android 14), the isolated `publicpreview` APK and

@@ -64,23 +64,23 @@ the stock launcher enabled until a device-specific rollback path is verified.
 
 ## 3. Connect Shizuku optional
 
-Shizuku is a separate app providing authorized ADB-level actions without root,
-including the sleep timer and managing specific system packages. The Home screen,
-app launching and package status work without it. Android's six-digit code is
-only for first-time pairing; it is not an account password.
-The ordinary launcher and package-state display work without it.
+Shizuku is a separate app for system commands without root. Carpe TV uses it
+for sleep on a timer and for managing selected system apps. Installing Shizuku
+alone does not disable anything. The Home screen, app launching, choosing
+Carpe TV as Home, and viewing app status work without it. Android's six-digit
+code is only for first-time pairing; it is not an account password.
 
 1. Install Shizuku from its [official source](https://shizuku.rikka.app/download/).
 2. Enable Wireless debugging in Android Developer options. The phone and TV must be
    on the same **trusted** Wi-Fi network.
-3. Open **Carpe TV → Settings → Device → Extra features** and select
+3. Open **Carpe TV → Settings → Device → System actions** and select
    **1. Connect with phone**. Scan the QR code with your phone. The local page expires
    after 15 minutes; do not share its address or the pairing code. Five failed
    attempts close the session; restart the wizard to try again.
 4. On the TV, open **Wireless debugging → Pair device with pairing code**. Enter the
    six digits only on the phone page. When it says **Paired**, return to Carpe TV.
    This is a one-time pairing unless Android resets it.
-5. Select **2. Enable extra features** with the TV remote. Authorize **Carpe TV** in Shizuku
+5. Select **2. Start Shizuku** with the TV remote. Authorize **Carpe TV** in Shizuku
    if you agree, and verify the system-access status before making changes.
 
 Phone pairing and remote-button restart were tested on Xiaomi `MiTV-AFMU1`;
@@ -88,7 +88,7 @@ other firmware needs separate testing. The temporary local page uses HTTP,
 so pair only on a trusted network.
 
 Revoke access in Shizuku at any time. Without root, re-enable Wireless debugging if
-needed and press **2. Enable extra features** after reboot;
+needed and press **2. Start Shizuku** after reboot;
 our Stick retained the Carpe TV authorization. Without a running Shizuku server,
 state remains visible but system mutations are blocked. Disabled analytics stays disabled.
 

@@ -62,6 +62,10 @@ public final class SystemSetupActivity extends Activity {
         scroll.addView(panel);
         setContentView(scroll);
         panel.addView(label(getString(R.string.setup_title), 27, Color.WHITE));
+        TextView whatIsShizuku = label(getString(R.string.setup_shizuku_heading), 17, Color.WHITE);
+        LinearLayout.LayoutParams headingSize = new LinearLayout.LayoutParams(-1, -2);
+        headingSize.topMargin = dp(18);
+        panel.addView(whatIsShizuku, headingSize);
         TextView explanation = label(getString(R.string.setup_what_is_shizuku), 15, 0xffdce8fa);
         explanation.setPadding(dp(18), dp(14), dp(18), dp(14));
         explanation.setBackgroundResource(R.drawable.control_background);
