@@ -99,6 +99,12 @@
       for public use.
 - [x] Check a fresh first run on the Xiaomi stick using an isolated app ID; see
       [first-run evidence](FIRST_RUN_TEST.md). This does not validate the Home role.
+- [x] Recheck the 0.2.7 isolated debug package on MiTV-AFMU1 after the timer
+      panel change: first-run screen, timer panel and app library rendered at
+      1920×1080 UI resolution; the Carpe TV package was absent from its own
+      app grid. The test package was uninstalled, the personal launcher returned
+      to the foreground, and its Android Home role was read back unchanged.
+      This was a visual/ADB check, not a physical remote or final APK test.
 - [x] Check a temporarily signed release-variant APK with the public app ID on
       the Xiaomi stick: fresh first run, app launch, Settings→Power and simulated
       Home-return focus passed; see [device evidence](RELEASE_APK_DEVICE_TEST.md).
