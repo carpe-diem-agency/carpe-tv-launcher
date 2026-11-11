@@ -30,9 +30,13 @@ for retry. Installation briefly closes the app; Home opens the launcher afterwar
 
 
 The APK must have a compatible signing certificate and newer versionCode. Settings
-were checked across the tested update, but retaining an APK alone is not a full
-backup of app-private data. The updater keeps one private previous-APK/preferences
-checkpoint; there is no automatic downgrade button.
+were checked across the tested update. Before updating, the app stores a previous
+APK and partial preferences in private storage **for diagnostics only**. They cannot
+be restored from the remote, and there is no automatic downgrade button. If the
+new launcher fails to open, choose the stock Home app in Android settings and
+install a fixed build with a higher `versionCode` and the same signing certificate.
+Android normally rejects installing an older APK over a newer one.
+[Stock Home recovery steps](INSTALL.md#return-to-the-stock-launcher).
 
 ## Delivery and test status
 
