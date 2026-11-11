@@ -24,7 +24,7 @@
     <string name="developer_site">"Сайт розробника"</string>
     <string name="font_license">"Ліцензія Montserrat"</string>
     <string name="third_party_notices">"Сторонні компоненти та ліцензії"</string>
-    <string name="code_license">"Ліцензія коду · Apache-2.0"</string>
+    <string name="code_license">"Ліцензія коду"</string>
     <string name="license_failed">"Не вдалося прочитати ліцензію"</string>
     <string name="close">"Закрити"</string>
     <string name="wallpaper_blue_name">"синій фон"</string>

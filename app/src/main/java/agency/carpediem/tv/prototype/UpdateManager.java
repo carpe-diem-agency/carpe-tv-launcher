@@ -152,6 +152,7 @@ final class UpdateManager {
         Context c = context.getApplicationContext();
         if (feed.isEmpty()) { setState(c,"idle",R.string.update_no_feed); return; }
         if (busy(c) || "ready".equals(state(c)) || !BUSY.compareAndSet(false, true)) return;
+        prefs(c).edit().remove("metadata").apply();
         setState(c,"checking",R.string.update_checking);
         WORKER.execute(() -> {
             try {

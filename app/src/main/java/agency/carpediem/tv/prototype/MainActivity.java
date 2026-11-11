@@ -451,7 +451,14 @@ public final class MainActivity extends Activity {
         LinearLayout detail = settings.findViewById(R.id.settings_detail);
         String[][] entries = {{"appearance", getString(R.string.appearance)}, {"screensaver", getString(R.string.saver_title)}, {"favorites", getString(R.string.favorites)}, {"audit", getString(R.string.audit_title)}, {"device", getString(R.string.device)}, {"about", getString(R.string.about)}};
         for (String[] entry : entries) {
-            Button category = action(entry[1], () -> { settingsCategory = entry[0]; settingsCategoryView = getCurrentFocus(); showSettingsDetail(detail, entry[0]); View target = firstFocusable(detail); if (target != null) target.requestFocus(); });
+            Button category = action(entry[1], () -> {
+                settingsCategory = entry[0];
+                settingsCategoryView = getCurrentFocus();
+                showSettingsDetail(detail, entry[0]);
+                ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0, 0);
+                View target = firstFocusable(detail);
+                if (target != null) target.requestFocus();
+            });
             int symbol = entry[0].equals("audit") ? R.drawable.ic_apps : entry[0].equals("screensaver") ? R.drawable.ic_screensaver : entry[0].equals("appearance") ? R.drawable.ic_monitor : entry[0].equals("favorites") ? R.drawable.ic_heart : entry[0].equals("device") ? R.drawable.ic_settings : R.drawable.ic_info;
             android.graphics.drawable.Drawable categoryIcon=getDrawable(symbol).mutate();
             categoryIcon.setBounds(0,0,dp(22),dp(22));
@@ -709,14 +716,30 @@ public final class MainActivity extends Activity {
                 getPreferences(MODE_PRIVATE).edit().putBoolean("animations", checked).apply();
                 configureStateFade(findViewById(android.R.id.content));
             });
-            Button language = action(getString(R.string.language) + " · " + AppLanguage.label(this), () -> {
+            LinearLayout language = new LinearLayout(this);
+            language.setId(R.id.language_choice);
+            language.setGravity(Gravity.CENTER_VERTICAL);
+            language.setPadding(dp(18), 0, dp(18), 0);
+            language.setBackgroundResource(R.drawable.control_background);
+            language.setFocusable(true);
+            language.setClickable(true);
+            language.setContentDescription(getString(R.string.language) + ", " + AppLanguage.label(this));
+            language.addView(label(getString(R.string.language), 16, Color.WHITE),
+                    new LinearLayout.LayoutParams(0, -2, 1));
+            TextView languageValue = label(AppLanguage.label(this), 14, 0xffb9c7dc);
+            language.addView(languageValue);
+            TextView languageArrow = label("›", 24, 0xffb9c7dc);
+            LinearLayout.LayoutParams arrowSize = new LinearLayout.LayoutParams(-2, -2);
+            arrowSize.setMarginStart(dp(14));
+            language.addView(languageArrow, arrowSize);
+            configureStateFade(language);
+            language.setOnClickListener(v -> {
                 String[] tags={"","uk","en"}; String selected=AppLanguage.selected(this); int index=selected.equals("uk")?1:selected.equals("en")?2:0;
                 new AlertDialog.Builder(this).setTitle(R.string.language)
                         .setSingleChoiceItems(new String[]{getString(R.string.language_system),"Українська","English"},index,(dialog,which)->{
                             dialog.dismiss(); if(!tags[which].equals(AppLanguage.selected(this))) { AppLanguage.choose(this,tags[which]); languageChange=true; recreate(); }
                         }).setNegativeButton(R.string.cancel,null).show();
             });
-            language.setId(R.id.language_choice);
             LinearLayout.LayoutParams languageSize=new LinearLayout.LayoutParams(-1,dp(52)); languageSize.topMargin=dp(12); detail.addView(language,languageSize);
         } else if ("screensaver".equals(category)) {
             detail.addView(label(getString(R.string.saver_title), 24, Color.WHITE));

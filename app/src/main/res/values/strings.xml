@@ -24,7 +24,7 @@
     <string name="developer_site">"Developer website"</string>
     <string name="font_license">"Montserrat license"</string>
     <string name="third_party_notices">"Third-party notices"</string>
-    <string name="code_license">"Source code license · Apache-2.0"</string>
+    <string name="code_license">"Source code license"</string>
     <string name="license_failed">"Could not read the license"</string>
     <string name="close">"Close"</string>
     <string name="wallpaper_blue_name">"blue wallpaper"</string>
