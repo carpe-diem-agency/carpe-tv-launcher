@@ -17,9 +17,9 @@
 **Without a computer:** open the [latest release](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest)
 in a browser on your TV and download `carpe-tv.apk`. If the TV has no browser,
 download the same file on your phone and transfer it using a method supported
-by your TV. You may need a file receiver from Google Play. A private repository
-still requires GitHub access; this route becomes straightforward for everyone
-only after a public release.
+by your TV. You may need a file receiver from Google Play. Until the public APK
+is released, the project page shows a preview only; the install link will appear
+after the release.
 
 1. Open the downloaded APK on the TV. If Android asks which app to use, choose
    **Package Installer**. On [Android 8+](https://developer.android.com/studio/publish#install-unknown-apps), allow installation for
@@ -31,6 +31,12 @@ only after a public release.
 The basic launcher needs **one APK**. Shizuku, ADB, root and a computer are not
 required for the first launch. Check the filename, version and SHA-256 on the
 release page; an APK signed with a different key cannot update Carpe TV.
+
+If this device already has a personal test build, it uses a different package ID.
+The public APK installs **as a separate app**: test it first, then select it as
+Home. The personal build remains available for rollback. Later public releases
+update the public app in place when the signing key matches and the version
+number increases.
 
 **For developers — ADB install:**
 
