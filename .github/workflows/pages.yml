@@ -84,7 +84,7 @@ jobs:
         if: ${{ github.event_name == 'release' || steps.stable.outputs.ready == 'true' }}
         run: python3 scripts/prepare_pages_release.py site/index.html "$RUNNER_TEMP/pages-release/update.json"
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
