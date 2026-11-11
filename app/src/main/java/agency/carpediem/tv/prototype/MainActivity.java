@@ -1413,7 +1413,10 @@ public final class MainActivity extends Activity {
         boolean ready=selected.equals(loadedWallpaper) && sharpWallpaper!=null;
         // Keep the previous scene during asynchronous decoding instead of flashing a placeholder.
         if(entry.photo!=0 && !ready && sharpWallpaper!=null) return;
-        String key=page+":"+selected+":"+("home".equals(page) ? getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM) : 0)+":"+ready;
+        // Solid and gradient choices have the same appearance on every page.
+        // Replacing that full-screen drawable on each rail move wastes GPU work.
+        String key=selected+":"+ready+(ready ? ":"+page+":"+("home".equals(page)
+                ? getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM) : 0) : ":shared");
         if(key.equals(backgroundKey)) return;
         Drawable next;
         if(ready) {

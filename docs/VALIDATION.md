@@ -1,5 +1,21 @@
 # Validation baseline — 2026-11-03
 
+## Shared-background navigation check — 2026-11-11
+
+On the isolated public preview on MiTV-AFMU1, the selected blue wallpaper was
+identical across Home, Library and Settings. The launcher nevertheless replaced
+and cross-faded its full-screen drawable on every page change. The background
+key now stays shared for blue, plain and not-yet-decoded photo placeholders;
+loaded photos still get the page-specific dimmed/blurred treatment.
+
+The same device navigation probe passed before and after the change: 36 normal
+and rapid page changes retained focus. Before the change, page frames had
+median 31.21 ms and p95 54.42 ms (315 frames). After the change, two runs had
+medians 20.52/28.05 ms and p95 43.54/43.69 ms (289/294 frames). Focus-card
+p95 stayed near 15 ms. This is a one-device comparison, not a locked-60-FPS
+claim. The wallpaper probe also passed all five choices, D-pad focus, rapid
+switches and restart persistence. No system packages were changed.
+
 ## OEM Home route and optional bridge experiment — 2026-11-11
 
 On Xiaomi MiTV-AFMU1 (Android TV 14), `agency.carpediem.tv.publicpreview`
