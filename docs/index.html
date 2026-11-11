@@ -84,6 +84,9 @@
     }
     .download:hover, .download:focus-visible { transform: translateY(-3px); box-shadow: 0 25px 50px rgba(4, 11, 23, .38), inset 0 1px rgba(255,255,255,.9); }
     .download svg { flex: none; width: 29px; height: 29px; }
+    .download-version { font-size: .62em; font-weight: 650; opacity: .72; white-space: nowrap; }
+    .download:disabled { cursor: not-allowed; opacity: .58; box-shadow: none; }
+    .download:disabled:hover { transform: none; box-shadow: none; }
     .secondary { color: var(--ink); font-size: clamp(17px, 1.4vw, 22px); font-weight: 600; text-decoration-thickness: 1px; text-underline-offset: 5px; }
     .preview-notice { max-width: 27ch; color: var(--ink); font-size: clamp(20px, 1.6vw, 25px); font-weight: 650; line-height: 1.3; }
     [data-release-ready="false"] .release-only, [data-release-ready="true"] .preview-only { display: none !important; }
@@ -168,7 +171,8 @@
         <h1>Те, що любиш дивитись, поруч.</h1>
         <p class="lead">Легкий домашній екран для Android TV. Програми під рукою, керування з пульта.</p>
         <div class="actions">
-          <a class="download release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Завантажити APK</a>
+          <a class="download release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Завантажити APK <span class="download-version" data-release-version>v0.2.8</span></a>
+          <button class="download preview-only" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Завантажити APK <span class="download-version">v0.2.8</span></button>
           <a class="secondary release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest">Усі файли релізу</a>
           <span class="preview-notice preview-only">APK готуємо до публічного релізу.</span>
           <a class="secondary preview-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher">Переглянути код</a>
@@ -178,7 +182,8 @@
         <h1>What you love to watch, close at hand.</h1>
         <p class="lead">A lightweight home screen for Android TV. Your apps close at hand, controlled with a remote.</p>
         <div class="actions">
-          <a class="download release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Download APK</a>
+          <a class="download release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Download APK <span class="download-version" data-release-version>v0.2.8</span></a>
+          <button class="download preview-only" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Download APK <span class="download-version">v0.2.8</span></button>
           <a class="secondary release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest">Release files</a>
           <span class="preview-notice preview-only">The APK is being prepared for public release.</span>
           <a class="secondary preview-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher">View source</a>
