@@ -9,6 +9,8 @@ import tempfile
 import unittest
 
 SCRIPT = Path(__file__).with_name('verify_pages_release.py')
+PAGE_SCRIPT = Path(__file__).with_name('prepare_pages_release.py')
+PAGE_SOURCE = SCRIPT.parent.parent / 'docs/index.html'
 REPOSITORY = 'carpe-diem-agency/carpe-tv-launcher'
 TAG = 'v1.0.0'
 
@@ -62,6 +64,21 @@ class PagesReleaseTest(unittest.TestCase):
     def test_missing_source_archive(self):
         self.source.unlink()
         self.assertNotEqual(self.verify(), 0)
+
+    def test_page_stays_preview_until_explicitly_enabled(self):
+        source = PAGE_SOURCE.read_text()
+        self.assertIn('data-release-ready="false"', source)
+        self.assertNotIn('"downloadUrl"', source)
+        page = self.assets / 'index.html'
+        page.write_text(source)
+        result = subprocess.run([sys.executable, str(PAGE_SCRIPT), str(page)],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        enabled = page.read_text()
+        self.assertIn('data-release-ready="true"', enabled)
+        self.assertIn('"downloadUrl"', enabled)
+        self.assertNotEqual(subprocess.run([sys.executable, str(PAGE_SCRIPT), str(page)],
+                                           capture_output=True).returncode, 0)
 
 
 if __name__ == '__main__':

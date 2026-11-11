@@ -67,8 +67,10 @@ for media in ('wallpaper_alpine.jpg', 'home-preview.jpg', 'google-tv-home-test-s
         errors.append('Pages workflow does not publish preview: '+media)
 if 'cp docs/robots.txt docs/sitemap.xml site/' not in pages_workflow:
     errors.append('Pages workflow is missing discovery files')
-if 'python3 scripts/prepare_pages_preview.py site/index.html' not in pages_workflow:
-    errors.append('Pages workflow must hide the APK action before a stable release')
+if '<html lang="uk" data-release-ready="false">' not in install_page or '"downloadUrl"' in install_page:
+    errors.append('Source install page must default to preview without download metadata')
+if 'python3 scripts/prepare_pages_release.py site/index.html' not in pages_workflow:
+    errors.append('Pages workflow must enable the APK action only after release verification')
 if 'carpe-diem-agency.github.io/carpe-tv-launcher/' not in install_page:
     errors.append('Install page canonical URL differs from the new repository')
 match = re.search(r'<script type="application/ld\+json">(.*?)</script>', install_page, re.S)
