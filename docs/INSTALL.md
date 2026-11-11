@@ -7,8 +7,8 @@
 - Android TV / Google TV, Android 8.0 (API 26)+. System controls were tested only on
   Xiaomi TV Stick `MiTV-AFMU1`, Android TV 14 — [device matrix](../README.en.md#tested-devices).
 - Keep the stock launcher installed and do not clear its data.
-- Apps & background is included in 0.2.7 internal preview; older APKs may not
-  include it. Check the individual release notes.
+- Features can differ between APK versions. Check the release notes before
+  following optional system-control steps below.
 - System mutations support primary Android user 0. Root is not required.
 
 ## 1. Install Carpe TV
@@ -80,10 +80,9 @@ The ordinary launcher and package-state display work without it.
 5. Select **2. Start Shizuku** with the TV remote. Authorize **Carpe TV** in Shizuku
    if you agree, and verify the system-access status before making changes.
 
-Phone pairing and remote-button restart were tested on Xiaomi `MiTV-AFMU1` without
-a computer for the restart. The wizard is not yet in the published
-`v0.2.7-internal.1` APK; other firmware needs separate testing. Its temporary
-local page uses HTTP, so pair only on a trusted network.
+Phone pairing and remote-button restart were tested on Xiaomi `MiTV-AFMU1`;
+other firmware needs separate testing. The temporary local page uses HTTP,
+so pair only on a trusted network.
 
 Revoke access in Shizuku at any time. Without root, re-enable Wireless debugging if
 needed and press **2. Start Shizuku** after reboot;
