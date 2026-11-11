@@ -149,7 +149,9 @@
       on one stick. A newer source-built release candidate measured 14 ms p95
       across 20 paced page cycles, while an unpaced stress run was markedly
       slower. Projected-screen visuals and other devices remain to be checked.
-- [ ] Review this checklist, README, support scope and Releases before publication.
+- [ ] Complete the [physical-remote user-flow acceptance](USER_FLOW_ACCEPTANCE.md)
+      on the exact published APK, then review this checklist, README, support
+      scope and Releases before publication.
 
 This checklist is preparation for a later public release, not a reason to stop
 private development. No workflow changes repository visibility automatically.
