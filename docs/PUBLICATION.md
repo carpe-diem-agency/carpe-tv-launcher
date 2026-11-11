@@ -130,8 +130,9 @@
 - [ ] Test Home choice and rollback on more than the current Xiaomi test device.
 - [ ] Finish long-duration memory, accessibility and D-pad checks. The isolated
       [navigation probe and 279-second memory run](PERFORMANCE_CHECK.md) passed
-      on one stick. Current page motion measured about 54 ms p95 in two debug
-      runs; release visuals and other devices remain to be checked.
+      on one stick. A newer source-built release candidate measured 14 ms p95
+      across 20 paced page cycles, while an unpaced stress run was markedly
+      slower. Projected-screen visuals and other devices remain to be checked.
 - [ ] Review this checklist, README, support scope and Releases before publication.
 
 This checklist is preparation for a later public release, not a reason to stop

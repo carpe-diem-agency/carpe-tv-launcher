@@ -174,6 +174,30 @@ perceived smoothness on the projected image or behavior on other hardware.
 The debug page-transition p95 above and this `gfxinfo` p95 have different
 measurement windows and should not be compared as identical metrics.
 
+## Source-built release candidate follow-up — 2026-11-11
+
+A release APK built with a test-modified, source-built SPAKE2 AAR was signed
+with a disposable certificate and temporarily installed under the public app
+ID on MiTV-AFMU1. This checks the current release UI code after the timer
+dialog change; it is not a production-signed APK. Android reported a 4K/60 Hz
+physical display mode with a 1920×1080 logical UI override.
+
+In 20 Home → Apps → Settings → Apps → Home cycles with 120 ms between injected
+D-pad keys, `dumpsys gfxinfo` recorded 1,045 frames: median 10 ms, p90 13 ms,
+p95 14 ms, p99 24 ms, 5 janky frames (0.48%) under the current Android metric
+and 18 (1.72%) under its legacy metric. A deliberately faster run without
+pauses had 542 frames, median 21 ms, p95 26 ms, 2 current-metric janky frames
+and 470 legacy janky frames (86.72%). The rapid run queues transitions more
+densely and is not representative of ordinary remote use; it identifies a
+stress behavior that still deserves visual review on the projector.
+
+The final screenshot showed Home and the expected five favorites. The test
+package was removed, the personal launcher resumed and the Android Home role
+still named `agency.carpediem.tv.prototype`. These ADB-injected measurements
+do not establish perceived smoothness, physical-remote behavior or performance
+on other devices. Raw captures remain outside the public repository because
+they contain the owner's app list.
+
 ## Isolated debug follow-up after layout measurement change — 2026-11-11
 
 The `.publicpreview` debug APK at source commit `21472ce` and its separate
