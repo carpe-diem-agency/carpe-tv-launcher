@@ -22,6 +22,10 @@ final class HomeFocusProbe {
                 .edit().putBoolean("welcome_seen",true).commit();
         MainActivity screen=(MainActivity)test.startActivitySync(new Intent(test.getTargetContext(),MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK));
         SystemClock.sleep(1500);
+        // The preceding probe may have left a cached Settings page in the task.
+        // Enter Home through the same rail path a viewer uses before checking it.
+        test.runOnMainSync(() -> screen.findViewById(R.id.nav_home).requestFocus());
+        SystemClock.sleep(350);
         List<View> tiles=awaitFavorites(test,screen);
         require(tiles.size()>=2,"At least two favorites needed");
         for(int i=0;i<Math.min(5,tiles.size());i++) {
@@ -38,6 +42,9 @@ final class HomeFocusProbe {
                 require(screen.getCurrentFocus()==selected[0],"Favorite focus lost before D-pad Up " + column);
             });
             View tile=selected[0];
+            test.runOnMainSync(() -> require(screen.findViewById(R.id.home_time)!=null
+                    && screen.findViewById(R.id.home_time).isShown(),
+                    "Home page hidden before D-pad Up from favorite " + column));
             int header = i == 0 ? R.id.home_power : i < 3 ? R.id.home_wifi
                     : i == 3 ? R.id.home_bluetooth : R.id.home_timer;
             key(test,KeyEvent.KEYCODE_DPAD_UP);focus(test,screen,header);
