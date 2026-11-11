@@ -86,3 +86,23 @@ Android's manifest documentation also rules out raising the non-privileged
 `HomeEntry` intent-filter priority above these OEM candidates: requested
 positive priorities are capped at zero for non-privileged apps. See
 <https://developer.android.com/guide/topics/manifest/intent-filter-element#priority>.
+
+## Disabled-by-default Home service experiment · 2026-11-11
+
+An isolated preview APK declared the Google TV window observer with
+`android:enabled="false"`. TV Bro downloaded it and Android installed it
+without a Play Protect block. The service was then made available from a
+Carpe TV settings action in a separate preview build. Android's package manager
+listed the component, but Xiaomi's Accessibility screen listed only TalkBack,
+even after restarting Settings. The service was not enabled, and physical Home
+was not verified. Google TV remained enabled throughout.
+
+Android may restrict Accessibility for sideloaded apps. Google documents a
+per-app [“Allow restricted settings” control](https://support.google.com/android/answer/12623953)
+on some Android 13+ devices, but
+the tested Xiaomi TV app-details screen did not show that control. This is an
+inference, not a confirmed diagnosis for this firmware.
+
+The opt-in prototype is saved locally on `experiment/home-bridge-optin` and is
+not in the public APK. Do not publish setup steps until a user can enable it
+through the normal TV UI and both Home and rollback are verified.
