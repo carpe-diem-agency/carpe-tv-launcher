@@ -55,3 +55,10 @@ built an unsigned Carpe TV release APK with that AAR supplied through
 `-Pspake2Aar`. This verifies the source-to-APK build path on a clean runner.
 The resulting APK was not signed or installed, and this was the unmodified
 upstream source, so the device and modified-library checks remain open.
+
+The subsequent [run #3](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42992685963)
+at commit `563b24f` passed a stronger packaging check: SHA-256 of each
+source-built `libspake2.so` in the AAR matched the corresponding file in the
+unsigned APK for `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64`. This verifies
+which native files entered that build. It still does not verify installation
+of a modified library or resolve the signed-distribution requirements.

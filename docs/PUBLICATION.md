@@ -44,6 +44,10 @@
       [run #2](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42991685259)
       passed. Signing, device installation and a modified-library replacement
       still need verification.
+- [x] Verify native packaging in
+      [run #3](https://github.com/carpe-diem-agency/carpe-tv-launcher/actions/runs/42992685963):
+      all four SPAKE2 ABI libraries in the unsigned APK match the source-built
+      AAR byte for byte. Signed installation remains open.
 - [ ] Complete distribution review of libadb-android and its LGPL-3.0
       `spake2-android` 2.2.1 transitive component, including native-library
       source and relinking obligations. Bundled license text alone is not clearance.
