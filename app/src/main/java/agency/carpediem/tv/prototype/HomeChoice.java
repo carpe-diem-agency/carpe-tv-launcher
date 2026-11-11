@@ -25,7 +25,10 @@ final class HomeChoice {
             RoleManager roles = activity.getSystemService(RoleManager.class);
             if (roles != null && roles.isRoleAvailable(RoleManager.ROLE_HOME)) {
                 if (roles.isRoleHeld(RoleManager.ROLE_HOME)) {
-                    Toast.makeText(activity, AppLanguage.text(activity, R.string.home_already), Toast.LENGTH_LONG).show(); return;
+                    int message = platformResolvesToCarpe(activity)
+                            ? R.string.home_already : R.string.setup_home_route_conflict;
+                    Toast.makeText(activity, AppLanguage.text(activity, message), Toast.LENGTH_LONG).show();
+                    return;
                 }
                 clearVerification(activity);
                 try { activity.startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_HOME), 401); return; }

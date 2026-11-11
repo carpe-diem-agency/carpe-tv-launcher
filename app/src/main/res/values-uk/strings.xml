@@ -17,7 +17,7 @@
     <string name="setup_system_title">Системні дії</string>
     <string name="setup_home_off">Обери Carpe TV головним екраном</string>
     <string name="setup_home_unverified">Вибрано · перевір кнопку пульта</string>
-    <string name="setup_home_route_conflict">Home досі відкриває Google TV</string>
+    <string name="setup_home_route_conflict">Кнопка Home досі відкриває штатний екран</string>
     <string name="setup_home_ready">Готово · кнопку пульта перевірено</string>
     <string name="setup_home_choose_first">Спочатку вибери Carpe TV головним екраном.</string>
     <string name="setup_home_press_remote">Відкриються системні налаштування. Натисни Home на пульті.</string>

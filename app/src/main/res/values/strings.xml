@@ -17,7 +17,7 @@
     <string name="setup_system_title">System actions</string>
     <string name="setup_home_off">Choose Carpe TV as your Home screen</string>
     <string name="setup_home_unverified">Selected · test the remote button</string>
-    <string name="setup_home_route_conflict">Google TV still opens from Home</string>
+    <string name="setup_home_route_conflict">Home still opens the stock screen</string>
     <string name="setup_home_ready">Ready · remote button verified</string>
     <string name="setup_home_choose_first">Choose Carpe TV as the Home app first.</string>
     <string name="setup_home_press_remote">System Settings will open. Press Home on your remote.</string>
