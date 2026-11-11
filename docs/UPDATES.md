@@ -37,7 +37,7 @@ A compiled HTTPS feed may return metadata directly, or GitHub's latest published
 release response with an `update.json` asset. Draft/prerelease GitHub responses are
 rejected by that public/stable path. Debug direct metadata may use the `internal`
 channel and a private LAN HTTP URL. Debug test routing is not enabled in release builds.
-The release variant embeds `https://api.github.com/repos/carpe-diem-agency/carpe-tv/releases/latest`
+The release variant embeds `https://api.github.com/repos/carpe-diem-agency/carpe-tv-launcher/releases/latest`
 by default; debug has no feed unless a test URL is supplied at build time.
 Redirects use same-origin or recognized HTTPS GitHub asset hosts, without auth headers.
 

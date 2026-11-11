@@ -4,9 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101b2e">
-  <meta name="description" content="Carpe TV — легкий лаунчер для Android TV. Завантаж APK та встанови його з пульта.">
+  <meta name="description" content="Carpe TV — безплатний лаунчер для Android TV та Google TV. Улюблені програми, бібліотека з пошуком, власна заставка й керування пультом. Завантаж APK та встанови за три кроки.">
+  <link rel="canonical" href="https://carpe-diem-agency.github.io/carpe-tv-launcher/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="uk_UA">
+  <meta property="og:site_name" content="Carpe TV">
+  <meta property="og:title" content="Carpe TV — лаунчер для Android TV">
+  <meta property="og:description" content="Те, що любиш дивитись, поруч. Улюблені програми, пошук і заставка в легкому лаунчері для пульта.">
+  <meta property="og:url" content="https://carpe-diem-agency.github.io/carpe-tv-launcher/">
+  <meta property="og:image" content="https://carpe-diem-agency.github.io/carpe-tv-launcher/assets/home-preview.jpg">
+  <meta property="og:image:alt" content="Головний екран Carpe TV з улюбленими програмами на гірському фоні">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="720">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Carpe TV","applicationCategory":"MultimediaApplication","operatingSystem":"Android TV, Google TV","description":"Free remote-first home screen launcher for Android TV and Google TV.","isAccessibleForFree":true,"downloadUrl":"https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk","url":"https://carpe-diem-agency.github.io/carpe-tv-launcher/"}</script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b2d68'/%3E%3Cpath d='M15 46V29l17-14 17 14v17' fill='none' stroke='%23dcefff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='m28 28 14 8-14 8z' fill='%23fff'/%3E%3C/svg%3E">
-  <title>Carpe TV — встановити на Android TV</title>
+  <title>Carpe TV — безплатний лаунчер для Android TV і Google TV</title>
   <style>
     :root {
       color-scheme: dark;
@@ -78,6 +91,36 @@
     li { counter-increment: steps; display: grid; grid-template-columns: 36px 1fr; gap: 16px; padding: 19px 0; border-top: 1px solid var(--edge); font-size: clamp(17px, 1.45vw, 22px); line-height: 1.42; }
     li::before { content: counter(steps); display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid rgba(255,255,255,.36); border-radius: 11px; font-size: 17px; font-weight: 700; }
     .aside { margin: 18px 0 0; color: var(--muted); font-size: clamp(15px, 1.1vw, 18px); line-height: 1.5; }
+    .showcase { padding: 52px 0 58px; }
+    .showcase h2 { margin: 0 0 10px; font-size: clamp(29px, 3vw, 46px); letter-spacing: -.04em; }
+    .showcase > p { margin: 0 0 24px; color: var(--muted); font-size: clamp(17px, 1.4vw, 22px); }
+    .showcase-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; }
+    .showcase video, .showcase img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 20px; border: 1px solid var(--edge); background: #111b2c; box-shadow: 0 18px 40px rgba(0, 5, 20, .3); }
+    .showcase video:focus-visible { outline: 4px solid #fff; outline-offset: 5px; }
+    .showcase figure { margin: 0; }
+    .showcase figcaption { padding: 12px 4px 0; color: var(--muted); font-size: clamp(15px, 1.15vw, 18px); }
+    .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .shots img { border-radius: 15px; }
+    .comparison { padding: 8px 0 58px; }
+    .comparison h2 { margin: 0 0 10px; font-size: clamp(29px, 3vw, 46px); letter-spacing: -.04em; }
+    .comparison > p { max-width: 68ch; margin: 0 0 25px; color: var(--muted); font-size: clamp(17px, 1.4vw, 21px); line-height: 1.5; }
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .compare-grid figure { margin: 0; min-width: 0; }
+    .compare-grid figcaption { padding: 12px 4px 0; color: var(--muted); font-size: clamp(15px, 1.15vw, 18px); }
+    .compare-screen { width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--edge); border-radius: 20px; overflow: hidden; box-shadow: 0 18px 40px rgba(0, 5, 20, .3); }
+    .compare-screen img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .sample-screen { padding: 5%; background: linear-gradient(150deg, #26364c, #111823 72%); }
+    .sample-nav { display: flex; gap: 3%; margin-bottom: 7%; }
+    .sample-nav span { width: 15%; height: 9px; border-radius: 20px; background: #8f9bad; opacity: .65; }
+    .sample-nav span:first-child { background: #f5f8ff; opacity: 1; }
+    .sample-hero { height: 38%; border-radius: 13px; background: linear-gradient(115deg, #5b6880, #8b6b70 62%, #28354b); }
+    .sample-row { display: flex; gap: 2.3%; margin-top: 5%; height: 22%; }
+    .sample-row span { flex: 1; border-radius: 9px; background: linear-gradient(140deg, #50617d, #27364f); }
+    .sample-row span:nth-child(2n) { background: linear-gradient(140deg, #735a67, #35445a); }
+    .benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 22px 0 0; }
+    .benefits > div { padding: 21px; border: 1px solid var(--edge); border-radius: 18px; background: var(--surface); }
+    .benefits strong { display: block; margin-bottom: 8px; font-size: clamp(17px, 1.3vw, 21px); }
+    .benefits span { color: var(--muted); font-size: clamp(15px, 1.1vw, 18px); line-height: 1.45; }
     footer { padding-top: 22px; color: var(--muted); font-size: clamp(14px, 1vw, 17px); }
     footer a { color: var(--ink); text-underline-offset: 4px; }
     [hidden] { display: none !important; }
@@ -88,6 +131,9 @@
       h1 { max-width: 13ch; }
       .lead { margin-bottom: 30px; }
       body { background-attachment: scroll; }
+      .showcase-grid { grid-template-columns: 1fr; }
+      .compare-grid { grid-template-columns: 1fr; }
+      .benefits { grid-template-columns: 1fr; }
     }
     /* TV browsers often expose a 960 × 540 CSS viewport on a 1920 × 1080 output. */
     @media (min-width: 851px) and (max-height: 700px) {
@@ -125,19 +171,19 @@
     </header>
     <main>
       <section class="intro" data-copy="uk">
-        <h1>Твій екран. Твій ритм.</h1>
+        <h1>Те, що любиш дивитись, поруч.</h1>
         <p class="lead">Легкий домашній екран для Android TV. Програми під рукою, керування з пульта.</p>
         <div class="actions">
-          <a class="download" href="https://github.com/carpe-diem-agency/carpe-tv/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Завантажити APK</a>
-          <a class="secondary" href="https://github.com/carpe-diem-agency/carpe-tv/releases/latest">Усі файли релізу</a>
+          <a class="download" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Завантажити APK</a>
+          <a class="secondary" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest">Усі файли релізу</a>
         </div>
       </section>
       <section class="intro" data-copy="en" hidden>
-        <h1>Your TV. Your pace.</h1>
+        <h1>What you love to watch, close at hand.</h1>
         <p class="lead">A lightweight home screen for Android TV. Your apps close at hand, controlled with a remote.</p>
         <div class="actions">
-          <a class="download" href="https://github.com/carpe-diem-agency/carpe-tv/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Download APK</a>
-          <a class="secondary" href="https://github.com/carpe-diem-agency/carpe-tv/releases/latest">Release files</a>
+          <a class="download" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Download APK</a>
+          <a class="secondary" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest">Release files</a>
         </div>
       </section>
       <section class="steps" data-copy="uk">
@@ -163,11 +209,59 @@
         <p class="aside"><strong>Switch back:</strong> select the stock launcher in Android Home settings. Keep the stock launcher installed.</p>
       </section>
     </main>
+    <section class="comparison" data-copy="uk" aria-labelledby="compare-title-uk">
+      <h2 id="compare-title-uk">Менше кроків до улюбленого</h2>
+      <p>Carpe TV відкриває обрані програми на головному екрані. Усі встановлені програми зібрані в бібліотеці з пошуком, а фон і заставку можна змінити під себе.</p>
+      <div class="compare-grid">
+        <figure><div class="compare-screen sample-screen" role="img" aria-label="Схематичне зображення типового головного екрана з кількома рядами рекомендацій"><div class="sample-nav"><span></span><span></span><span></span><span></span></div><div class="sample-hero"></div><div class="sample-row"><span></span><span></span><span></span><span></span><span></span></div><div class="sample-row"><span></span><span></span><span></span><span></span><span></span></div></div><figcaption>Типовий стартовий екран · схема, не знімок Google TV</figcaption></figure>
+        <figure><div class="compare-screen"><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Головний екран Carpe TV з улюбленими програмами"></div><figcaption>Carpe TV · знімок тестової збірки на Xiaomi TV Stick</figcaption></figure>
+      </div>
+      <div class="benefits">
+        <div><strong>Один APK</strong><span>Завантаж, відкрий і підтвердь встановлення в Android. Для базового лаунчера не потрібні root чи комп’ютер.</span></div>
+        <div><strong>Пульт на першому місці</strong><span>Великі плитки, видимий фокус і швидкий доступ до програм без додаткового акаунта.</span></div>
+        <div><strong>Можна повернутися</strong><span>Штатний лаунчер лишається встановленим. Вибір Home можна змінити в системних налаштуваннях.</span></div>
+      </div>
+    </section>
+    <section class="comparison" data-copy="en" hidden aria-labelledby="compare-title-en">
+      <h2 id="compare-title-en">Fewer steps to your favorites</h2>
+      <p>Carpe TV puts favorite apps on Home. All installed apps are in a searchable library, while the wallpaper and screensaver are yours to choose.</p>
+      <div class="compare-grid">
+        <figure><div class="compare-screen sample-screen" role="img" aria-label="Illustration of a typical home screen with multiple recommendation rows"><div class="sample-nav"><span></span><span></span><span></span><span></span></div><div class="sample-hero"></div><div class="sample-row"><span></span><span></span><span></span><span></span><span></span></div><div class="sample-row"><span></span><span></span><span></span><span></span><span></span></div></div><figcaption>Typical home screen · illustration, not a Google TV capture</figcaption></figure>
+        <figure><div class="compare-screen"><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Home with favorite apps"></div><figcaption>Carpe TV · test build on Xiaomi TV Stick</figcaption></figure>
+      </div>
+      <div class="benefits">
+        <div><strong>One APK</strong><span>Download, open and confirm installation in Android. Basic use needs no root or computer.</span></div>
+        <div><strong>Built for the remote</strong><span>Large tiles, visible focus and quick app access without a launcher account.</span></div>
+        <div><strong>Switch back</strong><span>The stock launcher stays installed. You can change your Home choice in Android settings.</span></div>
+      </div>
+    </section>
+    <section class="showcase" data-copy="uk" aria-labelledby="showcase-title-uk">
+      <h2 id="showcase-title-uk">Поглянь на Carpe TV</h2>
+      <p>Короткий огляд головного екрана й налаштувань зі стіка Xiaomi TV Stick 4K.</p>
+      <div class="showcase-grid">
+        <figure><video controls playsinline preload="none" poster="assets/home-preview.jpg" aria-label="Короткий відеоогляд Carpe TV"><source src="assets/interface-preview.mp4" type="video/mp4">Твій браузер не підтримує відео.</video><figcaption>Перехід між екранами · 7 с</figcaption></figure>
+        <div class="shots">
+          <figure><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Головний екран Carpe TV з улюбленими програмами на гірському фоні"><figcaption>Головна</figcaption></figure>
+          <figure><img src="assets/settings-preview.jpg" width="1280" height="720" loading="lazy" alt="Налаштування Carpe TV з вибором фону та затемнення"><figcaption>Налаштування</figcaption></figure>
+        </div>
+      </div>
+    </section>
+    <section class="showcase" data-copy="en" hidden aria-labelledby="showcase-title-en">
+      <h2 id="showcase-title-en">See Carpe TV</h2>
+      <p>A quick look at Home and Settings on a Xiaomi TV Stick 4K.</p>
+      <div class="showcase-grid">
+        <figure><video controls playsinline preload="none" poster="assets/home-preview.jpg" aria-label="Short Carpe TV interface preview"><source src="assets/interface-preview.mp4" type="video/mp4">Your browser cannot play this video.</video><figcaption>Screen transition · 7 sec</figcaption></figure>
+        <div class="shots">
+          <figure><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Home with favorite apps over a mountain lake wallpaper"><figcaption>Home</figcaption></figure>
+          <figure><img src="assets/settings-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Settings with wallpaper and dimming controls"><figcaption>Settings</figcaption></figure>
+        </div>
+      </div>
+    </section>
     <footer>
       <span data-copy="uk">Android TV 8.0+ · Встановлення підтверджує Android</span>
       <span data-copy="en" hidden>Android TV 8.0+ · Android confirms installation</span>
-      <a data-copy="uk" href="https://github.com/carpe-diem-agency/carpe-tv/blob/main/docs/INSTALL.uk.md">Детальна інструкція та відкат</a>
-      <a data-copy="en" hidden href="https://github.com/carpe-diem-agency/carpe-tv/blob/main/docs/INSTALL.md">Full guide and rollback</a>
+      <a data-copy="uk" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/docs/INSTALL.uk.md">Детальна інструкція та відкат</a>
+      <a data-copy="en" hidden href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/docs/INSTALL.md">Full guide and rollback</a>
     </footer>
   </div>
   <script>
@@ -176,7 +270,7 @@
       document.documentElement.lang = language;
       for (const item of document.querySelectorAll('[data-copy]')) item.hidden = item.dataset.copy !== language;
       for (const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.language === language));
-      document.title = language === 'uk' ? 'Carpe TV — встановити на Android TV' : 'Carpe TV — install on Android TV';
+      document.title = language === 'uk' ? 'Carpe TV — безплатний лаунчер для Android TV і Google TV' : 'Carpe TV — free launcher for Android TV and Google TV';
     }
     for (const button of buttons) button.addEventListener('click', () => selectLanguage(button.dataset.language));
     if (!navigator.language.toLowerCase().startsWith('uk')) selectLanguage('en');

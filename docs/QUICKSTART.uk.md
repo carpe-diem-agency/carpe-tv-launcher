@@ -4,7 +4,7 @@
 APK доступний лише запрошеним користувачам. Опис збірки й підпису звіряй на сторінці
 конкретного релізу.
 
-1. На приставці відкрий [останній реліз](https://github.com/carpe-diem-agency/carpe-tv/releases/latest)
+1. На приставці відкрий [останній реліз](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest)
    і завантаж `carpe-tv.apk`. Якщо браузера немає, передай цей файл із телефона.
 2. Відкрий APK. Якщо з’явиться вибір програми, обери **«Програма встановлення
    пакета»**. Підтвердь встановлення; якщо Android запитає дозвіл, надай його
@@ -23,4 +23,4 @@ Shizuku потрібна лише для додаткових системних
 
 [Докладне встановлення та відкат](INSTALL.uk.md) ·
 [Оновлення зі скрінами](UPDATING.uk.md) ·
-[GitHub](https://github.com/carpe-diem-agency/carpe-tv)
+[GitHub](https://github.com/carpe-diem-agency/carpe-tv-launcher)

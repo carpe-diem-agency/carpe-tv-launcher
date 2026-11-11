@@ -4,6 +4,7 @@ import pathlib
 import hashlib
 import tarfile
 import re
+import json
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
@@ -50,14 +51,30 @@ release_workflow = (root/'.github/workflows/release.yml').read_text()
 install_page = (root/'docs/index.html').read_text()
 gradle = (root/'app/build.gradle').read_text()
 asset_name = 'carpe-tv.apk'
-stable_link = 'https://github.com/carpe-diem-agency/carpe-tv/releases/latest/download/' + asset_name
-feed = 'https://api.github.com/repos/carpe-diem-agency/carpe-tv/releases/latest'
+stable_link = 'https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/' + asset_name
+feed = 'https://api.github.com/repos/carpe-diem-agency/carpe-tv-launcher/releases/latest'
 if install_page.count('href="' + stable_link + '"') != 2:
     errors.append('Install page must link both languages to the stable release APK')
 if 'cp app/build/outputs/apk/release/app-release.apk dist/' + asset_name not in release_workflow:
     errors.append('Release workflow APK asset differs from the install page')
 if 'dist/' + asset_name + ' dist/SHA256SUMS dist/update.json' not in release_workflow:
     errors.append('Release workflow must attach the APK, checksum and updater metadata')
+pages_workflow = (root/'.github/workflows/pages.yml').read_text()
+for media in ('wallpaper_alpine.jpg', 'home-preview.jpg', 'settings-preview.jpg', 'interface-preview.mp4'):
+    if not (root/'docs/assets'/media).is_file() or 'assets/'+media not in install_page:
+        errors.append('Install page preview missing: '+media)
+    if 'cp docs/assets/'+media+' site/assets/'+media not in pages_workflow:
+        errors.append('Pages workflow does not publish preview: '+media)
+if 'cp docs/robots.txt docs/sitemap.xml site/' not in pages_workflow:
+    errors.append('Pages workflow is missing discovery files')
+if 'carpe-diem-agency.github.io/carpe-tv-launcher/' not in install_page:
+    errors.append('Install page canonical URL differs from the new repository')
+match = re.search(r'<script type="application/ld\+json">(.*?)</script>', install_page, re.S)
+if not match:
+    errors.append('Install page is missing structured data')
+else:
+    try: json.loads(match.group(1))
+    except json.JSONDecodeError: errors.append('Install page structured data is invalid JSON')
 source_name = 'spake2-java-2.2.1-with-submodule.tar.gz'
 source_archive = root/'compliance/source'/source_name
 source_checksum = root/'compliance/source/SHA256SUMS'

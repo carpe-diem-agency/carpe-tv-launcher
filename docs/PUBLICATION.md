@@ -10,10 +10,13 @@
       packaged media bytes, not Git history or independently modified copies.
 - [x] Export this source as a fresh tree without the private repository history or old screenshots.
 - [ ] Capture and review new screenshots from the final release candidate.
+- [x] Prepare clean Home and Settings previews plus a short on-device
+      transition recording for the install page. These were captured from an
+      isolated debug APK; replace and recheck against the final signed APK.
 - [x] Prepare a bilingual TV/phone install page in `docs/index.html`, with a
       direct link to the intended stable APK asset and a fallback release link.
 - [x] Prepare a gated GitHub Pages workflow that publishes only the install
-      page and its photo after a stable release in a public repository.
+      page, its reviewed media and sitemap after a stable release in a public repository.
 - [ ] Publish and test that install page only after the public stable release
       exists; verify the TV-browser download and phone transfer on real devices.
 - [x] Bundle Apache-2.0, LGPL-3.0 and incorporated GPL-3.0 texts in the APK;

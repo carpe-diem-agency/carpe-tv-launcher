@@ -23,7 +23,7 @@ android {
             if (project.hasProperty('isolatedPreview')) applicationIdSuffix '.publicpreview'
             // Draft releases stay hidden from the public updater. Once a stable
             // release is published, GitHub's latest endpoint exposes update.json.
-            buildConfigField 'String', 'UPDATE_FEED_URL', '"' + (findProperty('updateFeedUrl') ?: 'https://api.github.com/repos/carpe-diem-agency/carpe-tv/releases/latest').replace('\\', '\\\\').replace('"', '\\"') + '"'
+            buildConfigField 'String', 'UPDATE_FEED_URL', '"' + (findProperty('updateFeedUrl') ?: 'https://api.github.com/repos/carpe-diem-agency/carpe-tv-launcher/releases/latest').replace('\\', '\\\\').replace('"', '\\"') + '"'
             if (System.getenv('ANDROID_KEYSTORE_PATH')) signingConfig signingConfigs.release
         }
     }

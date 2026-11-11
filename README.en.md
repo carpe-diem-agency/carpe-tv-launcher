@@ -7,10 +7,34 @@ apps close, search your app library and navigate with a remote. No launcher acco
 
 **English** · [Українська](README.md)
 
-[Releases & APKs](https://github.com/carpe-diem-agency/carpe-tv/releases) ·
+[Releases & APKs](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases) ·
 [Installation](docs/INSTALL.md) · [Updates](docs/UPDATING.md) · [Changelog](CHANGELOG.md)
 
 [Quick install](docs/QUICKSTART.en.md)
+
+![Carpe TV Home on a Xiaomi TV Stick](docs/assets/home-preview.jpg)
+
+## Why Carpe TV
+
+Stock home screens vary by manufacturer and may devote much of the screen to
+recommendations. Carpe TV centers your chosen apps on Home; the rest live in
+a searchable library. You can choose the wallpaper, screensaver and favorite
+app order.
+
+| | Typical stock home screen | Carpe TV |
+| --- | --- | --- |
+| Home | Content varies by manufacturer | Your chosen apps |
+| All apps | Placement varies by firmware | One searchable library |
+| Appearance | Options vary by firmware | Wallpaper and screensaver choices |
+
+This compares features, not measured speed; stock launchers vary.
+[See the visual comparison](docs/index.html#compare-title-en).
+
+Basic installation takes one APK. Android confirms installation; no root,
+computer or Carpe TV account is required. The stock launcher stays installed,
+and Android settings let you change the Home choice back. Some firmware may
+ignore that choice, so check the physical Home button before changing anything
+else. [Install and rollback steps](docs/INSTALL.md).
 
 ## Features
 
@@ -63,7 +87,7 @@ open the recovery screen. Use Android's Home app selection to switch launchers.
 A short [TV and phone install page](docs/index.html) is prepared; its GitHub
 Pages URL will become live after the first public stable release.
 
-1. Once the signed build is published, open the [latest release](https://github.com/carpe-diem-agency/carpe-tv/releases/latest)
+1. Once the signed build is published, open the [latest release](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest)
    on the TV and download `carpe-tv.apk`. If the TV has no browser, transfer
    the same file from your phone. Android confirms the APK installation.
 2. Open Carpe TV and check app launching and remote navigation. The first launch offers
@@ -94,11 +118,13 @@ These features are in the current source; no public APK containing them has been
 - **Return to stock Home:** if it is enabled, choose another launcher without
   Shizuku. On Xiaomi, the separate **Enable Google TV and choose Home** action
   needs Shizuku. [Full instructions and ADB recovery](docs/INSTALL.md#return-to-the-stock-launcher).
-- **Sleep timer:** stopwatch beside Wi-Fi → 15–120 minutes. Remaining time appears
-  in the header; cancel from the timer dialog. Requires running Shizuku and, on
+- **Sleep timer:** stopwatch in the side rail → 15–120 minutes. Remaining time
+  appears below it; cancel from the timer dialog. Requires running Shizuku and, on
   Android 12+, Alarms & reminders permission. Works while other apps are open.
   Reboot cancels the timer; set it again after force-stop or permission revocation.
-  It sleeps the Stick; TV or projector power-off is not guaranteed.
+  This sleeps the stick, not necessarily the TV or projector.
+- **Sleep now:** the power icon at the top sleeps the stick after confirmation.
+  It needs running Shizuku and does not cut power to the device.
 
 Restart Shizuku after a reboot before making new system changes. Disabled analytics
 stays disabled. Carpe TV does not stop apps automatically; Enabled does not mean

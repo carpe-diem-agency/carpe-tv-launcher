@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://carpe-diem-agency.github.io/carpe-tv-launcher/sitemap.xml

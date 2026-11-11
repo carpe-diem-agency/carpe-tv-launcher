@@ -204,6 +204,8 @@
     <string name="system_operation_failed">Не вдалося підтвердити зміну. Онови стан перед повторною спробою.</string>
 
     <string name="sleep_timer">Таймер сну</string>
+    <string name="sleep_now">Сон зараз</string>
+    <string name="sleep_now_confirm">Приспати приставку зараз?</string>
     <string name="sleep_minutes">%1$d хвилин</string>
     <string name="sleep_remaining">Сон через %1$d хв</string>
     <string name="sleep_cancel">Скасувати таймер</string>

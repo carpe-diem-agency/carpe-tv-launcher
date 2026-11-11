@@ -68,7 +68,7 @@ jobs:
           python3 - <<'PYCODE'
           from pathlib import Path
           generated = Path('app/build/generated/source/buildConfig/release/agency/carpediem/tv/prototype/BuildConfig.java').read_text()
-          feed = 'UPDATE_FEED_URL = "https://api.github.com/repos/carpe-diem-agency/carpe-tv/releases/latest";'
+          feed = 'UPDATE_FEED_URL = "https://api.github.com/repos/carpe-diem-agency/carpe-tv-launcher/releases/latest";'
           if feed not in generated:
               raise SystemExit('Release APK is missing the public update feed')
           PYCODE

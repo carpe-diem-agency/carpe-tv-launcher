@@ -204,6 +204,8 @@
     <string name="system_operation_failed">Could not verify the change. Refresh the status before trying again.</string>
 
     <string name="sleep_timer">Sleep timer</string>
+    <string name="sleep_now">Sleep now</string>
+    <string name="sleep_now_confirm">Put this device to sleep now?</string>
     <string name="sleep_minutes">%1$d minutes</string>
     <string name="sleep_remaining">Sleep in %1$d min</string>
     <string name="sleep_cancel">Cancel timer</string>

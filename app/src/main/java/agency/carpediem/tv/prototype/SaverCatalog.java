@@ -21,7 +21,7 @@ final class SaverCatalog {
             if(!allowed(address)) throw new IOException("Untrusted media host");
             HttpURLConnection c=(HttpURLConnection)new URL(address).openConnection();
             c.setConnectTimeout(8000);c.setReadTimeout(8000);c.setInstanceFollowRedirects(false);
-            c.setRequestProperty("User-Agent","CarpeTV/0.2.6 (https://github.com/carpe-diem-agency/carpe-tv)");
+            c.setRequestProperty("User-Agent","CarpeTV/0.2.6 (https://github.com/carpe-diem-agency/carpe-tv-launcher)");
             c.setRequestProperty("Accept-Encoding","identity");
             try {
                 int code=c.getResponseCode();if(!active.getAsBoolean()) throw new InterruptedIOException();

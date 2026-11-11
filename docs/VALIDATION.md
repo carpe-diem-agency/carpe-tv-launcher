@@ -17,6 +17,16 @@ warning. `assembleDebug` and `lintDebug` pass for this change. The warning's
 runtime appearance and the physical remote path remain unverified on the public
 package; the personal launcher was not replaced to test the warning.
 
+The isolated public 0.2.7 debug APK was also checked on MiTV-AFMU1 after the
+Apache-2.0 About entry was added. Its full license text opened in the launcher
+at 1920×1080. The top control now displays a power icon and the timer remains
+in the side rail; the new layout built and passed lint. The sleep action was
+not executed because it would interrupt the device. The isolated APK was
+removed and the personal Home role holder remained unchanged. The install
+page uses two clean captures and an actual seven-second transition recording
+from this isolated build. The connected projector and final signed APK still
+need their own media review.
+
 The Apps & background Google TV row was retested in an isolated
 `agency.carpediem.tv.publicpreview` APK. Its dialog showed the package-state
 warning and no in-app disable action. `AppAuditProbe` verified that opening and

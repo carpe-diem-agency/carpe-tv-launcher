@@ -14,7 +14,7 @@
 
 ## 1. Install Carpe TV
 
-**Without a computer:** open the [latest release](https://github.com/carpe-diem-agency/carpe-tv/releases/latest)
+**Without a computer:** open the [latest release](https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest)
 in a browser on your TV and download `carpe-tv.apk`. If the TV has no browser,
 download the same file on your phone and transfer it using a method supported
 by your TV. You may need a file receiver from Google Play. A private repository

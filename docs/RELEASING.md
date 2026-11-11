@@ -18,7 +18,7 @@ python3 scripts/check_repository.py
 python3 scripts/check_release_apk.py app/build/outputs/apk/release/app-release-unsigned.apk
 python3 scripts/make_update_manifest.py app/build/outputs/apk/release/app-release-unsigned.apk \
   --expected-application-id agency.carpediem.tv \
-  --apk-url https://github.com/carpe-diem-agency/carpe-tv/releases/download/TEST/carpe-tv.apk \
+  --apk-url https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/download/TEST/carpe-tv.apk \
   --output /tmp/carpe-update-check.json
 ```
 
@@ -83,21 +83,24 @@ Shizuku setup is a separate test and is not part of the basic install path.
 
 ## Install page for the public release
 
-`docs/index.html` is a self-contained Ukrainian/English install page designed
-for a TV remote and a phone. It links its main button directly to the stable
+`docs/index.html` is a Ukrainian/English install page designed for a TV remote
+and a phone. It includes search/social metadata, two reviewed preview screens
+and a short real transition recording. The final release-media review remains
+open; see [screenshots](screenshots/README.md). It links its main button directly to the stable
 release asset `releases/latest/download/carpe-tv.apk`, with a fallback link to
 the release list. The page uses the same verified CC0 alpine photo as the app.
 The local page has been checked at TV and phone viewport sizes, including
 keyboard focus and both languages; its download link cannot work until a
 **stable** release with exactly that asset name is public.
 
-The prepared `.github/workflows/pages.yml` deploys only `index.html` and its
-background photo after a **stable release is published in a public repository**.
+The prepared `.github/workflows/pages.yml` deploys only the install page,
+its approved preview media, `robots.txt` and `sitemap.xml` after a **stable
+release is published in a public repository**.
 It checks that the release has `carpe-tv.apk`, `SHA256SUMS` and `update.json`.
 Before that release, set **Settings → Pages → Build and deployment → GitHub
 Actions** and restrict the `github-pages` environment to the intended branch.
 Do not select branch `/docs` publishing in parallel. The expected address is
-`https://carpe-diem-agency.github.io/carpe-tv/`; verify the actual URL reported
+`https://carpe-diem-agency.github.io/carpe-tv-launcher/`; verify the actual URL reported
 by the deployment. Test it in a TV browser and on a phone, including the APK
 download, Android installer prompt, both languages, and rollback link. The
 page and APK do not become public merely because this workflow file exists.
