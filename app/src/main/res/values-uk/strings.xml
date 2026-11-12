@@ -15,10 +15,15 @@
     <string name="choose_home">"Вибрати інший лаунчер"</string>
     <string name="home_service">"Служба кнопки Home"</string>
     <string name="version_prefix">"Версія "</string>
-    <string name="developer_info">"\n\nРозробник — Carpe Diem Agency\ncarpediem.agency"</string>
+    <string name="developer_info">"\n\nКомпанія: Carpe Diem Agency\ncarpediem.agency"</string>
     <string name="updates">"Оновлення"</string>
     <string name="report_problem">"Повідомити про проблему"</string>
-    <string name="report_problem_hint">"Скануй телефоном, щоб створити GitHub Issue. Потрібен акаунт GitHub. Не додавай паролі, IP-адреси чи серійні номери."</string>
+    <string name="report_problem_hint">"Обери тему й скануй телефоном. Потрібен акаунт GitHub. Не додавай паролі, IP-адреси чи серійні номери."</string>
+    <string name="feedback_title">"Зворотний зв’язок"</string>
+    <string name="feedback_bug">"Помилка"</string>
+    <string name="feedback_idea">"Ідея"</string>
+    <string name="feedback_other">"Інше"</string>
+    <string name="source_code">"Код на GitHub"</string>
     <string name="open_issue">"Відкрити на ТВ"</string>
     <string name="issue_qr">"QR-код для створення GitHub Issue"</string>
     <string name="developer_site">"Сайт розробника"</string>

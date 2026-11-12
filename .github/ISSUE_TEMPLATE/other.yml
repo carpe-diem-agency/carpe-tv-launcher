@@ -1,0 +1,11 @@
+name: Інше / Other feedback
+description: Поділись відгуком або запитанням / Share feedback or a question
+title: "[Feedback] "
+body:
+  - type: textarea
+    id: message
+    attributes:
+      label: Повідомлення · Message
+      description: Не додавай паролі, IP-адреси, серійні номери чи особисті дані. / Do not include credentials, IP addresses, serial numbers or personal information.
+    validations:
+      required: true
