@@ -161,6 +161,7 @@ public final class NavigationProbe extends Instrumentation {
         boolean hadRotation = false;
         boolean compareWithoutMotion = args != null && "yes".equals(args.getString("noMotion"));
         boolean comparePlainWallpaper = args != null && "yes".equals(args.getString("plainWallpaper"));
+        boolean comparePhotoWallpaper = args != null && "yes".equals(args.getString("photoWallpaper"));
         try {
             if (getTargetContext().getPackageName().endsWith(".publicpreview")) {
                 previewPreferences = getTargetContext().getSharedPreferences(MainActivity.class.getName(), 0);
@@ -179,6 +180,10 @@ public final class NavigationProbe extends Instrumentation {
                 if (comparePlainWallpaper && !previewPreferences.edit().putString("wallpaper", "plain")
                         .putBoolean(WallpaperRotation.ENABLED, false).commit())
                     throw new IllegalStateException("Cannot prepare plain-wallpaper probe");
+                if (comparePhotoWallpaper && !previewPreferences.edit().putString("wallpaper", "alpine")
+                        .putBoolean(WallpaperRotation.ENABLED, false).commit())
+                    throw new IllegalStateException("Cannot prepare photo-wallpaper probe");
+                result.putString("wallpaper", previewPreferences.getString("wallpaper", "alpine"));
             }
             setInTouchMode(false);
             activity = startActivitySync(new Intent(getTargetContext(), MainActivity.class)

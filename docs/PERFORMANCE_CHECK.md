@@ -218,6 +218,24 @@ product-code experiments were reverted. Keep the photo and its current
 transition until a visually acceptable optimization passes repeated device
 measurements and a projector review.
 
+## Follow-up with explicit wallpaper selection — 2026-11-12
+
+The isolated preview instrumentation now records the selected wallpaper and
+can temporarily force the Alpine photo. On MiTV-AFMU1 with HDMI output off,
+the current branch passed focus checks and 36 normal/rapid page changes in
+three runs. With the blue wallpaper, page-frame p95 was 45.86 ms across 286
+frames. Two Alpine runs measured 41.45 ms across 317 frames and 41.80 ms
+across 315 frames. Focus-navigation p95 was 16.40 ms on blue, then 16.88 ms
+and 14.85 ms on Alpine. The probe restored the prior wallpaper setting after
+each run.
+
+These debug-build samples show that the current photo path did not regress
+against blue in this workload. They do not establish a repeatable improvement
+over earlier builds because code, cache warmth and measurement conditions
+changed. No product transition was altered. The previous isolated preview APK
+was restored, the instrumentation package removed, and projector-visible
+smoothness remains to be checked before release.
+
 ## Isolated debug follow-up after layout measurement change — 2026-11-11
 
 The `.publicpreview` debug APK at source commit `21472ce` and its separate
