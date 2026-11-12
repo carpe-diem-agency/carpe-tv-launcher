@@ -1,5 +1,24 @@
 # Roadmap
 
+## Current work order (agreed 2026-11-12)
+
+The P0 block is scheduled **last** at the owner's request. This changes the
+order of work, not the release criteria: Home, stock-launcher replacement,
+return from other apps, restored focus and post-reboot behavior still need
+real-device verification before the public release is called complete.
+
+1. Finish P1: consistent UI and remote navigation, settings focus, motion and
+   performance, loading/error states, long-use checks and projector review.
+2. Finish the agreed P2 polish and release materials without presenting
+   unfinished system controls as ready.
+3. Return to P0: physical Home button, stock launcher rollback, app return,
+   reboot and sleep scenarios on the Xiaomi stick, then another TV device.
+
+The settings Back/Left navigation fix has passed an isolated test on the Xiaomi
+stick in draft PR #12. The normal installed launcher was restored after that
+test. Wallpaper-related page transitions still need visual optimization; a
+plain wallpaper improved measured page timing, but it is not a product fix.
+
 ## Current baseline
 
 - [x] Standalone Java/XML launcher, favorite apps and searchable app library.
