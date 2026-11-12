@@ -2,7 +2,7 @@
     <string name="appearance">"Зовнішній вигляд"</string>
     <string name="favorites">"Обрані програми"</string>
     <string name="device">"Пристрій"</string>
-    <string name="device_specs">"Модель · %1$s\nAndroid · %2$s (API %3$d)\nВідеовихід · %4$d × %5$d · %6$.1f Гц\nCarpe TV · %7$s"</string>
+    <string name="device_specs">"Модель · %1$s\nAndroid · %2$s (API %3$d)\nВідеовихід · %4$d × %5$d · %6$.1f Гц\nІнтерфейс · %7$d × %8$d\nCarpe TV · %9$s"</string>
     <string name="about">"Про лаунчер"</string>
     <string name="selected_prefix">"Вибрано: "</string>
     <string name="wallpaper_dim">"Затемнення фону"</string>

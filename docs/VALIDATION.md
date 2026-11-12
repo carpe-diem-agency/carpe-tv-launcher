@@ -296,3 +296,8 @@ not prove native Android/Google TV compatibility with a mismatched density.
 - On MiTV-AFMU1, Android reported `agency.carpediem.tv.publicpreview` as the Home role holder while `cmd package resolve-activity` returned Google TV's `HomeActivity` at priority 2. This is a platform routing mismatch, not a verified physical remote route.
 - The isolated `homeroute` instrumentation check reported `home_role_selected=true`, `home_resolver_conflict=true` and confirmed that the Device page displayed the conflict warning rather than the generic remote reminder. It restored the preview app's onboarding preference and did not change the Home role or system packages.
 - Saved the installed isolated preview APK before testing and restored it after the check. The public launcher package was not updated. Direct Home from YouTube, Netflix and the physical remote still needs validation on a device where the platform actually resolves Home to Carpe TV.
+
+### Display output and interface size — 2026-11-12
+
+- The Device page now labels the active HDMI mode separately from the logical interface size. On MiTV-AFMU1 the isolated preview showed `3840 × 2160 · 60.0 Hz` for video output and `1920 × 1080` for the interface. The added line and the controls below it fit in a 1920×1080 ADB capture.
+- `assembleDebug` and `lintDebug` passed offline. The previous isolated preview APK was restored after visual inspection. This is a display-information correction; no global density, resolution, Home role or system package was changed.

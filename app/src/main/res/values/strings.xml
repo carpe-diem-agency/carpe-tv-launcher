@@ -2,7 +2,7 @@
     <string name="appearance">"Appearance"</string>
     <string name="favorites">"Favorite apps"</string>
     <string name="device">"Device"</string>
-    <string name="device_specs">"Model · %1$s\nAndroid · %2$s (API %3$d)\nDisplay output · %4$d × %5$d · %6$.1f Hz\nCarpe TV · %7$s"</string>
+    <string name="device_specs">"Model · %1$s\nAndroid · %2$s (API %3$d)\nDisplay output · %4$d × %5$d · %6$.1f Hz\nInterface · %7$d × %8$d\nCarpe TV · %9$s"</string>
     <string name="about">"About"</string>
     <string name="selected_prefix">"Selected: "</string>
     <string name="wallpaper_dim">"Wallpaper dimming"</string>

@@ -861,15 +861,16 @@ public final class MainActivity extends Activity {
             detail.addView(label(getString(R.string.device), 24, Color.WHITE));
             android.view.Display display = getWindowManager().getDefaultDisplay();
             android.view.Display.Mode mode = display.getMode();
-            android.graphics.Point output = new android.graphics.Point();
-            display.getRealSize(output);
-            int outputWidth = mode != null ? mode.getPhysicalWidth() : output.x;
-            int outputHeight = mode != null ? mode.getPhysicalHeight() : output.y;
+            android.graphics.Point interfaceSize = new android.graphics.Point();
+            display.getRealSize(interfaceSize);
+            int outputWidth = mode != null ? mode.getPhysicalWidth() : interfaceSize.x;
+            int outputHeight = mode != null ? mode.getPhysicalHeight() : interfaceSize.y;
             float refreshRate = mode != null ? mode.getRefreshRate() : display.getRefreshRate();
             TextView specifications = label(getString(R.string.device_specs,
                     android.os.Build.MODEL, android.os.Build.VERSION.RELEASE,
                     android.os.Build.VERSION.SDK_INT, outputWidth, outputHeight,
-                    refreshRate, UpdateManager.appVersion(this)), 14, 0xffd8e4f3);
+                    refreshRate, interfaceSize.x, interfaceSize.y,
+                    UpdateManager.appVersion(this)), 14, 0xffd8e4f3);
             specifications.setLineSpacing(dp(5), 1f);
             specifications.setPadding(dp(18), dp(14), dp(18), dp(14));
             specifications.setBackgroundResource(R.drawable.control_background);
