@@ -22,6 +22,11 @@ public final class NavigationProbe extends Instrumentation {
     @Override public void onCreate(Bundle arguments) { super.onCreate(arguments); args=arguments; start(); }
     @Override public void onStart() {
         Bundle result = new Bundle();
+        if (args != null && "yes".equals(args.getString("libraryfocus"))) {
+            try { LibraryFocusProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
         if (args != null && "yes".equals(args.getString("settingsfocus"))) {
             try { SettingsFocusProbe.run(this, result); finish(Activity.RESULT_OK, result); }
             catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }

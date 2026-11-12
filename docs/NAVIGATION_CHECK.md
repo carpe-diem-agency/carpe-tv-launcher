@@ -132,3 +132,16 @@ category → Left → rail, then direct category activation → detail → Back 
 that same category. The probe did not change any system setting. The
 previous isolated preview APK was restored after the test; a visual check on
 the projected display is still pending.
+
+## Library search focus — 2026-11-12
+
+The isolated `libraryfocus` instrumentation probe passed on MiTV-AFMU1:
+Apps rail → first tile → search; entering the first app's full name retained
+that app in results and Down/Up moved between result and search; an unmatched
+query showed the empty-state message and kept focus in search; clearing it
+restored the grid; Down returned to the first tile and Left to the Apps rail.
+The test used the stick's installed app list and did not open
+an external app or change Android settings. It checks focus behavior, not
+keyboard appearance, search latency or projected-screen layout. The prior
+isolated preview APK was restored, the instrumentation package removed, and
+the accessibility-service setting still read `null` afterward.
