@@ -356,3 +356,17 @@ Cancel fully visible. One Back press closed the sheet and left Settings open.
 The existing `languagestate` probe passed recreation and language-focus
 restoration. This check did not change the selected language. Afterward the
 previous 0.2.8 preview APK was restored and test instrumentation removed.
+
+## Text notice dialog experiment — 2026-11-12
+
+An isolated preview replaced the stock Screensaver credits dialog and reused
+the same styled container for long license notices. Build and lint passed. A
+1920 × 1080 capture showed the short credits panel fitting its contents and
+the Apache-2.0 notice scrolling. However, pressing D-pad Up in the license
+dialog moved focus to Home behind the dialog. Switching the container from a
+plain Dialog to AlertDialog and intercepting D-pad keys did not prevent the
+focus escape in the ADB test. The UI experiment was reverted rather than
+shipping a navigation regression. The previous 0.2.8 isolated APK was
+reinstalled; Home and system-service settings were not changed. A future
+dialog redesign must prove that focus stays inside the modal on a real remote
+before replacing the current notice UI.
