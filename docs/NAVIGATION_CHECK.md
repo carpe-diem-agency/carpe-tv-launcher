@@ -400,9 +400,22 @@ modal guard as license notices. On the MiTV-AFMU1, Back left the Feedback
 action visibly focused; the next Up moved to the previous Settings category
 without opening Home.
 
+The subsequent Settings focus correction changes that last route: Up from
+the first detail action now focuses the header power control, and Down returns
+to that action. It no longer switches categories as a side effect.
+
 The feedback panel also exceeded the 1920 × 1080 viewport, clipping its
 Close button. Its QR size now adapts to the display height, and the panel
 can scroll on shorter displays. A device capture at 1920 × 1080 showed the
 topic choices, QR, Open on TV and Close buttons fully visible. Debug build
 and lint passed. The QR scan itself and 720p presentation were not retested
 in this pass.
+
+## Settings detail to header focus — 2026-11-12
+
+On the MiTV-AFMU1 isolated preview, About → Feedback → Back left Feedback
+focused. D-pad Up focused the header power control while About remained
+selected. D-pad Down returned to Feedback. The first Settings category also
+has an explicit route upward to the header. Debug build and lint passed at
+1920 × 1080. Other Settings detail categories were not individually tested
+with the remote in this pass.
