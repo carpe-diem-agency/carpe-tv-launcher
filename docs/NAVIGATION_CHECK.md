@@ -265,3 +265,11 @@ current query can bind artwork to its tiles. The isolated `libraryfocus` probe
 exercised rapid matching, no-match and partial queries on MiTV-AFMU1; the final
 results and D-pad focus passed. The `librarystate` probe also passed. This is a
 work-avoidance fix; no before/after frame-time improvement is claimed.
+
+## Empty-search D-pad boundary — 2026-11-12
+
+The isolated `libraryfocus` probe now presses Down after a query with no app
+matches, in addition to checking the empty message and clearing the query.
+On MiTV-AFMU1, focus stayed in the search field and returned to the first
+app after clearing the query. No product-code change was needed. The previous
+isolated preview APK was restored and the test package removed.

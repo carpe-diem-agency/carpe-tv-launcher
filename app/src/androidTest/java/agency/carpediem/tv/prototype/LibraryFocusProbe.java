@@ -64,6 +64,9 @@ final class LibraryFocusProbe {
                     || !probe.getTargetContext().getString(R.string.search_empty)
                     .contentEquals(((TextView) grid.getChildAt(0)).getText()))
                 throw new AssertionError("Empty results did not show the search message");
+            key(probe, KeyEvent.KEYCODE_DPAD_DOWN);
+            if (screen.getCurrentFocus() != search)
+                throw new AssertionError("Down from empty results escaped the search field");
             probe.runOnMainSync(() -> search.setText(""));
             SystemClock.sleep(150);
             if (firstTile(screen) == null) throw new AssertionError("Clearing search did not restore the app grid");
