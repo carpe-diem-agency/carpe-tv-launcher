@@ -156,3 +156,16 @@ the grid and viewport after rebuilding results. On MiTV-AFMU1, the matching
 tile remained visible while the TV keyboard was open after typing and deleting
 characters. This is a visual check on the 1920×1080 output, not a projector
 review or a guarantee for other IMEs.
+
+## Screensaver settings density — 2026-11-12
+
+On the 1920×1080 Xiaomi stick, the three-line cache explanation pushed the
+**Preview now** action partly below the visible area. D-pad Down did scroll it
+fully into view, so the route worked but the layout was unnecessarily dense.
+The cache usage and low-space state now occupy one line, and toggling online
+downloads refreshes that state immediately. An isolated preview screenshot
+showed **Preview now** fully visible; the switch-off state kept the shorter
+status. The `screensaver` instrumentation probe then passed idle boundaries,
+offline photo launch, remote dismissal and settings focus/reserve navigation.
+The test package was removed and the previous preview APK restored. The visual
+check used ADB capture; projector appearance remains to be reviewed.
