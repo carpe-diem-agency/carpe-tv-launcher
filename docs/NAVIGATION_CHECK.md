@@ -304,3 +304,27 @@ screensaver dialog, including the last option and Cancel, without clipping.
 The selected option remained visibly focused. Android's 1920 × 1080 override
 was restored and read back after the capture. This verifies layout on one
 device at two logical sizes; other TV densities still need release testing.
+
+## Home, library and settings at 720p — 2026-11-12
+
+The current isolated preview was checked on MiTV-AFMU1 with a temporary
+1280 × 720 logical size. The `libraryfocus` probe passed rail, matching and
+empty search, and return to the app grid. The `settingsfocus` probe passed
+rail, category, detail, Back and Left routes. The `wallpapers` probe passed
+all five choices, D-pad scrolling, selection, rapid switches and persistence
+after Activity restart. Its reported native heap was 73,268,192 bytes; this
+single reading is not a peak-memory measurement.
+
+The captured Settings screen showed the selected Blue wallpaper and its
+caption fully in view, with the other visible cards and controls within the
+720p viewport. A Home capture immediately after changing display size showed
+the transient Android resolution warning; a settled capture showed Carpe TV
+Home and all five favorite tiles. The initial warning frame is not counted as
+the launcher layout. The Apps capture from the earlier 0.2.8 preview was not
+used as evidence for the current branch; its focus behavior was covered by
+the current instrumentation probe.
+
+After testing, the 1920 × 1080 override was restored, the previous 0.2.8
+isolated preview APK reinstalled, and the instrumentation package removed.
+Accessibility services remained disabled (`null`). This check did not exercise
+physical Home routing, which is paused separately.
