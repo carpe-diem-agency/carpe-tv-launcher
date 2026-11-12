@@ -73,8 +73,12 @@ public final class MainActivity extends Activity {
     private LinearLayout homeGrid;
     private List<AppItem> displayedApps;
     private List<AppItem> allApps = new ArrayList<>();
+    private boolean appsReady;
+    private boolean appsLoadFailed;
     private String page = "home";
     private String query = "";
+    private int restoredAppsScrollY = -1;
+    private String restoredAppsFocusPackage;
     private Typeface font;
     private final Map<String, String> pageFocus = new java.util.HashMap<>();
     private volatile int generation;
@@ -82,12 +86,16 @@ public final class MainActivity extends Activity {
     private static final int RECOMMENDED_DIM = 60;
     private String settingsCategory = "appearance";
     private View settingsCategoryView;
+    private String restoredSettingsRegion;
+    private int restoredSettingsDetailIndex = -1;
     private final Map<String, TextView> auditLabels=new LinkedHashMap<>();
     private TextView auditMemory;
     private int auditGeneration;
     private TextView systemAccessStatus;
     private boolean systemOperation;
     private AlertDialog systemConfirmation;
+    private boolean modalDialogShowing;
+    private View pendingModalFocus;
     private void refreshSystemAccessUi(){runOnUiThread(()->{if(!destroyed)refreshApplicationAudit();});}
     private final rikka.shizuku.Shizuku.OnRequestPermissionResultListener systemPermissionResult=(code,result)->{if(code==508)refreshSystemAccessUi();};
     private final rikka.shizuku.Shizuku.OnBinderReceivedListener systemBinderReady=this::refreshSystemAccessUi;
@@ -109,7 +117,20 @@ public final class MainActivity extends Activity {
     private String backgroundKey;
     private boolean renderingPage;
     private boolean languageChange, restoreLanguageFocus;
-    private final LruCache<String, Drawable.ConstantState> icons = new LruCache<>(64);
+    // Artwork grows with display resolution; an entry-count limit can retain
+    // tens of megabytes of 4K-sized banners even when few tiles are visible.
+    private final LruCache<String, Drawable.ConstantState> icons =
+            new LruCache<String, Drawable.ConstantState>(24 * 1024 * 1024) {
+                @Override protected int sizeOf(String key, Drawable.ConstantState state) {
+                    Drawable drawable = state.newDrawable();
+                    if (drawable instanceof android.graphics.drawable.BitmapDrawable) {
+                        android.graphics.Bitmap bitmap =
+                                ((android.graphics.drawable.BitmapDrawable) drawable).getBitmap();
+                        return bitmap == null ? 1 : bitmap.getAllocationByteCount();
+                    }
+                    return 1;
+                }
+            };
     private final BroadcastReceiver packagesChanged = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (!destroyed) { icons.evictAll(); displayedApps = null; worker.execute(MainActivity.this::refreshApps); }
@@ -135,7 +156,18 @@ public final class MainActivity extends Activity {
         rikka.shizuku.Shizuku.addRequestPermissionResultListener(systemPermissionResult);
         rikka.shizuku.Shizuku.addBinderReceivedListenerSticky(systemBinderReady);
         rikka.shizuku.Shizuku.addBinderDeadListener(systemBinderDead);
-        if (state != null) { page=state.getString("page","home"); settingsCategory=state.getString("category","appearance"); }
+        if (state != null) {
+            page=state.getString("page","home");
+            settingsCategory=state.getString("category","appearance");
+            query=state.getString("query", "");
+            pageFocus.put("home", state.getString("homeFocus"));
+            pageFocus.put("apps", state.getString("appsFocus"));
+            focusedPackage=pageFocus.get(page);
+            restoredAppsScrollY=state.getInt("appsScrollY", -1);
+            restoredAppsFocusPackage=state.getString("appsFocusedTile");
+            restoredSettingsRegion=state.getString("settingsFocusRegion");
+            restoredSettingsDetailIndex=state.getInt("settingsDetailIndex", -1);
+        }
         try { font = new Typeface.Builder(getAssets(), "montserrat.ttf").setFontVariationSettings("'wght' 600").build(); } catch (RuntimeException ignored) { font = Typeface.DEFAULT; }
         setContentView(R.layout.activity_launcher);
         content = findViewById(R.id.content);
@@ -169,12 +201,31 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onSaveInstanceState(Bundle state) {
         state.putString("page",page); state.putString("category",settingsCategory);
+        state.putString("query",query);
+        state.putString("homeFocus",pageFocus.get("home"));
+        state.putString("appsFocus",pageFocus.get("apps"));
+        View current=getCurrentFocus();
+        state.putString("appsFocusedTile","apps".equals(page) && current!=null && current.getTag() instanceof String
+                ? (String)current.getTag() : null);
+        ScrollView appsScroll=content.findViewById(R.id.apps_scroll);
+        state.putInt("appsScrollY",appsScroll==null ? restoredAppsScrollY : appsScroll.getScrollY());
         state.putBoolean("languageFocus",languageChange || (getCurrentFocus()!=null && getCurrentFocus().getId()==R.id.language_choice));
+        if ("settings".equals(page) && current != null) {
+            View detail=content.findViewById(R.id.settings_detail);
+            View categories=content.findViewById(R.id.settings_categories);
+            if (isInside(current, detail)) {
+                state.putString("settingsFocusRegion", "detail");
+                state.putInt("settingsDetailIndex", focusableIndex(detail, current));
+            } else if (isInside(current, categories)) {
+                state.putString("settingsFocusRegion", "category");
+            }
+        }
         super.onSaveInstanceState(state);
     }
     @Override public void onWindowFocusChanged(boolean focused) {
         super.onWindowFocusChanged(focused);
         if (focused && wallpaperResumed) scheduleScreensaver(); else idleTimer.stop();
+        if (focused) restorePendingModalFocus();
         if (focused) focusPendingHomeApp();
         if(focused && restoreLanguageFocus) {
             View choice=findViewById(R.id.language_choice);
@@ -190,7 +241,7 @@ public final class MainActivity extends Activity {
     private void bindNavigation(int id, String target) {
         View button = findViewById(id);
         button.setOnFocusChangeListener((view, focused) -> {
-            if (focused && !renderingPage) openPage(target);
+            if (focused && !renderingPage && !modalDialogShowing && pendingModalFocus == null) openPage(target);
         });
         button.setOnClickListener(view -> {
             openPage(target);
@@ -256,26 +307,35 @@ public final class MainActivity extends Activity {
         super.onStop();
     }
     private void refreshApps() {
-        PackageManager pm = getPackageManager();
-        Map<String, AppItem> items = new LinkedHashMap<>();
-        for (String category : new String[]{Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
-            Intent query = new Intent(Intent.ACTION_MAIN).addCategory(category);
-            for (ResolveInfo info : pm.queryIntentActivities(query, 0)) {
-                if (info.activityInfo == null) continue;
-                String pkg = info.activityInfo.packageName;
-                if (!isCarpeLauncher(pkg) && !items.containsKey(pkg)) {
-                    items.put(pkg, new AppItem(pkg, info.loadLabel(pm).toString()));
+        try {
+            PackageManager pm = getPackageManager();
+            Map<String, AppItem> items = new LinkedHashMap<>();
+            for (String category : new String[]{Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
+                Intent query = new Intent(Intent.ACTION_MAIN).addCategory(category);
+                for (ResolveInfo info : pm.queryIntentActivities(query, 0)) {
+                    if (info.activityInfo == null) continue;
+                    String pkg = info.activityInfo.packageName;
+                    if (!isCarpeLauncher(pkg) && !items.containsKey(pkg)) {
+                        items.put(pkg, new AppItem(pkg, info.loadLabel(pm).toString()));
+                    }
                 }
             }
+            List<AppItem> apps = new ArrayList<>(items.values());
+            apps.sort(Comparator.comparing(item -> item.label, String.CASE_INSENSITIVE_ORDER));
+            seedFirstRunFavorites(apps);
+            // Home resumes after every app launch. Keep the persisted catalog quiet
+            // when the PackageManager result has not actually changed.
+            if (!sameApps(readCache(), apps)) writeCache(apps);
+            runOnUiThread(() -> showApps(apps));
+            prefetchArtwork(apps);
+        } catch (RuntimeException error) {
+            android.util.Log.w("CarpeTV", "Unable to refresh app catalog", error);
+            runOnUiThread(() -> {
+                if (destroyed) return;
+                appsLoadFailed = true;
+                if (allApps.isEmpty() && !"settings".equals(page)) renderPage();
+            });
         }
-        List<AppItem> apps = new ArrayList<>(items.values());
-        apps.sort(Comparator.comparing(item -> item.label, String.CASE_INSENSITIVE_ORDER));
-        seedFirstRunFavorites(apps);
-        // Home resumes after every app launch. Keep the persisted catalog quiet
-        // when the PackageManager result has not actually changed.
-        if (!sameApps(readCache(), apps)) writeCache(apps);
-        runOnUiThread(() -> showApps(apps));
-        prefetchArtwork(apps);
     }
     private boolean isCarpeLauncher(String pkg) {
         return pkg.equals(getPackageName())
@@ -289,7 +349,8 @@ public final class MainActivity extends Activity {
         for (AppItem app : apps) if (!favorites.contains(app.pkg)) ordered.add(app);
         int count = 0;
         for (AppItem app : ordered) {
-            if (destroyed || Thread.currentThread().isInterrupted() || count++ >= 48) break;
+            if (destroyed || Thread.currentThread().isInterrupted() || count++ >= 48
+                    || icons.size() >= icons.maxSize() * 3 / 4) break;
             loadArtwork(app.pkg);
         }
     }
@@ -341,7 +402,13 @@ public final class MainActivity extends Activity {
     }
     private void showApps(List<AppItem> apps) {
         if (destroyed || isFinishing()) return;
-        if (sameApps(displayedApps, apps)) return;
+        boolean pending = !appsReady || appsLoadFailed;
+        appsReady = true;
+        appsLoadFailed = false;
+        if (sameApps(displayedApps, apps)) {
+            if (pending && apps.isEmpty() && !"settings".equals(page)) renderPage();
+            return;
+        }
         if (movingPackage != null) finishMove(false);
         displayedApps = new ArrayList<>(apps);
         allApps = new ArrayList<>(apps);
@@ -356,6 +423,10 @@ public final class MainActivity extends Activity {
         int previousId = previous != null ? previous.getId() : View.NO_ID;
         String previousPackage = previous != null && previous.getTag() instanceof String
                 ? (String) previous.getTag() : null;
+        ScrollView previousAppsScroll = "apps".equals(page)
+                ? content.findViewById(R.id.apps_scroll) : null;
+        if (previousAppsScroll != null && restoredAppsScrollY < 0)
+            restoredAppsScrollY = previousAppsScroll.getScrollY();
         renderPage();
         String pendingPackage = pendingHomePackage;
         focusPendingHomeApp();
@@ -365,8 +436,21 @@ public final class MainActivity extends Activity {
             if (tile == null) tile = findPageTile(content, null);
             if (tile != null) restoredAppFocus = tile.requestFocus();
         }
-        if (!restoredAppFocus && (previousId == R.id.nav_home || previousId == R.id.nav_apps || previousId == R.id.nav_settings || previousId == R.id.home_wifi || previousId == R.id.apps_search)) {
-            View restored = findViewById(previousId); if (restored != null) restored.requestFocus();
+        if (!restoredAppFocus && previousPackage == null && previousId != View.NO_ID) {
+            View restored = findViewById(previousId);
+            if (restored != null && restored.isShown() && restored.isFocusable()) restored.requestFocus();
+        }
+        if ("apps".equals(page) && (restoredAppsScrollY >= 0 || restoredAppsFocusPackage != null)) {
+            ScrollView scroll=content.findViewById(R.id.apps_scroll);
+            int y=restoredAppsScrollY;
+            String pkg=restoredAppsFocusPackage;
+            restoredAppsScrollY=-1;
+            restoredAppsFocusPackage=null;
+            if(scroll!=null)scroll.post(()->{
+                if(!"apps".equals(page) || content.findViewById(R.id.apps_scroll)!=scroll)return;
+                if(pkg!=null){View tile=findPageTile(content,pkg);if(tile!=null)tile.requestFocus();}
+                if(y>=0)scroll.scrollTo(0,y);
+            });
         }
     }
     private void restoreLastOpenedApp() {
@@ -407,7 +491,8 @@ public final class MainActivity extends Activity {
         b.setTextSize(16); b.setPadding(dp(16), 0, dp(16), 0); b.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         b.setBackgroundResource(R.drawable.control_background);
         configureStateFade(b);
-        b.setOnClickListener(v -> callback.run()); return b;
+        if (callback != null) b.setOnClickListener(v -> callback.run());
+        return b;
     }
     private void showWelcome(boolean markSeen) {
         if (destroyed || isFinishing()) return;
@@ -439,7 +524,7 @@ public final class MainActivity extends Activity {
         dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         android.view.WindowManager.LayoutParams window = dialog.getWindow().getAttributes();
         window.dimAmount = .55f; dialog.getWindow().setAttributes(window);
-        dialog.show(); dialog.getWindow().setLayout(dp(510), -2); explore.requestFocus();
+        dialog.show(); dialog.getWindow().setLayout(dialogWidth(510), -2); explore.requestFocus();
     }
     private void renderSettings() {
         View settings = getLayoutInflater().inflate(R.layout.page_settings, content, false); content.addView(settings);
@@ -454,7 +539,14 @@ public final class MainActivity extends Activity {
         LinearLayout detail = settings.findViewById(R.id.settings_detail);
         String[][] entries = {{"appearance", getString(R.string.appearance)}, {"screensaver", getString(R.string.saver_title)}, {"favorites", getString(R.string.favorites)}, {"audit", getString(R.string.audit_title)}, {"device", getString(R.string.device)}, {"about", getString(R.string.about)}};
         for (String[] entry : entries) {
-            Button category = action(entry[1], () -> { settingsCategory = entry[0]; settingsCategoryView = getCurrentFocus(); showSettingsDetail(detail, entry[0]); View target = firstFocusable(detail); if (target != null) target.requestFocus(); });
+            Button category = action(entry[1], null);
+            category.setOnClickListener(v -> {
+                settingsCategory = entry[0]; settingsCategoryView = v;
+                for (int i = 0; i < categories.getChildCount(); i++)
+                    categories.getChildAt(i).setSelected(categories.getChildAt(i) == v);
+                showSettingsDetail(detail, entry[0]);
+                View target = settingsEntryFocus(detail, entry[0]); if (target != null) target.requestFocus();
+            });
             int symbol = entry[0].equals("audit") ? R.drawable.ic_apps : entry[0].equals("screensaver") ? R.drawable.ic_screensaver : entry[0].equals("appearance") ? R.drawable.ic_monitor : entry[0].equals("favorites") ? R.drawable.ic_heart : entry[0].equals("device") ? R.drawable.ic_settings : R.drawable.ic_info;
             android.graphics.drawable.Drawable categoryIcon=getDrawable(symbol).mutate();
             categoryIcon.setBounds(0,0,dp(22),dp(22));
@@ -466,7 +558,7 @@ public final class MainActivity extends Activity {
             category.setOnKeyListener((v,key,event)->{
                 if(key==android.view.KeyEvent.KEYCODE_DPAD_RIGHT && event.getAction()==android.view.KeyEvent.ACTION_DOWN) {
                     ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0,0);
-                    View target=firstFocusable(detail);if(target!=null) target.requestFocus();return true;
+                    View target=settingsEntryFocus(detail, entry[0]);if(target!=null) target.requestFocus();return true;
                 }return false;
             });
             category.setOnFocusChangeListener((v, focused) -> {
@@ -475,7 +567,7 @@ public final class MainActivity extends Activity {
                     findViewById(R.id.nav_settings).setNextFocusRightId(category.getId());
                     if (!settingsCategory.equals(entry[0])) { settingsCategory = entry[0]; showSettingsDetail(detail, entry[0]); ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0,0); }
                     for (int i = 0; i < categories.getChildCount(); i++) categories.getChildAt(i).setSelected(categories.getChildAt(i) == category);
-                    View target = firstFocusable(detail); if (target != null) category.setNextFocusRightId(target.getId());
+                    View target = settingsEntryFocus(detail, entry[0]); if (target != null) category.setNextFocusRightId(target.getId());
                 }
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(56)); params.bottomMargin = dp(12); categories.addView(category, params);
@@ -488,8 +580,20 @@ public final class MainActivity extends Activity {
         }
         showSettingsDetail(detail, settingsCategory);
         if (settingsCategoryView != null) {
-            View first = firstFocusable(detail); if (first != null) settingsCategoryView.setNextFocusRightId(first.getId());
+            View first = settingsEntryFocus(detail, settingsCategory); if (first != null) settingsCategoryView.setNextFocusRightId(first.getId());
             findViewById(R.id.nav_settings).setNextFocusRightId(settingsCategoryView.getId());
+        }
+        if (restoredSettingsRegion != null) {
+            String region=restoredSettingsRegion;
+            int index=restoredSettingsDetailIndex;
+            restoredSettingsRegion=null;
+            restoredSettingsDetailIndex=-1;
+            settings.post(() -> {
+                if (!"settings".equals(page) || !settings.isAttachedToWindow() || restoreLanguageFocus) return;
+                View target="detail".equals(region) ? focusableAt(detail,index) : settingsCategoryView;
+                if (target == null && "detail".equals(region)) target=settingsEntryFocus(detail,settingsCategory);
+                if (target != null) target.requestFocus();
+            });
         }
     }
     private void renderApplicationAudit(LinearLayout detail) {
@@ -543,7 +647,7 @@ public final class MainActivity extends Activity {
         catch(PackageManager.NameNotFoundException unavailable){Toast.makeText(this,R.string.audit_unavailable,Toast.LENGTH_LONG).show();return;}
         final boolean disable=enabled;
         String[] options={getString(disable?R.string.system_disable:R.string.system_enable),getString(R.string.system_app_settings)};
-        showSaverChoices(R.string.audit_title,options,-1,choice->{if(choice==0)confirmSystemAction(disable?"disable":"restore",pkg);else if(choice==1)openApplicationDetails(pkg);});
+        showSettingChoices(R.string.audit_title,options,-1,choice->{if(choice==0)confirmSystemAction(disable?"disable":"restore",pkg);else if(choice==1)openApplicationDetails(pkg);});
     }
     private android.app.Dialog showStockLauncherActions() {
         final String pkg = "com.google.android.apps.tv.launcherx";
@@ -598,7 +702,7 @@ public final class MainActivity extends Activity {
         android.view.WindowManager.LayoutParams window = dialog.getWindow().getAttributes();
         window.dimAmount = .58f; dialog.getWindow().setAttributes(window);
         dialog.show();
-        dialog.getWindow().setLayout(dp(600), -2);
+        dialog.getWindow().setLayout(dialogWidth(600), -2);
         primary.requestFocus();
         return dialog;
     }
@@ -685,6 +789,15 @@ public final class MainActivity extends Activity {
                     chosen.setText(getString(R.string.selected_prefix)+wallpaperName()); requestWallpaper(); updateBackground(); scheduleWallpaperRotation();
                 });
             }
+            android.widget.HorizontalScrollView gallery = appearance.findViewById(R.id.wallpaper_scroll);
+            View activePreview = appearance.findViewById(WallpaperCatalog.find(this, wallpaper()).viewId);
+            gallery.post(() -> {
+                if (!gallery.isAttachedToWindow() || activePreview == null) return;
+                View card = (View) activePreview.getParent();
+                int index = choices.indexOfChild(card);
+                View leftCard = index > 0 ? choices.getChildAt(index - 1) : card;
+                gallery.scrollTo(leftCard.getLeft(), 0);
+            });
             Switch dynamic=appearance.findViewById(R.id.dynamic_wallpapers); dynamic.setTypeface(font);
             dynamic.setChecked(getPreferences(MODE_PRIVATE).getBoolean(WallpaperRotation.ENABLED,false));
             dynamic.setOnCheckedChangeListener((view,enabled) -> {
@@ -714,10 +827,12 @@ public final class MainActivity extends Activity {
             });
             Button language = action(getString(R.string.language) + " · " + AppLanguage.label(this), () -> {
                 String[] tags={"","uk","en"}; String selected=AppLanguage.selected(this); int index=selected.equals("uk")?1:selected.equals("en")?2:0;
-                new AlertDialog.Builder(this).setTitle(R.string.language)
-                        .setSingleChoiceItems(new String[]{getString(R.string.language_system),"Українська","English"},index,(dialog,which)->{
-                            dialog.dismiss(); if(!tags[which].equals(AppLanguage.selected(this))) { AppLanguage.choose(this,tags[which]); languageChange=true; recreate(); }
-                        }).setNegativeButton(R.string.cancel,null).show();
+                showSettingChoices(R.string.language,
+                        new String[]{getString(R.string.language_system),"Українська","English"},index,which->{
+                            if(!tags[which].equals(AppLanguage.selected(this))) {
+                                AppLanguage.choose(this,tags[which]); languageChange=true; recreate();
+                            }
+                        });
             });
             language.setId(R.id.language_choice);
             LinearLayout.LayoutParams languageSize=new LinearLayout.LayoutParams(-1,dp(52)); languageSize.topMargin=dp(12); detail.addView(language,languageSize);
@@ -734,7 +849,7 @@ public final class MainActivity extends Activity {
                     if (value == Screensaver.DEFAULT_MINUTES) options[i] += getString(R.string.saver_recommended);
                     if (value == Screensaver.minutes(this)) selected = i;
                 }
-                showSaverChoices(R.string.saver_delay, options, selected, which -> {
+                showSettingChoices(R.string.saver_delay, options, selected, which -> {
                             Screensaver.prefs(this).edit().putInt(Screensaver.TIMEOUT, Screensaver.MINUTES[which]).apply();
                             showSettingsDetail(detail, category);
                             View target = detail.findViewById(R.id.saver_timeout); if (target != null) target.requestFocus();
@@ -744,7 +859,7 @@ public final class MainActivity extends Activity {
             detail.getChildAt(detail.getChildCount()-1).setId(R.id.saver_timeout);
             boolean aerial = "aerial".equals(Screensaver.prefs(this).getString(Screensaver.PROVIDER, "builtin"));
             addSettingAction(detail, getString(R.string.saver_source, getString(aerial ? R.string.saver_aerial : R.string.saver_builtin)), () -> {
-                showSaverChoices(R.string.saver_source_title,
+                showSettingChoices(R.string.saver_source_title,
                         new String[]{getString(R.string.saver_builtin),getString(R.string.saver_aerial)}, aerial ? 1 : 0, which -> {
                             if (which == 1 && !Screensaver.aerialAvailable(this)) {
                                 Toast.makeText(this, R.string.saver_aerial_fallback, Toast.LENGTH_LONG).show(); return;
@@ -758,9 +873,12 @@ public final class MainActivity extends Activity {
             Switch online = new Switch(this); online.setId(R.id.saver_online); online.setTypeface(font);
             online.setText(R.string.saver_online); online.setTextColor(Color.WHITE); online.setTextSize(14);
             online.setMinHeight(dp(52)); online.setChecked(Screensaver.prefs(this).getBoolean("saverOnline",true));
-            online.setOnCheckedChangeListener((button,enabled)->Screensaver.prefs(this).edit().putBoolean("saverOnline",enabled).apply());
+            online.setOnCheckedChangeListener((button,enabled)->{
+                Screensaver.prefs(this).edit().putBoolean("saverOnline",enabled).apply();
+                updateSaverCacheStatus();
+            });
             detail.addView(online,new LinearLayout.LayoutParams(-1,dp(62)));
-            TextView usage=label(getString(R.string.saver_cache_policy,SaverCache.reserveMb(this)),12,0xffb9c7dc); usage.setId(R.id.saver_cache_status);
+            TextView usage=label(getString(R.string.saver_cache_checking),12,0xffb9c7dc); usage.setId(R.id.saver_cache_status);
             usage.setPadding(0,dp(8),0,dp(8));detail.addView(usage);updateSaverCacheStatus();
             addSettingAction(detail, getString(R.string.saver_preview), () -> Screensaver.launch(this));
             detail.getChildAt(detail.getChildCount()-1).setId(R.id.saver_preview);
@@ -772,9 +890,9 @@ public final class MainActivity extends Activity {
                 }
             });
             addSettingAction(detail,getString(R.string.saver_reserve,SaverCache.reserveMb(this)),()->
-                showSaverChoices(R.string.saver_reserve_title,new String[]{getString(R.string.saver_reserve_recommended),getString(R.string.saver_reserve_small)},SaverCache.reserveMb(this)==512?1:0,which->{
+                showSettingChoices(R.string.saver_reserve_title,new String[]{getString(R.string.saver_reserve_recommended),getString(R.string.saver_reserve_small)},SaverCache.reserveMb(this)==512?1:0,which->{
                     Screensaver.prefs(this).edit().putInt("saverReserveMb",which==0?1024:512).apply();
-                    showSettingsDetail(detail,category);detail.findViewById(R.id.saver_online).requestFocus();
+                    showSettingsDetail(detail,category);detail.findViewById(R.id.saver_reserve).requestFocus();
                 }));
             detail.getChildAt(detail.getChildCount()-1).setId(R.id.saver_reserve);
             addSettingAction(detail,getString(R.string.saver_clear),()->worker.execute(()->{
@@ -797,15 +915,16 @@ public final class MainActivity extends Activity {
             detail.addView(label(getString(R.string.device), 24, Color.WHITE));
             android.view.Display display = getWindowManager().getDefaultDisplay();
             android.view.Display.Mode mode = display.getMode();
-            android.graphics.Point output = new android.graphics.Point();
-            display.getRealSize(output);
-            int outputWidth = mode != null ? mode.getPhysicalWidth() : output.x;
-            int outputHeight = mode != null ? mode.getPhysicalHeight() : output.y;
+            android.graphics.Point interfaceSize = new android.graphics.Point();
+            display.getRealSize(interfaceSize);
+            int outputWidth = mode != null ? mode.getPhysicalWidth() : interfaceSize.x;
+            int outputHeight = mode != null ? mode.getPhysicalHeight() : interfaceSize.y;
             float refreshRate = mode != null ? mode.getRefreshRate() : display.getRefreshRate();
             TextView specifications = label(getString(R.string.device_specs,
                     android.os.Build.MODEL, android.os.Build.VERSION.RELEASE,
                     android.os.Build.VERSION.SDK_INT, outputWidth, outputHeight,
-                    refreshRate, UpdateManager.appVersion(this)), 14, 0xffd8e4f3);
+                    refreshRate, interfaceSize.x, interfaceSize.y,
+                    UpdateManager.appVersion(this)), 14, 0xffd8e4f3);
             specifications.setLineSpacing(dp(5), 1f);
             specifications.setPadding(dp(18), dp(14), dp(18), dp(14));
             specifications.setBackgroundResource(R.drawable.control_background);
@@ -848,7 +967,10 @@ public final class MainActivity extends Activity {
             mark.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             LinearLayout.LayoutParams markSize = new LinearLayout.LayoutParams(dp(52), dp(52)); markSize.setMarginEnd(dp(16));
             brand.addView(mark, markSize); brand.addView(label(getString(R.string.app_name), 28, Color.WHITE)); detail.addView(brand);
-            TextView info = label(getString(R.string.version_prefix) + UpdateManager.appVersion(this) + getString(R.string.developer_info), 16, 0xffb9c7dc); info.setPadding(0, dp(20), 0, dp(24)); detail.addView(info);
+            TextView version = label(getString(R.string.version_prefix) + UpdateManager.appVersion(this), 16, 0xffb9c7dc);
+            version.setPadding(0, dp(14), 0, 0); detail.addView(version);
+            TextView company = label(getString(R.string.developer_info), 16, 0xffb9c7dc);
+            company.setPadding(0, dp(4), 0, dp(22)); detail.addView(company);
             addSettingAction(detail, getString(R.string.report_problem), this::showFeedback);
             addSettingAction(detail, getString(R.string.source_code), () -> openExternalPage("https://github.com/carpe-diem-agency/carpe-tv-launcher"));
             addSettingAction(detail, getString(R.string.developer_site), () -> openExternalPage("https://carpediem.agency/"));
@@ -862,6 +984,14 @@ public final class MainActivity extends Activity {
             });
         }
         linkSettingsFocus(detail);
+        View firstDetail = firstFocusable(detail);
+        if (firstDetail != null) {
+            firstDetail.setNextFocusUpId(R.id.settings_power);
+            View entry = settingsEntryFocus(detail, category);
+            if (entry != null) entry.setNextFocusUpId(R.id.settings_power);
+            findViewById(R.id.settings_power).setNextFocusDownId(
+                    entry != null ? entry.getId() : firstDetail.getId());
+        }
         configureStateFade(detail);
         } finally {renderingPage=previousRendering;}
     }
@@ -873,7 +1003,8 @@ public final class MainActivity extends Activity {
         final String[] templates = {"bug.yml", "idea.yml", "other.yml"};
         final int[] choices = {R.string.feedback_bug, R.string.feedback_idea, R.string.feedback_other};
         final String[] issueUrl = {feedbackUrl(templates[0])};
-        View previousFocus = getCurrentFocus();
+        View feedbackAction = findSettingAction(getString(R.string.report_problem));
+        View previousFocus = feedbackAction != null ? feedbackAction : getCurrentFocus();
         android.app.Dialog dialog = new android.app.Dialog(this);
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
         LinearLayout panel = new LinearLayout(this);
@@ -918,7 +1049,9 @@ public final class MainActivity extends Activity {
             types.addView(button, size); typeButtons[i] = button;
         }
         panel.addView(types, new LinearLayout.LayoutParams(-1, dp(48)));
-        LinearLayout.LayoutParams qrSize = new LinearLayout.LayoutParams(dp(204), dp(204)); qrSize.topMargin = dp(14);
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        int qrSide = Math.max(dp(96), Math.min(dp(128), screenHeight - dp(390)));
+        LinearLayout.LayoutParams qrSize = new LinearLayout.LayoutParams(qrSide, qrSide); qrSize.topMargin = dp(12);
         panel.addView(qr, qrSize);
         panel.addView(fallback);
         showFeedbackQr(qr, fallback, issueUrl[0], qrBitmaps, 0);
@@ -928,11 +1061,27 @@ public final class MainActivity extends Activity {
         Button close = action(getString(R.string.close), dialog::dismiss);
         LinearLayout.LayoutParams closeSize = new LinearLayout.LayoutParams(-1, dp(52)); closeSize.topMargin = dp(8);
         panel.addView(close, closeSize);
-        dialog.setContentView(panel);
+        ScrollView dialogScroll = new ScrollView(this);
+        dialogScroll.setFillViewport(false);
+        dialogScroll.setVerticalScrollBarEnabled(false);
+        dialogScroll.addView(panel);
+        dialog.setContentView(dialogScroll);
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.getWindow().setWindowAnimations(motionEnabled() ? R.style.LumaDialogMotion : 0);
-        dialog.setOnDismissListener(ignored -> { if (previousFocus != null && previousFocus.isAttachedToWindow()) previousFocus.requestFocus(); });
-        dialog.show(); dialog.getWindow().setLayout(dp(430), -2); typeButtons[0].requestFocus();
+        modalDialogShowing = true;
+        dialog.setOnDismissListener(ignored -> {
+            modalDialogShowing = false;
+            if (previousFocus != null && previousFocus.isAttachedToWindow()) {
+                pendingModalFocus = previousFocus;
+                restorePendingModalFocus();
+            }
+        });
+        dialog.show();
+        int width = dialogWidth(430);
+        panel.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        dialog.getWindow().setLayout(width, Math.min(panel.getMeasuredHeight(), screenHeight - dp(32)));
+        typeButtons[0].requestFocus();
     }
     private String feedbackUrl(String template) {
         return "https://github.com/carpe-diem-agency/carpe-tv-launcher/issues/new?template=" + template;
@@ -977,10 +1126,46 @@ public final class MainActivity extends Activity {
         scroll.addView(body);
         AlertDialog dialog = new AlertDialog.Builder(this).setTitle(title).setView(scroll)
                 .setPositiveButton(getString(R.string.close), null).create();
+        modalDialogShowing = true;
+        dialog.setOnDismissListener(ignored -> {
+            modalDialogShowing = false;
+            if (destroyed || !"settings".equals(page)) return;
+            String focusLabel = assetPath.endsWith("Montserrat-OFL.txt")
+                    ? getString(R.string.font_license) : title;
+            View item = findSettingAction(focusLabel);
+            if (item != null) {
+                pendingModalFocus = item;
+                restorePendingModalFocus();
+            }
+        });
         dialog.show();
         if (dialog.getWindow() != null)
             dialog.getWindow().setBackgroundDrawable(surface(0xff17253e, dp(18)));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(0xffb9d5ff);
+    }
+    private void restorePendingModalFocus() {
+        View target = pendingModalFocus;
+        if (target == null) return;
+        if (!"settings".equals(page) || !target.isAttachedToWindow()) {
+            pendingModalFocus = null;
+            return;
+        }
+        if (!hasWindowFocus()) return;
+        boolean restored = target.isInTouchMode() ? target.requestFocusFromTouch() : target.requestFocus();
+        pendingModalFocus = null;
+        if (!restored) target.post(() -> {
+            if (hasWindowFocus() && target.isAttachedToWindow() && getCurrentFocus() == null)
+                target.requestFocusFromTouch();
+        });
+    }
+    private View findSettingAction(String label) {
+        LinearLayout detail = content.findViewById(R.id.settings_detail);
+        if (detail == null) return null;
+        for (int i = 0; i < detail.getChildCount(); i++) {
+            View item = detail.getChildAt(i);
+            if (item instanceof Button && label.contentEquals(((Button) item).getText())) return item;
+        }
+        return null;
     }
     private String readableThirdPartyNotice(String markdown) {
         StringBuilder text = new StringBuilder();
@@ -1013,11 +1198,12 @@ public final class MainActivity extends Activity {
         worker.execute(()->{
             SaverCache cache=SaverCache.get(this);long used=cache.bytes()/SaverCache.MIB,free=cache.freeBytes()/SaverCache.MIB;int reserve=SaverCache.reserveMb(this);
             runOnUiThread(()->{TextView status=findViewById(R.id.saver_cache_status);if(!destroyed&&status!=null)
-                status.setText(getString(R.string.saver_cache_usage,used,free)+"\n"+getString(R.string.saver_cache_policy,reserve)
-                        +(free<reserve&&Screensaver.prefs(this).getBoolean("saverOnline",true)?"\n"+getString(R.string.saver_cache_waiting):""));});
+                status.setText(getString(R.string.saver_cache_usage,used,free)
+                        +(free<reserve&&Screensaver.prefs(this).getBoolean("saverOnline",true)
+                        ?getString(R.string.saver_cache_waiting,reserve):""));});
         });
     }
-    private void showSaverChoices(int title, String[] choices, int selected, java.util.function.IntConsumer choose) {
+    private void showSettingChoices(int title, String[] choices, int selected, java.util.function.IntConsumer choose) {
         android.app.Dialog dialog = new android.app.Dialog(this);
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
         LinearLayout panel = new LinearLayout(this); panel.setOrientation(LinearLayout.VERTICAL);
@@ -1025,7 +1211,9 @@ public final class MainActivity extends Activity {
         TextView heading = label(getString(title),22,Color.WHITE); heading.setPadding(dp(8),0,0,dp(18)); panel.addView(heading);
         ScrollView scroll = new ScrollView(this); scroll.setFillViewport(false);
         LinearLayout list = new LinearLayout(this); list.setOrientation(LinearLayout.VERTICAL); scroll.addView(list);
-        panel.addView(scroll,new LinearLayout.LayoutParams(-1,Math.min(dp(350),dp(50)*choices.length)));
+        int availableHeight = getResources().getDisplayMetrics().heightPixels - dp(180);
+        int listHeight = Math.min(Math.min(dp(350), dp(50) * choices.length), Math.max(dp(50), availableHeight));
+        panel.addView(scroll,new LinearLayout.LayoutParams(-1,listHeight));
         Button selectedView = null;
         for(int i=0;i<choices.length;i++) {
             final int option=i;
@@ -1038,10 +1226,12 @@ public final class MainActivity extends Activity {
         Button cancel=action(getString(R.string.cancel),dialog::dismiss);
         LinearLayout.LayoutParams cancelSize=new LinearLayout.LayoutParams(-1,dp(44)); cancelSize.topMargin=dp(16); panel.addView(cancel,cancelSize);
         dialog.setContentView(panel); dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.getWindow().setWindowAnimations(motionEnabled() ? R.style.LumaDialogMotion : 0);
         dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         android.view.WindowManager.LayoutParams window=dialog.getWindow().getAttributes(); window.dimAmount=.55f; dialog.getWindow().setAttributes(window);
-        dialog.show(); dialog.getWindow().setLayout(dp(550),-2);
+        dialog.show(); dialog.getWindow().setLayout(dialogWidth(550),-2);
         if(selectedView!=null) selectedView.requestFocus();
+        else if(list.getChildCount()>0) list.getChildAt(0).requestFocus();
     }
     private String wallpaper() { return WallpaperCatalog.find(this,getPreferences(MODE_PRIVATE).getString("wallpaper", "alpine")).key; }
     private String wallpaperName() { return getString(WallpaperCatalog.find(this,wallpaper()).title); }
@@ -1091,6 +1281,40 @@ public final class MainActivity extends Activity {
             if (view instanceof android.view.ViewGroup) { View nested = firstFocusable((android.view.ViewGroup) view); if (nested != null) return nested; }
         }
         return null;
+    }
+    private boolean isInside(View child, View parent) {
+        if (parent == null) return false;
+        for (View node=child; node!=null; ) {
+            if (node==parent) return true;
+            android.view.ViewParent ancestor=node.getParent();
+            node=ancestor instanceof View ? (View)ancestor : null;
+        }
+        return false;
+    }
+    private int focusableIndex(View root, View target) {
+        ArrayList<View> controls=new ArrayList<>();
+        collectFocusable(root,controls);
+        return controls.indexOf(target);
+    }
+    private View focusableAt(View root, int index) {
+        if (index < 0) return null;
+        ArrayList<View> controls=new ArrayList<>();
+        collectFocusable(root,controls);
+        return index < controls.size() ? controls.get(index) : null;
+    }
+    private void collectFocusable(View root, List<View> controls) {
+        if (root.isFocusable()) { controls.add(root); return; }
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group=(android.view.ViewGroup)root;
+            for (int i=0;i<group.getChildCount();i++) collectFocusable(group.getChildAt(i),controls);
+        }
+    }
+    private View settingsEntryFocus(android.view.ViewGroup detail, String category) {
+        if ("appearance".equals(category)) {
+            View selected = detail.findViewById(WallpaperCatalog.find(this, wallpaper()).viewId);
+            if (selected != null && selected.isFocusable()) return selected;
+        }
+        return firstFocusable(detail);
     }
     private void linkSettingsFocus(android.view.ViewGroup group) {
         for (int i = 0; i < group.getChildCount(); i++) {
@@ -1187,6 +1411,7 @@ public final class MainActivity extends Activity {
             layout.findViewById(R.id.apps_bluetooth).setOnClickListener(v -> openBluetooth());
             EditText search = layout.findViewById(R.id.apps_search); search.setTypeface(font); search.setText(query);
             LinearLayout list = layout.findViewById(R.id.apps_grid);
+            ScrollView appScroll = layout.findViewById(R.id.apps_scroll);
             search.setShowSoftInputOnFocus(false);
             search.setOnClickListener(v -> { search.requestFocus(); ((android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(search, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT); });
             search.setOnEditorActionListener((v, actionId, event) -> { hideKeyboard(); if (libraryEntry != null) libraryEntry.requestFocus(); return true; });
@@ -1196,7 +1421,16 @@ public final class MainActivity extends Activity {
             });
             search.addTextChangedListener(new TextWatcher() {
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                public void onTextChanged(CharSequence s, int start, int before, int count) { query = s.toString(); renderList(list, allApps, false); }
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    query = s.toString();
+                    renderList(list, allApps, false);
+                    appScroll.scrollTo(0, 0);
+                    appScroll.post(() -> {
+                        appScroll.scrollTo(0, 0);
+                        list.invalidate();
+                        appScroll.invalidate();
+                    });
+                }
                 public void afterTextChanged(Editable e) {}
             });
             renderList(list, allApps, !isSidebarFocused());
@@ -1212,7 +1446,7 @@ public final class MainActivity extends Activity {
         if (page.equals(target)) { updateHomeGreeting(); return; }
         hideKeyboard();
         int direction = pageOrder(target) > pageOrder(page) ? 1 : -1;
-        page = target; query = ""; focusedPackage = pageFocus.get(target);
+        page = target; focusedPackage = pageFocus.get(target);
         findViewById("home".equals(target) ? R.id.nav_home : "apps".equals(target) ? R.id.nav_apps : R.id.nav_settings).requestFocus();
         LinearLayout cached = pageViews.get(target);
         content = pageMotion.prepare(content, cached, motionEnabled(), direction);
@@ -1224,7 +1458,6 @@ public final class MainActivity extends Activity {
             findViewById(R.id.nav_apps).setSelected("apps".equals(page));
             findViewById(R.id.nav_settings).setSelected("settings".equals(page));
             EditText search = content.findViewById(R.id.apps_search);
-            if (search != null && search.length() > 0) search.setText("");
             View entry = findPageTile(content, focusedPackage);
             if (entry == null) entry = findPageTile(content, null);
             if (entry != null) {
@@ -1297,7 +1530,9 @@ public final class MainActivity extends Activity {
         // Keep clipping only at the scrolling viewport, not at each grid cell/row.
         list.setClipChildren(false);
         list.setClipToPadding(false);
-        final int renderGeneration = generation;
+        // Search rebuilds the grid without rebuilding the page. Invalidate icon
+        // work queued for tiles removed by the previous query.
+        final int renderGeneration = ++generation;
         List<String> favorites = getFavorites();
         if ("home".equals(page)) {
             Map<String, AppItem> available = new LinkedHashMap<>();
@@ -1384,15 +1619,61 @@ public final class MainActivity extends Activity {
             findViewById(navId).setNextFocusRightId(target.getId());
             if("home".equals(page)) linkHomeHeaderDown(target.getId());
         }
-        if (first == null && !isSidebarFocused()) findViewById("home".equals(page) ? R.id.nav_home : R.id.apps_search).requestFocus();
-        if (takeFocus && restore != null) restore.requestFocus();
-        else if (takeFocus && first != null) first.requestFocus();
-        else {
+        View emptyAction = null;
+        if (first == null && !appsReady && !appsLoadFailed && allApps.isEmpty()) {
+            addLoadingTiles(list);
+        } else if (first == null && appsLoadFailed && allApps.isEmpty()) {
+            TextView message = label(getString(R.string.apps_load_failed), 16, 0xffd8e1ef);
+            message.setPadding(dp(8), dp(12), dp(8), dp(12));
+            list.addView(message);
+            Button retry = action(getString(R.string.apps_retry), () -> {
+                appsLoadFailed = false;
+                appsReady = false;
+                renderPage();
+                if (!destroyed) worker.execute(this::refreshApps);
+            });
+            retry.setId(View.generateViewId());
+            list.addView(retry, new LinearLayout.LayoutParams(dp(220), dp(52)));
+            emptyAction = retry;
+        } else if (first == null) {
             TextView empty = new TextView(this);
-            empty.setText("home".equals(page) ? getString(R.string.favorites_empty) : getString(R.string.search_empty));
+            empty.setText("home".equals(page) ? getString(R.string.favorites_empty)
+                    : query.isEmpty() ? getString(R.string.apps_empty) : getString(R.string.search_empty));
             empty.setTypeface(font); empty.setTextSize(16);
             empty.setTextColor(0xffd8e1ef); empty.setPadding(dp(8), dp(12), dp(8), dp(12));
-            if (first == null) list.addView(empty);
+            list.addView(empty);
+        }
+        if (emptyAction != null) {
+            findViewById("home".equals(page) ? R.id.nav_home : R.id.nav_apps).setNextFocusRightId(emptyAction.getId());
+            View search = findViewById(R.id.apps_search);
+            if (search != null) search.setNextFocusDownId(emptyAction.getId());
+        }
+        if (takeFocus && restore != null) restore.requestFocus();
+        else if (takeFocus && first != null) first.requestFocus();
+        else if (takeFocus && emptyAction != null) emptyAction.requestFocus();
+        else if (first == null && !isSidebarFocused())
+            findViewById("home".equals(page) ? R.id.nav_home : R.id.apps_search).requestFocus();
+    }
+    private void addLoadingTiles(LinearLayout list) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setClipChildren(false);
+        list.addView(row);
+        for (int i = 0; i < 5; i++) {
+            LinearLayout placeholder = new LinearLayout(this);
+            placeholder.setOrientation(LinearLayout.VERTICAL);
+            placeholder.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams cell = new LinearLayout.LayoutParams(0, dp(124), 1);
+            cell.setMargins(dp(5), dp(8), dp(5), dp(8));
+            row.addView(placeholder, cell);
+            View art = new View(this);
+            art.setBackground(surface(0x662c4162, dp(16)));
+            placeholder.addView(art, new LinearLayout.LayoutParams(-1, dp(84)));
+            View caption = new View(this);
+            caption.setBackground(surface(0x66546a88, dp(5)));
+            LinearLayout.LayoutParams captionParams = new LinearLayout.LayoutParams(dp(72), dp(10));
+            captionParams.topMargin = dp(12);
+            placeholder.addView(caption, captionParams);
         }
     }
     private void updateBackground() {
@@ -1401,7 +1682,10 @@ public final class MainActivity extends Activity {
         boolean ready=selected.equals(loadedWallpaper) && sharpWallpaper!=null;
         // Keep the previous scene during asynchronous decoding instead of flashing a placeholder.
         if(entry.photo!=0 && !ready && sharpWallpaper!=null) return;
-        String key=page+":"+selected+":"+("home".equals(page) ? getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM) : 0)+":"+ready;
+        // The built-in blue and plain wallpapers are identical on every page.
+        // Do not crossfade a full-screen drawable with itself on each rail move.
+        String key=entry.photo==0 ? selected
+                : page+":"+selected+":"+("home".equals(page) ? getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM) : 0)+":"+ready;
         if(key.equals(backgroundKey)) return;
         Drawable next;
         if(ready) {
@@ -1597,7 +1881,7 @@ public final class MainActivity extends Activity {
             dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
             android.view.WindowManager.LayoutParams params = dialog.getWindow().getAttributes(); params.dimAmount = .45f; dialog.getWindow().setAttributes(params);
         }
-        dialog.show(); dialog.getWindow().setLayout(dp(300), -2); rows.getChildAt(0).requestFocus();
+        dialog.show(); dialog.getWindow().setLayout(dialogWidth(300), -2); rows.getChildAt(0).requestFocus();
     }
     private boolean motionEnabled() { return getPreferences(MODE_PRIVATE).getBoolean("animations", true) && android.animation.ValueAnimator.areAnimatorsEnabled(); }
     private void showSleepNow() {
@@ -1694,6 +1978,17 @@ public final class MainActivity extends Activity {
         icon.setScaleType(banner ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER); icon.setImageDrawable(artwork);
     }
     @Override public void onBackPressed() {
+        if ("settings".equals(page) && settingsCategoryView != null && settingsCategoryView.isAttachedToWindow()) {
+            View detail = content.findViewById(R.id.settings_detail);
+            View current = getCurrentFocus();
+            for (View node = current; node != null; ) {
+                if (node == detail) {
+                    if (settingsCategoryView.requestFocus()) return;
+                }
+                android.view.ViewParent parent = node.getParent();
+                node = parent instanceof View ? (View) parent : null;
+            }
+        }
         if (!"home".equals(page)) {
             openPage("home");
             View lastTile = findPageTile(content, pageFocus.get("home"));
@@ -1703,6 +1998,9 @@ public final class MainActivity extends Activity {
             return;
         }
         findViewById(R.id.nav_home).requestFocus();
+    }
+    private int dialogWidth(int desiredDp) {
+        return Math.min(dp(desiredDp), Math.max(dp(200), getResources().getDisplayMetrics().widthPixels - dp(32)));
     }
     private int dp(float value) { return (int) (value * getResources().getDisplayMetrics().density + .5f); }
     private static boolean sameApps(List<AppItem> left, List<AppItem> right) {

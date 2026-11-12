@@ -2,7 +2,7 @@
     <string name="appearance">"Зовнішній вигляд"</string>
     <string name="favorites">"Обрані програми"</string>
     <string name="device">"Пристрій"</string>
-    <string name="device_specs">"Модель · %1$s\nAndroid · %2$s (API %3$d)\nВідеовихід · %4$d × %5$d · %6$.1f Гц\nCarpe TV · %7$s"</string>
+    <string name="device_specs">"Модель · %1$s\nAndroid · %2$s (API %3$d)\nВідеовихід · %4$d × %5$d · %6$.1f Гц\nІнтерфейс · %7$d × %8$d\nCarpe TV · %9$s"</string>
     <string name="about">"Про лаунчер"</string>
     <string name="selected_prefix">"Вибрано: "</string>
     <string name="wallpaper_dim">"Затемнення фону"</string>
@@ -15,7 +15,7 @@
     <string name="choose_home">"Вибрати інший лаунчер"</string>
     <string name="home_service">"Служба кнопки Home"</string>
     <string name="version_prefix">"Версія "</string>
-    <string name="developer_info">"\n\nКомпанія: Carpe Diem Agency\ncarpediem.agency"</string>
+    <string name="developer_info">Компанія: Carpe Diem Agency</string>
     <string name="updates">"Оновлення"</string>
     <string name="report_problem">"Зворотний зв’язок"</string>
     <string name="report_problem_hint">"Обери тему й скануй телефоном."</string>
@@ -45,6 +45,9 @@
     <string name="network_unavailable">"Налаштування мережі недоступні"</string>
     <string name="favorites_empty">"Додай улюблені програми в розділі «Усі програми»"</string>
     <string name="search_empty">"Нічого не знайдено. Спробуй іншу назву."</string>
+    <string name="apps_empty">Програм не знайдено</string>
+    <string name="apps_load_failed">Не вдалося завантажити програми</string>
+    <string name="apps_retry">Спробувати ще раз</string>
     <string name="add_favorite">"Додати в обране"</string>
     <string name="remove_favorite">"Прибрати з обраного"</string>
     <string name="move_left">"Перемістити ліворуч"</string>
@@ -170,15 +173,15 @@
     <string name="saver_system">"Налаштування заставки Android"</string>
     <string name="saver_system_help">"Поза Carpe TV заставкою керує Android; системна заставка може ввімкнутися раніше. Вимкнення нашого таймера не вимикає системну заставку чи сон."</string>
     <string name="saver_online">"Дозавантажувати фото й відео · Commons / NASA"</string>
-    <string name="saver_cache_policy">"Кеш до 500 МБ · запас %1$d МБ · перевірка каталогу раз на добу під час заставки"</string>
-    <string name="saver_cache_usage">"Кеш: %1$d МБ · вільно: %2$d МБ"</string>
+    <string name="saver_cache_checking">"Перевіряємо місце…"</string>
+    <string name="saver_cache_usage">"Кеш %1$d МБ · вільно %2$d МБ"</string>
     <string name="saver_clear">"Очистити завантажені заставки"</string>
     <string name="saver_credits">"Джерела та автори"</string>
     <string name="saver_credits_empty">"Завантажених файлів ще немає. Автори вбудованих шпалер зазначені в документації проєкту."</string>
     <string name="saver_reserve">"Залишати вільно: %1$d МБ"</string>
     <string name="saver_reserve_title">"Запас місця на цьому пристрої"</string>
     <string name="saver_reserve_recommended">"1 ГБ (рекомендовано)"</string>
-    <string name="saver_cache_waiting">"Завантаження призупинені: вільного місця менше за резерв."</string>
+    <string name="saver_cache_waiting">" · пауза до %1$d МБ вільного місця"</string>
     <string name="saver_reserve_small">"512 МБ"</string>
     <string name="move_app">Перемістити</string>
     <string name="move_help">Стрілки — переміщення · OK — зберегти · Назад — скасувати</string>

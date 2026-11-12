@@ -198,6 +198,93 @@ do not establish perceived smoothness, physical-remote behavior or performance
 on other devices. Raw captures remain outside the public repository because
 they contain the owner's app list.
 
+## Wallpaper cost isolation — 2026-11-12
+
+The isolated debug build on MiTV-AFMU1 passed the same 36 page changes and
+focus checks in each run. With the default Alpine photo, page-frame p95 was
+59.56 ms (309 frames); focus-frame p95 was 16.70 ms. A test-only
+`plainWallpaper=yes` mode kept the navigation workload and replaced the
+wallpaper temporarily: page-frame p95 fell to 38.24 ms (313 frames), and
+focus-frame p95 to 14.22 ms. The probe restored the wallpaper preference.
+
+Two unshipped experiments tested likely costs. Suppressing the background
+crossfade only during page changes yielded 49.23 ms page-frame p95 (292
+frames). Precomposing the home dim into a full-resolution bitmap while
+retaining the crossfade yielded 59.63 ms (308 frames). Each is one debug run,
+so the numbers are diagnostic rather than a reliable percentage improvement.
+The no-crossfade version also changes the visual transition, and the
+precomposed version adds bitmap memory without a measured benefit. Both
+product-code experiments were reverted. Keep the photo and its current
+transition until a visually acceptable optimization passes repeated device
+measurements and a projector review.
+
+## Follow-up with explicit wallpaper selection — 2026-11-12
+
+The isolated preview instrumentation now records the selected wallpaper and
+can temporarily force the Alpine photo. On MiTV-AFMU1 with HDMI output off,
+the current branch passed focus checks and 36 normal/rapid page changes in
+three runs. With the blue wallpaper, page-frame p95 was 45.86 ms across 286
+frames. Two Alpine runs measured 41.45 ms across 317 frames and 41.80 ms
+across 315 frames. Focus-navigation p95 was 16.40 ms on blue, then 16.88 ms
+and 14.85 ms on Alpine. The probe restored the prior wallpaper setting after
+each run.
+
+These debug-build samples show that the current photo path did not regress
+against blue in this workload. They do not establish a repeatable improvement
+over earlier builds because code, cache warmth and measurement conditions
+changed. No product transition was altered. The previous isolated preview APK
+was restored, the instrumentation package removed, and projector-visible
+smoothness remains to be checked before release.
+
+## Repeated navigation memory check — 2026-11-12
+
+The current isolated `.publicpreview` debug build ran 200 real D-pad cycles
+through Home → Apps → Settings → Apps → Home on MiTV-AFMU1. Every 40 cycles,
+the probe checked that Home and its rail focus were restored, then sampled
+process PSS and the active window's view count. All focus checks passed.
+PSS at cycles 40 / 80 / 120 / 160 / 200 was 104,933 / 106,331 / 103,547 /
+104,187 / 105,103 KB. The view count was 244 at every checkpoint.
+
+This bounded run found no accumulating view trees or sustained PSS increase in
+that navigation path. It does not prove leak freedom over hours, wallpaper
+rotation, app install/remove events or external-app sessions. The previous
+isolated preview APK was restored, the test APK removed, and enabled
+accessibility services still read `null`. System Home integration was not
+tested because that work is paused.
+
+The same 200-cycle route was repeated with the Alpine photo wallpaper forced
+on the isolated preview. All focus checks passed. PSS at cycles 40 / 80 / 120 /
+160 / 200 was 113,129 / 111,322 / 112,886 / 113,974 / 111,710 KB; the view
+count stayed at 244. Photo wallpaper used roughly 7–9 MB more PSS than the
+blue-wallpaper run, with no sustained rise across this bounded test. These are
+separate runs, not a controlled long-duration comparison. The test restored
+the prior wallpaper and rotation preferences; the previous isolated APK was
+restored, the test APK removed, and enabled accessibility services still read
+`null`. Projector-visible transition quality remains to be checked.
+
+## Artwork cache bound — 2026-11-12
+
+The app artwork cache previously retained up to 64 entries regardless of
+bitmap size. It now accounts for the allocated bytes of bitmap-backed tile
+artwork and is capped at 24 MiB. Background prefetch stops at 75% of that
+budget so it leaves room for visible tiles and favorites. This is a memory
+bound for cached artwork, not a bound on the whole app or artwork still held
+by visible views.
+
+On MiTV-AFMU1 at 1920×1080, the isolated debug build passed 200 Home → Apps →
+Settings → Apps → Home D-pad cycles before the cache change and another 200
+after it. Before: PSS at cycles 40 / 80 / 120 / 160 / 200 was 133,176 /
+131,433 / 132,949 / 133,917 / 131,873 KB. After: 131,582 / 129,724 /
+131,319 / 132,463 / 130,531 KB. The view count stayed at 244 in both runs.
+The difference is small and uncontrolled; it does not demonstrate a speed or
+memory improvement. Both runs used more PSS than the earlier 111–114 MiB
+Alpine-wallpaper run above, and the cause of that difference is not established.
+
+After adding the prefetch limit, the library-focus probe passed rail entry,
+matching and empty search results, restored grid focus and tile navigation.
+The 4K cache behavior has not yet been measured on a 4K output. The previous
+isolated preview APK was restored, and the personal launcher was untouched.
+
 ## Isolated debug follow-up after layout measurement change — 2026-11-11
 
 The `.publicpreview` debug APK at source commit `21472ce` and its separate

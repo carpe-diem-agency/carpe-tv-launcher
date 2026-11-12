@@ -2,7 +2,7 @@
     <string name="appearance">"Appearance"</string>
     <string name="favorites">"Favorite apps"</string>
     <string name="device">"Device"</string>
-    <string name="device_specs">"Model · %1$s\nAndroid · %2$s (API %3$d)\nDisplay output · %4$d × %5$d · %6$.1f Hz\nCarpe TV · %7$s"</string>
+    <string name="device_specs">"Model · %1$s\nAndroid · %2$s (API %3$d)\nDisplay output · %4$d × %5$d · %6$.1f Hz\nInterface · %7$d × %8$d\nCarpe TV · %9$s"</string>
     <string name="about">"About"</string>
     <string name="selected_prefix">"Selected: "</string>
     <string name="wallpaper_dim">"Wallpaper dimming"</string>
@@ -15,7 +15,7 @@
     <string name="choose_home">"Choose another launcher"</string>
     <string name="home_service">"Home button service"</string>
     <string name="version_prefix">"Version "</string>
-    <string name="developer_info">"\n\nCompany: Carpe Diem Agency\ncarpediem.agency"</string>
+    <string name="developer_info">Company: Carpe Diem Agency</string>
     <string name="updates">"Updates"</string>
     <string name="report_problem">"Feedback"</string>
     <string name="report_problem_hint">"Choose a topic and scan with your phone."</string>
@@ -45,6 +45,9 @@
     <string name="network_unavailable">"Network settings are unavailable"</string>
     <string name="favorites_empty">"Add your favorites from All apps"</string>
     <string name="search_empty">"No apps found. Try another name."</string>
+    <string name="apps_empty">No apps available</string>
+    <string name="apps_load_failed">Couldn’t load apps</string>
+    <string name="apps_retry">Try again</string>
     <string name="add_favorite">"Add to favorites"</string>
     <string name="remove_favorite">"Remove from favorites"</string>
     <string name="move_left">"Move left"</string>
@@ -170,15 +173,15 @@
     <string name="saver_system">"Android screensaver settings"</string>
     <string name="saver_system_help">"Android controls screensavers outside Carpe TV and may start its own earlier. Turning this timer off does not disable the system screensaver or sleep."</string>
     <string name="saver_online">"Download photos and videos · Commons / NASA"</string>
-    <string name="saver_cache_policy">"Up to 500 MB cache · keep %1$d MB free · catalog checked daily while the screensaver is open"</string>
-    <string name="saver_cache_usage">"Cache: %1$d MB · free: %2$d MB"</string>
+    <string name="saver_cache_checking">"Checking storage…"</string>
+    <string name="saver_cache_usage">"Cache %1$d MB · free %2$d MB"</string>
     <string name="saver_clear">"Clear downloaded screensavers"</string>
     <string name="saver_credits">"Sources and credits"</string>
     <string name="saver_credits_empty">"No downloaded items yet. Built-in wallpaper credits are listed in the project documentation."</string>
     <string name="saver_reserve">"Keep free: %1$d MB"</string>
     <string name="saver_reserve_title">"Free space reserve on this device"</string>
     <string name="saver_reserve_recommended">"1 GB (recommended)"</string>
-    <string name="saver_cache_waiting">"Downloads paused: free space is below the reserve."</string>
+    <string name="saver_cache_waiting">" · paused until %1$d MB is free"</string>
     <string name="saver_reserve_small">"512 MB"</string>
     <string name="move_app">Move</string>
     <string name="move_help">Use arrows to move · OK to save · Back to cancel</string>
