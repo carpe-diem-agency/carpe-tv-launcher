@@ -10,7 +10,6 @@ import android.graphics.Rect;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
-import java.lang.reflect.Method;
 
 /** Verify the issue QR dialog is readable to accessibility and Back restores focus. */
 final class FeedbackProbe {
@@ -23,12 +22,17 @@ final class FeedbackProbe {
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
         test.runOnMainSync(() -> screen.findViewById(R.id.nav_settings).requestFocus());
         SystemClock.sleep(350);
-        test.runOnMainSync(() -> {
-            try {
-                Method open = MainActivity.class.getDeclaredMethod("showFeedback");
-                open.setAccessible(true); open.invoke(screen);
-            } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
-        });
+        test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
+        android.view.ViewGroup categories = screen.findViewById(R.id.settings_categories);
+        View about = categories.getChildAt(categories.getChildCount() - 1);
+        test.runOnMainSync(about::requestFocus);
+        test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
+        View feedback = screen.getCurrentFocus();
+        require(feedback instanceof android.widget.Button
+                        && screen.getString(R.string.report_problem).contentEquals(
+                                ((android.widget.Button) feedback).getText()),
+                "D-pad did not reach Feedback from About");
+        test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
         AccessibilityNodeInfo dialog = null;
         for (int i = 0; i < 20; i++) {
             SystemClock.sleep(100);
@@ -72,10 +76,10 @@ final class FeedbackProbe {
         SystemClock.sleep(250);
         test.runOnMainSync(() -> {
             View focus = screen.getCurrentFocus();
-            require(focus != null && focus.getId() == R.id.nav_settings,
-                    "Closing issue dialog did not restore previous focus");
+            require(focus == feedback,
+                    "Closing issue dialog did not restore Feedback focus");
         });
-        result.putString("feedback", "PASS: three rendered GitHub Issue QRs, browser fallback and Back focus");
+        result.putString("feedback", "PASS: About D-pad entry, three rendered GitHub Issue QRs, browser fallback and Back focus");
     }
     private static AccessibilityNodeInfo find(AccessibilityNodeInfo node, String value) {
         if (node == null) return null;

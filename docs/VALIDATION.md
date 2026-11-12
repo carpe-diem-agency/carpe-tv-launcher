@@ -289,6 +289,7 @@ not prove native Android/Google TV compatibility with a mismatched density.
 - Built the isolated preview app and instrumentation APK with the offline Gradle wrapper. On MiTV-AFMU1, `NavigationProbe -e feedback yes` used D-pad Right and OK to select each topic, decoded all three QR images from actual screen captures, and verified they target the Bug, Idea and Other GitHub Issue forms. Back restored focus to Settings.
 - Saved the pre-test isolated preview APK and reinstalled it after the probe. The installed preview reports version 0.2.8. The main launcher was not changed.
 - The test does not cover a phone scan, GitHub sign-in or submitting an issue. The dialog states that a GitHub account is required and warns against sharing private data.
+- On 2026-11-12 the probe was strengthened to enter Settings, select About and open Feedback with the D-pad instead of invoking the dialog directly. It passed again on MiTV-AFMU1: the Feedback button received focus, all three rendered QR codes decoded to their Issue forms, and Back returned focus to Feedback. The previous preview APK was restored, the test package was removed, and accessibility services remained disabled (`null`).
 
 ### Home role and OEM resolver mismatch — 2026-11-12
 
