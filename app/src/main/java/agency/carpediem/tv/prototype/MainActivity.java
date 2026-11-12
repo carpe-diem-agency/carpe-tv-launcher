@@ -1694,6 +1694,18 @@ public final class MainActivity extends Activity {
         icon.setScaleType(banner ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER); icon.setImageDrawable(artwork);
     }
     @Override public void onBackPressed() {
+        if ("settings".equals(page) && settingsCategoryView != null && settingsCategoryView.isAttachedToWindow()) {
+            View detail = content.findViewById(R.id.settings_detail);
+            View current = getCurrentFocus();
+            for (View node = current; node != null; ) {
+                if (node == detail) {
+                    settingsCategoryView.requestFocus();
+                    return;
+                }
+                android.view.ViewParent parent = node.getParent();
+                node = parent instanceof View ? (View) parent : null;
+            }
+        }
         if (!"home".equals(page)) {
             openPage("home");
             View lastTile = findPageTile(content, pageFocus.get("home"));

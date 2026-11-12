@@ -1,0 +1,73 @@
+package agency.carpediem.tv.prototype;
+
+import android.app.Instrumentation;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.SystemClock;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.ViewParent;
+
+/** Checks the three settings focus regions without changing device settings. */
+final class SettingsFocusProbe {
+    private SettingsFocusProbe() { }
+
+    static void run(Instrumentation probe, Bundle result) {
+        SharedPreferences prefs = probe.getTargetContext()
+                .getSharedPreferences(MainActivity.class.getName(), 0);
+        boolean hadWelcome = prefs.contains("welcome_seen");
+        boolean welcome = prefs.getBoolean("welcome_seen", false);
+        prefs.edit().putBoolean("welcome_seen", true).commit();
+        try {
+            probe.setInTouchMode(false);
+            MainActivity screen = (MainActivity) probe.startActivitySync(
+                    new Intent(probe.getTargetContext(), MainActivity.class)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+            SystemClock.sleep(300);
+            probe.runOnMainSync(() -> screen.findViewById(R.id.nav_settings).requestFocus());
+            key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
+            requireRegion(screen, R.id.settings_categories);
+            key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
+            requireRegion(screen, R.id.settings_detail);
+            key(probe, KeyEvent.KEYCODE_BACK);
+            requireRegion(screen, R.id.settings_categories);
+            key(probe, KeyEvent.KEYCODE_DPAD_DOWN);
+            requireRegion(screen, R.id.settings_categories);
+            key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
+            requireRegion(screen, R.id.settings_detail);
+            key(probe, KeyEvent.KEYCODE_DPAD_LEFT);
+            requireRegion(screen, R.id.settings_categories);
+            key(probe, KeyEvent.KEYCODE_DPAD_LEFT);
+            if (screen.getCurrentFocus() != screen.findViewById(R.id.nav_settings))
+                throw new AssertionError("Left from settings categories did not reach the rail");
+            key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
+            requireRegion(screen, R.id.settings_categories);
+            key(probe, KeyEvent.KEYCODE_BACK);
+            if (screen.findViewById(R.id.home_time) == null)
+                throw new AssertionError("Back from settings categories did not reach Home");
+            result.putString("settings_focus", "PASS: rail, category, detail, Back and Left routes to Home");
+        } finally {
+            SharedPreferences.Editor restore = prefs.edit();
+            if (hadWelcome) restore.putBoolean("welcome_seen", welcome);
+            else restore.remove("welcome_seen");
+            restore.commit();
+        }
+    }
+
+    private static void key(Instrumentation probe, int code) {
+        probe.sendKeyDownUpSync(code);
+        SystemClock.sleep(180);
+    }
+
+    private static void requireRegion(MainActivity screen, int id) {
+        View target = screen.findViewById(id);
+        View focused = screen.getCurrentFocus();
+        for (View node = focused; node != null; ) {
+            if (node == target) return;
+            ViewParent parent = node.getParent();
+            node = parent instanceof View ? (View) parent : null;
+        }
+        throw new AssertionError("Focus is outside region " + id + ": " + focused);
+    }
+}

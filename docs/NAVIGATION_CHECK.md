@@ -120,3 +120,14 @@ Settings → Power was activated by tap, and the captured frame showed Home
 behind the timer. The preview package was then removed; the personal launcher
 was again foreground and the Android Home role holder. This verifies the
 direct-click path, while physical remote navigation still needs release testing.
+
+## Settings Back route — 2026-11-12
+
+When focus is inside the settings detail pane, Back now returns to the
+selected category. A second Back from the category list still returns Home.
+This matches the existing Left route and avoids losing the settings context.
+On MiTV-AFMU1, the isolated `settingsfocus` instrumentation probe passed
+rail → category → detail → Back → category → next category → detail → Left →
+category → Left → rail. The probe did not change any system setting. The
+previous isolated preview APK was restored after the test; a visual check on
+the projected display is still pending.
