@@ -51,13 +51,16 @@ final class SettingsFocusProbe {
                 throw new AssertionError("Back from settings categories did not reach Home");
             probe.runOnMainSync(() -> {
                 screen.findViewById(R.id.nav_settings).requestFocus();
-                View category = ((android.view.ViewGroup) screen.findViewById(R.id.settings_categories)).getChildAt(0);
+                View category = ((android.view.ViewGroup) screen.findViewById(R.id.settings_categories)).getChildAt(1);
                 category.performClick();
             });
             requireRegion(screen, R.id.settings_detail);
+            android.view.ViewGroup categories = screen.findViewById(R.id.settings_categories);
+            View selectedCategoryDirectly = categories.getChildAt(1);
+            if (categories.getChildAt(0).isSelected() || !selectedCategoryDirectly.isSelected())
+                throw new AssertionError("Direct category activation did not update selection");
             key(probe, KeyEvent.KEYCODE_BACK);
-            View firstCategory = ((android.view.ViewGroup) screen.findViewById(R.id.settings_categories)).getChildAt(0);
-            if (screen.getCurrentFocus() != firstCategory)
+            if (screen.getCurrentFocus() != selectedCategoryDirectly)
                 throw new AssertionError("Back did not restore a category activated without D-pad focus");
             result.putString("settings_focus", "PASS: rail, category, detail, Back and Left routes, direct activation");
         } finally {

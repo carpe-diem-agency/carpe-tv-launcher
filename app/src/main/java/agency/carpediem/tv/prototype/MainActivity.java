@@ -488,7 +488,13 @@ public final class MainActivity extends Activity {
         String[][] entries = {{"appearance", getString(R.string.appearance)}, {"screensaver", getString(R.string.saver_title)}, {"favorites", getString(R.string.favorites)}, {"audit", getString(R.string.audit_title)}, {"device", getString(R.string.device)}, {"about", getString(R.string.about)}};
         for (String[] entry : entries) {
             Button category = action(entry[1], null);
-            category.setOnClickListener(v -> { settingsCategory = entry[0]; settingsCategoryView = v; showSettingsDetail(detail, entry[0]); View target = firstFocusable(detail); if (target != null) target.requestFocus(); });
+            category.setOnClickListener(v -> {
+                settingsCategory = entry[0]; settingsCategoryView = v;
+                for (int i = 0; i < categories.getChildCount(); i++)
+                    categories.getChildAt(i).setSelected(categories.getChildAt(i) == v);
+                showSettingsDetail(detail, entry[0]);
+                View target = firstFocusable(detail); if (target != null) target.requestFocus();
+            });
             int symbol = entry[0].equals("audit") ? R.drawable.ic_apps : entry[0].equals("screensaver") ? R.drawable.ic_screensaver : entry[0].equals("appearance") ? R.drawable.ic_monitor : entry[0].equals("favorites") ? R.drawable.ic_heart : entry[0].equals("device") ? R.drawable.ic_settings : R.drawable.ic_info;
             android.graphics.drawable.Drawable categoryIcon=getDrawable(symbol).mutate();
             categoryIcon.setBounds(0,0,dp(22),dp(22));

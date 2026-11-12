@@ -196,3 +196,13 @@ after refreshing both Home and Library with toolbar focus. It also passed the
 tile, Back and external-app return paths. The test closes the optional sleep
 confirmation before checking D-pad movement. The previous preview APK was
 restored, the test package removed and accessibility services remained `null`.
+
+## Settings category selection — 2026-11-12
+
+Opening a category directly could display its controls while leaving the
+previous category visually selected. Both D-pad focus and direct activation now
+update the selected category. The isolated `settingsfocus` probe activated a
+different category, checked that the old highlight cleared, navigated into its
+controls, then returned with Back. It passed on MiTV-AFMU1. The earlier preview
+APK was restored and the test instrumentation removed afterward. This does not
+replace a projector visual review of the settings screen.
