@@ -293,3 +293,14 @@ feedback, source, website and updates actions were visible without scrolling.
 `FeedbackProbe` passed D-pad entry from About, all three rendered Issue QR
 targets and Back returning focus to Feedback. The previous preview APK was
 restored after the check; Home and system services were not changed.
+
+## Dialog bounds at 720p — 2026-11-12
+
+The launcher dialogs now cap their width to the available screen width with
+16 dp side margins. The screensaver choice list also caps its height to leave
+room for the heading, Cancel action and outer margins. In the isolated preview
+on MiTV-AFMU1, a temporary 1280 × 720 logical-size capture showed the full
+screensaver dialog, including the last option and Cancel, without clipping.
+The selected option remained visibly focused. Android's 1920 × 1080 override
+was restored and read back after the capture. This verifies layout on one
+device at two logical sizes; other TV densities still need release testing.

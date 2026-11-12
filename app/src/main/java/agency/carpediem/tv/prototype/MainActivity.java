@@ -493,7 +493,7 @@ public final class MainActivity extends Activity {
         dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         android.view.WindowManager.LayoutParams window = dialog.getWindow().getAttributes();
         window.dimAmount = .55f; dialog.getWindow().setAttributes(window);
-        dialog.show(); dialog.getWindow().setLayout(dp(510), -2); explore.requestFocus();
+        dialog.show(); dialog.getWindow().setLayout(dialogWidth(510), -2); explore.requestFocus();
     }
     private void renderSettings() {
         View settings = getLayoutInflater().inflate(R.layout.page_settings, content, false); content.addView(settings);
@@ -659,7 +659,7 @@ public final class MainActivity extends Activity {
         android.view.WindowManager.LayoutParams window = dialog.getWindow().getAttributes();
         window.dimAmount = .58f; dialog.getWindow().setAttributes(window);
         dialog.show();
-        dialog.getWindow().setLayout(dp(600), -2);
+        dialog.getWindow().setLayout(dialogWidth(600), -2);
         primary.requestFocus();
         return dialog;
     }
@@ -1009,7 +1009,7 @@ public final class MainActivity extends Activity {
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.getWindow().setWindowAnimations(motionEnabled() ? R.style.LumaDialogMotion : 0);
         dialog.setOnDismissListener(ignored -> { if (previousFocus != null && previousFocus.isAttachedToWindow()) previousFocus.requestFocus(); });
-        dialog.show(); dialog.getWindow().setLayout(dp(430), -2); typeButtons[0].requestFocus();
+        dialog.show(); dialog.getWindow().setLayout(dialogWidth(430), -2); typeButtons[0].requestFocus();
     }
     private String feedbackUrl(String template) {
         return "https://github.com/carpe-diem-agency/carpe-tv-launcher/issues/new?template=" + template;
@@ -1103,7 +1103,9 @@ public final class MainActivity extends Activity {
         TextView heading = label(getString(title),22,Color.WHITE); heading.setPadding(dp(8),0,0,dp(18)); panel.addView(heading);
         ScrollView scroll = new ScrollView(this); scroll.setFillViewport(false);
         LinearLayout list = new LinearLayout(this); list.setOrientation(LinearLayout.VERTICAL); scroll.addView(list);
-        panel.addView(scroll,new LinearLayout.LayoutParams(-1,Math.min(dp(350),dp(50)*choices.length)));
+        int availableHeight = getResources().getDisplayMetrics().heightPixels - dp(180);
+        int listHeight = Math.min(Math.min(dp(350), dp(50) * choices.length), Math.max(dp(50), availableHeight));
+        panel.addView(scroll,new LinearLayout.LayoutParams(-1,listHeight));
         Button selectedView = null;
         for(int i=0;i<choices.length;i++) {
             final int option=i;
@@ -1118,7 +1120,7 @@ public final class MainActivity extends Activity {
         dialog.setContentView(panel); dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         android.view.WindowManager.LayoutParams window=dialog.getWindow().getAttributes(); window.dimAmount=.55f; dialog.getWindow().setAttributes(window);
-        dialog.show(); dialog.getWindow().setLayout(dp(550),-2);
+        dialog.show(); dialog.getWindow().setLayout(dialogWidth(550),-2);
         if(selectedView!=null) selectedView.requestFocus();
     }
     private String wallpaper() { return WallpaperCatalog.find(this,getPreferences(MODE_PRIVATE).getString("wallpaper", "alpine")).key; }
@@ -1742,7 +1744,7 @@ public final class MainActivity extends Activity {
             dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
             android.view.WindowManager.LayoutParams params = dialog.getWindow().getAttributes(); params.dimAmount = .45f; dialog.getWindow().setAttributes(params);
         }
-        dialog.show(); dialog.getWindow().setLayout(dp(300), -2); rows.getChildAt(0).requestFocus();
+        dialog.show(); dialog.getWindow().setLayout(dialogWidth(300), -2); rows.getChildAt(0).requestFocus();
     }
     private boolean motionEnabled() { return getPreferences(MODE_PRIVATE).getBoolean("animations", true) && android.animation.ValueAnimator.areAnimatorsEnabled(); }
     private void showSleepNow() {
@@ -1859,6 +1861,9 @@ public final class MainActivity extends Activity {
             return;
         }
         findViewById(R.id.nav_home).requestFocus();
+    }
+    private int dialogWidth(int desiredDp) {
+        return Math.min(dp(desiredDp), Math.max(dp(200), getResources().getDisplayMetrics().widthPixels - dp(32)));
     }
     private int dp(float value) { return (int) (value * getResources().getDisplayMetrics().density + .5f); }
     private static boolean sameApps(List<AppItem> left, List<AppItem> right) {
