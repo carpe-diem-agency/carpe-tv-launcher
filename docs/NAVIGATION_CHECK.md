@@ -169,3 +169,10 @@ status. The `screensaver` instrumentation probe then passed idle boundaries,
 offline photo launch, remote dismissal and settings focus/reserve navigation.
 The test package was removed and the previous preview APK restored. The visual
 check used ADB capture; projector appearance remains to be reviewed.
+
+Selecting a new free-space reserve previously rebuilt the Screensaver pane
+and moved focus to the online-download switch. The selection now returns focus
+to **Keep free**, matching the timeout and source selectors. The isolated
+`screensaver` probe passed the reserve-choice route and confirmed the pane
+stays open with that control focused. The test package was removed and the
+previous preview APK restored after this check.

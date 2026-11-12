@@ -86,9 +86,9 @@ final class ScreensaverProbe {
             test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP);test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);SystemClock.sleep(250);
             boolean[] stayed={false};test.runOnMainSync(()->{
                 android.view.View heading=home.findViewById(R.id.settings_heading);
-                stayed[0]=heading!=null&&heading.isShown()&&home.getCurrentFocus()!=null&&home.getCurrentFocus().getId()==R.id.saver_online;
+                stayed[0]=heading!=null&&heading.isShown()&&home.getCurrentFocus()!=null&&home.getCurrentFocus().getId()==R.id.saver_reserve;
             });
-            require(stayed[0],"Selection keeps Settings open and restores control focus");
+            require(stayed[0],"Selection keeps Settings open and restores reserve focus");
             // Losing focus must stop the launcher timer even if another app/dialog is on screen.
             test.runOnMainSync(() -> { home.onWindowFocusChanged(false); idle.expireAt(SystemClock.uptimeMillis()+120000); });
             SystemClock.sleep(200);

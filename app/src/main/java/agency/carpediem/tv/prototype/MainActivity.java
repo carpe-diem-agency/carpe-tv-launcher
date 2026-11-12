@@ -779,7 +779,7 @@ public final class MainActivity extends Activity {
             addSettingAction(detail,getString(R.string.saver_reserve,SaverCache.reserveMb(this)),()->
                 showSaverChoices(R.string.saver_reserve_title,new String[]{getString(R.string.saver_reserve_recommended),getString(R.string.saver_reserve_small)},SaverCache.reserveMb(this)==512?1:0,which->{
                     Screensaver.prefs(this).edit().putInt("saverReserveMb",which==0?1024:512).apply();
-                    showSettingsDetail(detail,category);detail.findViewById(R.id.saver_online).requestFocus();
+                    showSettingsDetail(detail,category);detail.findViewById(R.id.saver_reserve).requestFocus();
                 }));
             detail.getChildAt(detail.getChildCount()-1).setId(R.id.saver_reserve);
             addSettingAction(detail,getString(R.string.saver_clear),()->worker.execute(()->{
