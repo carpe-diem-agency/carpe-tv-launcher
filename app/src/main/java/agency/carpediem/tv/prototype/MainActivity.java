@@ -825,7 +825,7 @@ public final class MainActivity extends Activity {
             try { getPackageManager().getActivityInfo(new android.content.ComponentName(this, MainActivity.class.getPackage().getName() + ".HomeEntry"), PackageManager.MATCH_DISABLED_COMPONENTS); available = true; }
             catch (PackageManager.NameNotFoundException ignored) { }
             if (available) { addSettingAction(detail, getString(R.string.make_home), () -> HomeChoice.request(this)); addSettingAction(detail, getString(R.string.choose_home), () -> HomeChoice.chooseOther(this)); }
-            if (HomeChoice.hasResolverConflict(this)) {
+            if (HomeChoice.isSelected(this)) {
                 TextView shortcut = label(getString(HomeChoice.isHomeKeyServiceActive(this)
                         ? R.string.home_key_service_active : R.string.home_key_service_inactive), 14, 0xffb9c7dc);
                 shortcut.setId(R.id.home_key_service_status);
