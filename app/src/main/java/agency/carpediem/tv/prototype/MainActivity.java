@@ -86,6 +86,8 @@ public final class MainActivity extends Activity {
     private static final int RECOMMENDED_DIM = 60;
     private String settingsCategory = "appearance";
     private View settingsCategoryView;
+    private String restoredSettingsRegion;
+    private int restoredSettingsDetailIndex = -1;
     private final Map<String, TextView> auditLabels=new LinkedHashMap<>();
     private TextView auditMemory;
     private int auditGeneration;
@@ -148,6 +150,8 @@ public final class MainActivity extends Activity {
             focusedPackage=pageFocus.get(page);
             restoredAppsScrollY=state.getInt("appsScrollY", -1);
             restoredAppsFocusPackage=state.getString("appsFocusedTile");
+            restoredSettingsRegion=state.getString("settingsFocusRegion");
+            restoredSettingsDetailIndex=state.getInt("settingsDetailIndex", -1);
         }
         try { font = new Typeface.Builder(getAssets(), "montserrat.ttf").setFontVariationSettings("'wght' 600").build(); } catch (RuntimeException ignored) { font = Typeface.DEFAULT; }
         setContentView(R.layout.activity_launcher);
@@ -191,6 +195,16 @@ public final class MainActivity extends Activity {
         ScrollView appsScroll=content.findViewById(R.id.apps_scroll);
         state.putInt("appsScrollY",appsScroll==null ? restoredAppsScrollY : appsScroll.getScrollY());
         state.putBoolean("languageFocus",languageChange || (getCurrentFocus()!=null && getCurrentFocus().getId()==R.id.language_choice));
+        if ("settings".equals(page) && current != null) {
+            View detail=content.findViewById(R.id.settings_detail);
+            View categories=content.findViewById(R.id.settings_categories);
+            if (isInside(current, detail)) {
+                state.putString("settingsFocusRegion", "detail");
+                state.putInt("settingsDetailIndex", focusableIndex(detail, current));
+            } else if (isInside(current, categories)) {
+                state.putString("settingsFocusRegion", "category");
+            }
+        }
         super.onSaveInstanceState(state);
     }
     @Override public void onWindowFocusChanged(boolean focused) {
@@ -551,6 +565,18 @@ public final class MainActivity extends Activity {
         if (settingsCategoryView != null) {
             View first = settingsEntryFocus(detail, settingsCategory); if (first != null) settingsCategoryView.setNextFocusRightId(first.getId());
             findViewById(R.id.nav_settings).setNextFocusRightId(settingsCategoryView.getId());
+        }
+        if (restoredSettingsRegion != null) {
+            String region=restoredSettingsRegion;
+            int index=restoredSettingsDetailIndex;
+            restoredSettingsRegion=null;
+            restoredSettingsDetailIndex=-1;
+            settings.post(() -> {
+                if (!"settings".equals(page) || !settings.isAttachedToWindow() || restoreLanguageFocus) return;
+                View target="detail".equals(region) ? focusableAt(detail,index) : settingsCategoryView;
+                if (target == null && "detail".equals(region)) target=settingsEntryFocus(detail,settingsCategory);
+                if (target != null) target.requestFocus();
+            });
         }
     }
     private void renderApplicationAudit(LinearLayout detail) {
@@ -1171,6 +1197,33 @@ public final class MainActivity extends Activity {
             if (view instanceof android.view.ViewGroup) { View nested = firstFocusable((android.view.ViewGroup) view); if (nested != null) return nested; }
         }
         return null;
+    }
+    private boolean isInside(View child, View parent) {
+        if (parent == null) return false;
+        for (View node=child; node!=null; ) {
+            if (node==parent) return true;
+            android.view.ViewParent ancestor=node.getParent();
+            node=ancestor instanceof View ? (View)ancestor : null;
+        }
+        return false;
+    }
+    private int focusableIndex(View root, View target) {
+        ArrayList<View> controls=new ArrayList<>();
+        collectFocusable(root,controls);
+        return controls.indexOf(target);
+    }
+    private View focusableAt(View root, int index) {
+        if (index < 0) return null;
+        ArrayList<View> controls=new ArrayList<>();
+        collectFocusable(root,controls);
+        return index < controls.size() ? controls.get(index) : null;
+    }
+    private void collectFocusable(View root, List<View> controls) {
+        if (root.isFocusable()) { controls.add(root); return; }
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group=(android.view.ViewGroup)root;
+            for (int i=0;i<group.getChildCount();i++) collectFocusable(group.getChildAt(i),controls);
+        }
     }
     private View settingsEntryFocus(android.view.ViewGroup detail, String category) {
         if ("appearance".equals(category)) {

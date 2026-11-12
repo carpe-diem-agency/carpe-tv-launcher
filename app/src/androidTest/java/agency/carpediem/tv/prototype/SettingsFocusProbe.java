@@ -1,6 +1,8 @@
 package agency.carpediem.tv.prototype;
 
 import android.app.Instrumentation;
+import android.app.Activity;
+import android.app.Application;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -8,6 +10,7 @@ import android.os.SystemClock;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewParent;
+import java.util.concurrent.atomic.AtomicReference;
 
 /** Checks the three settings focus regions without changing device settings. */
 final class SettingsFocusProbe {
@@ -62,7 +65,39 @@ final class SettingsFocusProbe {
             key(probe, KeyEvent.KEYCODE_BACK);
             if (screen.getCurrentFocus() != selectedCategoryDirectly)
                 throw new AssertionError("Back did not restore a category activated without D-pad focus");
-            result.putString("settings_focus", "PASS: rail, category, detail, Back and Left routes, direct activation");
+            AtomicReference<MainActivity> recreated = new AtomicReference<>();
+            Application application=screen.getApplication();
+            Application.ActivityLifecycleCallbacks callbacks=new Application.ActivityLifecycleCallbacks() {
+                @Override public void onActivityCreated(Activity activity, Bundle state) {
+                    if (activity instanceof MainActivity && activity != screen) recreated.set((MainActivity)activity);
+                }
+                @Override public void onActivityStarted(Activity activity) { }
+                @Override public void onActivityResumed(Activity activity) { }
+                @Override public void onActivityPaused(Activity activity) { }
+                @Override public void onActivityStopped(Activity activity) { }
+                @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
+                @Override public void onActivityDestroyed(Activity activity) { }
+            };
+            application.registerActivityLifecycleCallbacks(callbacks);
+            try {
+                probe.runOnMainSync(() -> {
+                    View source=screen.findViewById(R.id.saver_provider);
+                    if (source == null || !source.requestFocus())
+                        throw new AssertionError("Cannot focus the screensaver source before recreation");
+                    screen.recreate();
+                });
+                for (int i=0;i<40 && recreated.get()==null;i++) SystemClock.sleep(100);
+                MainActivity after=recreated.get();
+                if (after==null) throw new AssertionError("Settings Activity did not recreate");
+                probe.waitForIdleSync();
+                probe.runOnMainSync(() -> {
+                    if (!after.findViewById(R.id.nav_settings).isSelected()
+                            || !after.findViewById(R.id.saver_provider).isShown()
+                            || after.getCurrentFocus()!=after.findViewById(R.id.saver_provider))
+                        throw new AssertionError("Recreation lost screensaver source focus");
+                });
+            } finally { application.unregisterActivityLifecycleCallbacks(callbacks); }
+            result.putString("settings_focus", "PASS: rail, category, detail, Back and Left routes, direct activation and recreation");
         } finally {
             SharedPreferences.Editor restore = prefs.edit();
             if (hadWelcome) restore.putBoolean("welcome_seen", welcome);

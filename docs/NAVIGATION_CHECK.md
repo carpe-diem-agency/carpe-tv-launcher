@@ -328,3 +328,20 @@ After testing, the 1920 × 1080 override was restored, the previous 0.2.8
 isolated preview APK reinstalled, and the instrumentation package removed.
 Accessibility services remained disabled (`null`). This check did not exercise
 physical Home routing, which is paused separately.
+
+## Settings focus after Activity recreation — 2026-11-12
+
+Settings already saved the selected category but did not save which control
+held focus. The Activity now saves whether focus was in the category list or
+detail pane and, for the detail pane, its focusable control position. It
+restores that position after the rebuilt pane is attached, falling back to
+the first category control if the old position is no longer available. The
+language selector retains its existing, more specific focus restoration.
+
+On MiTV-AFMU1 the isolated `settingsfocus` probe entered Screensaver, focused
+the source control, recreated the Activity and found the same control focused
+on the rebuilt Settings page. The `languagestate` probe also passed: changing
+language still returns focus to the language selector. Debug build and lint
+passed. The previous 0.2.8 isolated preview APK was restored and the test
+package removed after each probe. This checks Activity recreation; process
+death and a full device restart remain separate scenarios.
