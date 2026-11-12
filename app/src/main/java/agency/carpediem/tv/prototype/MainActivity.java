@@ -73,6 +73,8 @@ public final class MainActivity extends Activity {
     private LinearLayout homeGrid;
     private List<AppItem> displayedApps;
     private List<AppItem> allApps = new ArrayList<>();
+    private boolean appsReady;
+    private boolean appsLoadFailed;
     private String page = "home";
     private String query = "";
     private int restoredAppsScrollY = -1;
@@ -275,26 +277,35 @@ public final class MainActivity extends Activity {
         super.onStop();
     }
     private void refreshApps() {
-        PackageManager pm = getPackageManager();
-        Map<String, AppItem> items = new LinkedHashMap<>();
-        for (String category : new String[]{Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
-            Intent query = new Intent(Intent.ACTION_MAIN).addCategory(category);
-            for (ResolveInfo info : pm.queryIntentActivities(query, 0)) {
-                if (info.activityInfo == null) continue;
-                String pkg = info.activityInfo.packageName;
-                if (!isCarpeLauncher(pkg) && !items.containsKey(pkg)) {
-                    items.put(pkg, new AppItem(pkg, info.loadLabel(pm).toString()));
+        try {
+            PackageManager pm = getPackageManager();
+            Map<String, AppItem> items = new LinkedHashMap<>();
+            for (String category : new String[]{Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
+                Intent query = new Intent(Intent.ACTION_MAIN).addCategory(category);
+                for (ResolveInfo info : pm.queryIntentActivities(query, 0)) {
+                    if (info.activityInfo == null) continue;
+                    String pkg = info.activityInfo.packageName;
+                    if (!isCarpeLauncher(pkg) && !items.containsKey(pkg)) {
+                        items.put(pkg, new AppItem(pkg, info.loadLabel(pm).toString()));
+                    }
                 }
             }
+            List<AppItem> apps = new ArrayList<>(items.values());
+            apps.sort(Comparator.comparing(item -> item.label, String.CASE_INSENSITIVE_ORDER));
+            seedFirstRunFavorites(apps);
+            // Home resumes after every app launch. Keep the persisted catalog quiet
+            // when the PackageManager result has not actually changed.
+            if (!sameApps(readCache(), apps)) writeCache(apps);
+            runOnUiThread(() -> showApps(apps));
+            prefetchArtwork(apps);
+        } catch (RuntimeException error) {
+            android.util.Log.w("CarpeTV", "Unable to refresh app catalog", error);
+            runOnUiThread(() -> {
+                if (destroyed) return;
+                appsLoadFailed = true;
+                if (allApps.isEmpty() && !"settings".equals(page)) renderPage();
+            });
         }
-        List<AppItem> apps = new ArrayList<>(items.values());
-        apps.sort(Comparator.comparing(item -> item.label, String.CASE_INSENSITIVE_ORDER));
-        seedFirstRunFavorites(apps);
-        // Home resumes after every app launch. Keep the persisted catalog quiet
-        // when the PackageManager result has not actually changed.
-        if (!sameApps(readCache(), apps)) writeCache(apps);
-        runOnUiThread(() -> showApps(apps));
-        prefetchArtwork(apps);
     }
     private boolean isCarpeLauncher(String pkg) {
         return pkg.equals(getPackageName())
@@ -360,7 +371,13 @@ public final class MainActivity extends Activity {
     }
     private void showApps(List<AppItem> apps) {
         if (destroyed || isFinishing()) return;
-        if (sameApps(displayedApps, apps)) return;
+        boolean pending = !appsReady || appsLoadFailed;
+        appsReady = true;
+        appsLoadFailed = false;
+        if (sameApps(displayedApps, apps)) {
+            if (pending && apps.isEmpty() && !"settings".equals(page)) renderPage();
+            return;
+        }
         if (movingPackage != null) finishMove(false);
         displayedApps = new ArrayList<>(apps);
         allApps = new ArrayList<>(apps);
@@ -1438,15 +1455,61 @@ public final class MainActivity extends Activity {
             findViewById(navId).setNextFocusRightId(target.getId());
             if("home".equals(page)) linkHomeHeaderDown(target.getId());
         }
-        if (first == null && !isSidebarFocused()) findViewById("home".equals(page) ? R.id.nav_home : R.id.apps_search).requestFocus();
-        if (takeFocus && restore != null) restore.requestFocus();
-        else if (takeFocus && first != null) first.requestFocus();
-        else {
+        View emptyAction = null;
+        if (first == null && !appsReady && !appsLoadFailed && allApps.isEmpty()) {
+            addLoadingTiles(list);
+        } else if (first == null && appsLoadFailed && allApps.isEmpty()) {
+            TextView message = label(getString(R.string.apps_load_failed), 16, 0xffd8e1ef);
+            message.setPadding(dp(8), dp(12), dp(8), dp(12));
+            list.addView(message);
+            Button retry = action(getString(R.string.apps_retry), () -> {
+                appsLoadFailed = false;
+                appsReady = false;
+                renderPage();
+                if (!destroyed) worker.execute(this::refreshApps);
+            });
+            retry.setId(View.generateViewId());
+            list.addView(retry, new LinearLayout.LayoutParams(dp(220), dp(52)));
+            emptyAction = retry;
+        } else if (first == null) {
             TextView empty = new TextView(this);
-            empty.setText("home".equals(page) ? getString(R.string.favorites_empty) : getString(R.string.search_empty));
+            empty.setText("home".equals(page) ? getString(R.string.favorites_empty)
+                    : query.isEmpty() ? getString(R.string.apps_empty) : getString(R.string.search_empty));
             empty.setTypeface(font); empty.setTextSize(16);
             empty.setTextColor(0xffd8e1ef); empty.setPadding(dp(8), dp(12), dp(8), dp(12));
-            if (first == null) list.addView(empty);
+            list.addView(empty);
+        }
+        if (emptyAction != null) {
+            findViewById("home".equals(page) ? R.id.nav_home : R.id.nav_apps).setNextFocusRightId(emptyAction.getId());
+            View search = findViewById(R.id.apps_search);
+            if (search != null) search.setNextFocusDownId(emptyAction.getId());
+        }
+        if (takeFocus && restore != null) restore.requestFocus();
+        else if (takeFocus && first != null) first.requestFocus();
+        else if (takeFocus && emptyAction != null) emptyAction.requestFocus();
+        else if (first == null && !isSidebarFocused())
+            findViewById("home".equals(page) ? R.id.nav_home : R.id.apps_search).requestFocus();
+    }
+    private void addLoadingTiles(LinearLayout list) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setClipChildren(false);
+        list.addView(row);
+        for (int i = 0; i < 5; i++) {
+            LinearLayout placeholder = new LinearLayout(this);
+            placeholder.setOrientation(LinearLayout.VERTICAL);
+            placeholder.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams cell = new LinearLayout.LayoutParams(0, dp(124), 1);
+            cell.setMargins(dp(5), dp(8), dp(5), dp(8));
+            row.addView(placeholder, cell);
+            View art = new View(this);
+            art.setBackground(surface(0x662c4162, dp(16)));
+            placeholder.addView(art, new LinearLayout.LayoutParams(-1, dp(84)));
+            View caption = new View(this);
+            caption.setBackground(surface(0x66546a88, dp(5)));
+            LinearLayout.LayoutParams captionParams = new LinearLayout.LayoutParams(dp(72), dp(10));
+            captionParams.topMargin = dp(12);
+            placeholder.addView(caption, captionParams);
         }
     }
     private void updateBackground() {

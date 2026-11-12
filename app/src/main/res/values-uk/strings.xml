@@ -45,6 +45,9 @@
     <string name="network_unavailable">"Налаштування мережі недоступні"</string>
     <string name="favorites_empty">"Додай улюблені програми в розділі «Усі програми»"</string>
     <string name="search_empty">"Нічого не знайдено. Спробуй іншу назву."</string>
+    <string name="apps_empty">Програм не знайдено</string>
+    <string name="apps_load_failed">Не вдалося завантажити програми</string>
+    <string name="apps_retry">Спробувати ще раз</string>
     <string name="add_favorite">"Додати в обране"</string>
     <string name="remove_favorite">"Прибрати з обраного"</string>
     <string name="move_left">"Перемістити ліворуч"</string>

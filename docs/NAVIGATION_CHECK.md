@@ -206,3 +206,15 @@ different category, checked that the old highlight cleared, navigated into its
 controls, then returned with Back. It passed on MiTV-AFMU1. The earlier preview
 APK was restored and the test instrumentation removed afterward. This does not
 replace a projector visual review of the settings screen.
+
+## App catalog loading and empty states — 2026-11-12
+
+Before the first package scan finishes, Home and All apps now display quiet,
+nonfocusable tile placeholders instead of claiming there are no apps. A
+completed empty catalog has its own message; a failed scan has a retry button.
+Search still uses its separate no-match message after loading. The isolated
+preview built successfully, and the `libraryfocus` and `librarystate` probes
+passed on MiTV-AFMU1: grid navigation, search, focus, and scroll restoration.
+The transient loading and error states were not visually captured on the
+projector. The previous preview APK was restored, test instrumentation removed,
+and accessibility services remained disabled (`null`).
