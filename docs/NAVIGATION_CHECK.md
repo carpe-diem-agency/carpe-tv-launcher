@@ -383,3 +383,9 @@ Settings. On MiTV-AFMU1, an ADB touch-to-D-pad test kept the Settings content
 behind the Apache-2.0 notice, and Back closed it with the license action
 focused. Build and lint passed. This corrects the tested notice path; the
 styled notice redesign remains deferred.
+
+Follow-up: focus restoration now waits for the Activity window to regain
+focus after the modal closes. The manual ADB touch, D-pad Up, Back sequence
+still returned to the Apache action. An attempted instrumentation probe could
+not reliably tap the notice action from its test process, so it was removed;
+the manual device sequence remains the evidence for this path.

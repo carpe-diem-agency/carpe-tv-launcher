@@ -95,6 +95,7 @@ public final class MainActivity extends Activity {
     private boolean systemOperation;
     private AlertDialog systemConfirmation;
     private boolean noticeDialogShowing;
+    private View pendingNoticeFocus;
     private void refreshSystemAccessUi(){runOnUiThread(()->{if(!destroyed)refreshApplicationAudit();});}
     private final rikka.shizuku.Shizuku.OnRequestPermissionResultListener systemPermissionResult=(code,result)->{if(code==508)refreshSystemAccessUi();};
     private final rikka.shizuku.Shizuku.OnBinderReceivedListener systemBinderReady=this::refreshSystemAccessUi;
@@ -211,6 +212,7 @@ public final class MainActivity extends Activity {
     @Override public void onWindowFocusChanged(boolean focused) {
         super.onWindowFocusChanged(focused);
         if (focused && wallpaperResumed) scheduleScreensaver(); else idleTimer.stop();
+        if (focused) focusPendingNotice();
         if (focused) focusPendingHomeApp();
         if(focused && restoreLanguageFocus) {
             View choice=findViewById(R.id.language_choice);
@@ -226,7 +228,7 @@ public final class MainActivity extends Activity {
     private void bindNavigation(int id, String target) {
         View button = findViewById(id);
         button.setOnFocusChangeListener((view, focused) -> {
-            if (focused && !renderingPage && !noticeDialogShowing) openPage(target);
+            if (focused && !renderingPage && !noticeDialogShowing && pendingNoticeFocus == null) openPage(target);
         });
         button.setOnClickListener(view -> {
             openPage(target);
@@ -1094,7 +1096,8 @@ public final class MainActivity extends Activity {
             for (int i = 0; i < detail.getChildCount(); i++) {
                 View item = detail.getChildAt(i);
                 if (item instanceof Button && focusLabel.contentEquals(((Button) item).getText())) {
-                    item.requestFocus();
+                    pendingNoticeFocus = item;
+                    focusPendingNotice();
                     break;
                 }
             }
@@ -1103,6 +1106,21 @@ public final class MainActivity extends Activity {
         if (dialog.getWindow() != null)
             dialog.getWindow().setBackgroundDrawable(surface(0xff17253e, dp(18)));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(0xffb9d5ff);
+    }
+    private void focusPendingNotice() {
+        View target = pendingNoticeFocus;
+        if (target == null) return;
+        if (!"settings".equals(page) || !target.isAttachedToWindow()) {
+            pendingNoticeFocus = null;
+            return;
+        }
+        if (!hasWindowFocus()) return;
+        boolean restored = target.isInTouchMode() ? target.requestFocusFromTouch() : target.requestFocus();
+        pendingNoticeFocus = null;
+        if (!restored) target.post(() -> {
+            if (hasWindowFocus() && target.isAttachedToWindow() && getCurrentFocus() == null)
+                target.requestFocusFromTouch();
+        });
     }
     private String readableThirdPartyNotice(String markdown) {
         StringBuilder text = new StringBuilder();
