@@ -128,6 +128,7 @@ selected category. A second Back from the category list still returns Home.
 This matches the existing Left route and avoids losing the settings context.
 On MiTV-AFMU1, the isolated `settingsfocus` instrumentation probe passed
 rail → category → detail → Back → category → next category → detail → Left →
-category → Left → rail. The probe did not change any system setting. The
+category → Left → rail, then direct category activation → detail → Back to
+that same category. The probe did not change any system setting. The
 previous isolated preview APK was restored after the test; a visual check on
 the projected display is still pending.

@@ -143,6 +143,8 @@ public final class NavigationProbe extends Instrumentation {
         SharedPreferences previewPreferences = null;
         boolean originalWelcomeSeen = false;
         boolean originalAnimations = true;
+        boolean hadWelcome = false;
+        boolean hadAnimations = false;
         String originalWallpaper = null;
         boolean hadWallpaper = false;
         boolean originalRotation = false;
@@ -152,6 +154,8 @@ public final class NavigationProbe extends Instrumentation {
         try {
             if (getTargetContext().getPackageName().endsWith(".publicpreview")) {
                 previewPreferences = getTargetContext().getSharedPreferences(MainActivity.class.getName(), 0);
+                hadWelcome = previewPreferences.contains("welcome_seen");
+                hadAnimations = previewPreferences.contains("animations");
                 originalWelcomeSeen = previewPreferences.getBoolean("welcome_seen", false);
                 originalAnimations = previewPreferences.getBoolean("animations", true);
                 hadWallpaper = previewPreferences.contains("wallpaper");
@@ -263,9 +267,11 @@ public final class NavigationProbe extends Instrumentation {
             result.putString("failure", error.toString());
         } finally {
             if (previewPreferences != null) {
-                SharedPreferences.Editor restore = previewPreferences.edit()
-                        .putBoolean("welcome_seen", originalWelcomeSeen)
-                        .putBoolean("animations", originalAnimations);
+                SharedPreferences.Editor restore = previewPreferences.edit();
+                if (hadWelcome) restore.putBoolean("welcome_seen", originalWelcomeSeen);
+                else restore.remove("welcome_seen");
+                if (hadAnimations) restore.putBoolean("animations", originalAnimations);
+                else restore.remove("animations");
                 if (hadWallpaper) restore.putString("wallpaper", originalWallpaper);
                 else restore.remove("wallpaper");
                 if (hadRotation) restore.putBoolean(WallpaperRotation.ENABLED, originalRotation);

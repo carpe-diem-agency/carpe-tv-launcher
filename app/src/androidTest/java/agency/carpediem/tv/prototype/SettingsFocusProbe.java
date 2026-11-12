@@ -28,10 +28,12 @@ final class SettingsFocusProbe {
             probe.runOnMainSync(() -> screen.findViewById(R.id.nav_settings).requestFocus());
             key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
             requireRegion(screen, R.id.settings_categories);
+            View selectedCategory = screen.getCurrentFocus();
             key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
             requireRegion(screen, R.id.settings_detail);
             key(probe, KeyEvent.KEYCODE_BACK);
-            requireRegion(screen, R.id.settings_categories);
+            if (screen.getCurrentFocus() != selectedCategory)
+                throw new AssertionError("Back did not restore the selected settings category");
             key(probe, KeyEvent.KEYCODE_DPAD_DOWN);
             requireRegion(screen, R.id.settings_categories);
             key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
@@ -44,9 +46,20 @@ final class SettingsFocusProbe {
             key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
             requireRegion(screen, R.id.settings_categories);
             key(probe, KeyEvent.KEYCODE_BACK);
-            if (screen.findViewById(R.id.home_time) == null)
+            if (!screen.findViewById(R.id.nav_home).isSelected()
+                    || screen.findViewById(R.id.nav_settings).isSelected())
                 throw new AssertionError("Back from settings categories did not reach Home");
-            result.putString("settings_focus", "PASS: rail, category, detail, Back and Left routes to Home");
+            probe.runOnMainSync(() -> {
+                screen.findViewById(R.id.nav_settings).requestFocus();
+                View category = ((android.view.ViewGroup) screen.findViewById(R.id.settings_categories)).getChildAt(0);
+                category.performClick();
+            });
+            requireRegion(screen, R.id.settings_detail);
+            key(probe, KeyEvent.KEYCODE_BACK);
+            View firstCategory = ((android.view.ViewGroup) screen.findViewById(R.id.settings_categories)).getChildAt(0);
+            if (screen.getCurrentFocus() != firstCategory)
+                throw new AssertionError("Back did not restore a category activated without D-pad focus");
+            result.putString("settings_focus", "PASS: rail, category, detail, Back and Left routes, direct activation");
         } finally {
             SharedPreferences.Editor restore = prefs.edit();
             if (hadWelcome) restore.putBoolean("welcome_seen", welcome);
