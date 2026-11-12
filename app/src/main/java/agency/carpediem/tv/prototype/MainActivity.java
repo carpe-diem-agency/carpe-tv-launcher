@@ -224,7 +224,10 @@ public final class MainActivity extends Activity {
         TextView status = content.findViewById(R.id.home_status);
         if (status != null) status.setText(HomeChoice.status(this));
         TextView homeWarning = content.findViewById(R.id.home_remote_warning);
-        if (homeWarning != null) homeWarning.setVisibility(HomeChoice.needsRemoteHomeCheck(this) ? View.VISIBLE : View.GONE);
+        if (homeWarning != null) {
+            homeWarning.setText(HomeChoice.homeWarning(this));
+            homeWarning.setVisibility(HomeChoice.needsRemoteHomeCheck(this) ? View.VISIBLE : View.GONE);
+        }
         updateShizukuStatus();
         worker.execute(this::refreshApps);
     }
@@ -810,7 +813,7 @@ public final class MainActivity extends Activity {
             specsSize.bottomMargin = dp(14);
             detail.addView(specifications, specsSize);
             TextView home = label(HomeChoice.status(this), 14, 0xffb9c7dc); home.setId(R.id.home_status); home.setPadding(0, dp(16), 0, dp(16)); detail.addView(home);
-            TextView warning = label(getString(R.string.home_remote_check), 14, 0xffffd68a);
+            TextView warning = label(getString(HomeChoice.homeWarning(this)), 14, 0xffffd68a);
             warning.setId(R.id.home_remote_warning);
             warning.setPadding(0, 0, 0, dp(12));
             warning.setVisibility(HomeChoice.needsRemoteHomeCheck(this) ? View.VISIBLE : View.GONE);
