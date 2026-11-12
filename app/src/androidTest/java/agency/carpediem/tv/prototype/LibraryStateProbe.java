@@ -65,6 +65,7 @@ final class LibraryStateProbe {
                 scroll.scrollTo(0,target);
                 savedScroll.set(scroll.getScrollY());
             });
+            require(selectedPackage.get()!=null,"No app tile was selected before the state test");
             test.runOnMainSync(() -> original.findViewById(R.id.nav_home).requestFocus());
             test.waitForIdleSync();
             test.runOnMainSync(() -> original.findViewById(R.id.nav_apps).requestFocus());
