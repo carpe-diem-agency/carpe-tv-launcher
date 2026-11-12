@@ -32,8 +32,18 @@ final class SettingsFocusProbe {
             key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
             requireRegion(screen, R.id.settings_categories);
             View selectedCategory = screen.getCurrentFocus();
+            key(probe, KeyEvent.KEYCODE_DPAD_UP);
+            if (screen.getCurrentFocus() != selectedCategory)
+                throw new AssertionError("Up escaped the first settings category");
             key(probe, KeyEvent.KEYCODE_DPAD_RIGHT);
             requireRegion(screen, R.id.settings_detail);
+            View selectedDetail = screen.getCurrentFocus();
+            key(probe, KeyEvent.KEYCODE_DPAD_UP);
+            if (screen.getCurrentFocus() != screen.findViewById(R.id.settings_power))
+                throw new AssertionError("Up from the first detail did not reach the header");
+            key(probe, KeyEvent.KEYCODE_DPAD_DOWN);
+            if (screen.getCurrentFocus() != selectedDetail)
+                throw new AssertionError("Down from the header did not restore the detail focus");
             key(probe, KeyEvent.KEYCODE_BACK);
             if (screen.getCurrentFocus() != selectedCategory)
                 throw new AssertionError("Back did not restore the selected settings category");
@@ -97,7 +107,7 @@ final class SettingsFocusProbe {
                         throw new AssertionError("Recreation lost screensaver source focus");
                 });
             } finally { application.unregisterActivityLifecycleCallbacks(callbacks); }
-            result.putString("settings_focus", "PASS: rail, category, detail, Back and Left routes, direct activation and recreation");
+            result.putString("settings_focus", "PASS: rail, category boundary, detail/header round trip, Back and Left routes, direct activation and recreation");
         } finally {
             SharedPreferences.Editor restore = prefs.edit();
             if (hadWelcome) restore.putBoolean("welcome_seen", welcome);

@@ -975,7 +975,8 @@ public final class MainActivity extends Activity {
             firstDetail.setNextFocusUpId(R.id.settings_power);
             View entry = settingsEntryFocus(detail, category);
             if (entry != null) entry.setNextFocusUpId(R.id.settings_power);
-            findViewById(R.id.settings_power).setNextFocusDownId(firstDetail.getId());
+            findViewById(R.id.settings_power).setNextFocusDownId(
+                    entry != null ? entry.getId() : firstDetail.getId());
         }
         configureStateFade(detail);
         } finally {renderingPage=previousRendering;}

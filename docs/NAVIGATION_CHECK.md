@@ -427,3 +427,8 @@ kept focus there. This verifies the left column's upper boundary without
 mixing ADB touch input with D-pad focus. The isolated 0.2.8 preview was used;
 the earlier touch-only attempt had retained focus on the Home rail and was
 not valid evidence for the category route.
+
+The `settingsfocus` device probe now covers this boundary and the
+detail → header → same detail round trip, including a selected wallpaper
+that is not the first card. On MiTV-AFMU1 it passed with Back, Left, direct
+category activation and Activity recreation checks. Build and lint passed.
