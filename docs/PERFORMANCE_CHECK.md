@@ -198,6 +198,26 @@ do not establish perceived smoothness, physical-remote behavior or performance
 on other devices. Raw captures remain outside the public repository because
 they contain the owner's app list.
 
+## Wallpaper cost isolation — 2026-11-12
+
+The isolated debug build on MiTV-AFMU1 passed the same 36 page changes and
+focus checks in each run. With the default Alpine photo, page-frame p95 was
+59.56 ms (309 frames); focus-frame p95 was 16.70 ms. A test-only
+`plainWallpaper=yes` mode kept the navigation workload and replaced the
+wallpaper temporarily: page-frame p95 fell to 38.24 ms (313 frames), and
+focus-frame p95 to 14.22 ms. The probe restored the wallpaper preference.
+
+Two unshipped experiments tested likely costs. Suppressing the background
+crossfade only during page changes yielded 49.23 ms page-frame p95 (292
+frames). Precomposing the home dim into a full-resolution bitmap while
+retaining the crossfade yielded 59.63 ms (308 frames). Each is one debug run,
+so the numbers are diagnostic rather than a reliable percentage improvement.
+The no-crossfade version also changes the visual transition, and the
+precomposed version adds bitmap memory without a measured benefit. Both
+product-code experiments were reverted. Keep the photo and its current
+transition until a visually acceptable optimization passes repeated device
+measurements and a projector review.
+
 ## Isolated debug follow-up after layout measurement change — 2026-11-11
 
 The `.publicpreview` debug APK at source commit `21472ce` and its separate

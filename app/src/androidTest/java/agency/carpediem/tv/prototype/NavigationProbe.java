@@ -138,16 +138,28 @@ public final class NavigationProbe extends Instrumentation {
         SharedPreferences previewPreferences = null;
         boolean originalWelcomeSeen = false;
         boolean originalAnimations = true;
+        String originalWallpaper = null;
+        boolean hadWallpaper = false;
+        boolean originalRotation = false;
+        boolean hadRotation = false;
         boolean compareWithoutMotion = args != null && "yes".equals(args.getString("noMotion"));
+        boolean comparePlainWallpaper = args != null && "yes".equals(args.getString("plainWallpaper"));
         try {
             if (getTargetContext().getPackageName().endsWith(".publicpreview")) {
                 previewPreferences = getTargetContext().getSharedPreferences(MainActivity.class.getName(), 0);
                 originalWelcomeSeen = previewPreferences.getBoolean("welcome_seen", false);
                 originalAnimations = previewPreferences.getBoolean("animations", true);
+                hadWallpaper = previewPreferences.contains("wallpaper");
+                originalWallpaper = previewPreferences.getString("wallpaper", null);
+                hadRotation = previewPreferences.contains(WallpaperRotation.ENABLED);
+                originalRotation = previewPreferences.getBoolean(WallpaperRotation.ENABLED, false);
                 if (!previewPreferences.edit().putBoolean("welcome_seen", true).commit())
                     throw new IllegalStateException("Cannot prepare isolated navigation probe");
                 if (compareWithoutMotion && !previewPreferences.edit().putBoolean("animations", false).commit())
                     throw new IllegalStateException("Cannot prepare reduced-motion probe");
+                if (comparePlainWallpaper && !previewPreferences.edit().putString("wallpaper", "plain")
+                        .putBoolean(WallpaperRotation.ENABLED, false).commit())
+                    throw new IllegalStateException("Cannot prepare plain-wallpaper probe");
             }
             setInTouchMode(false);
             activity = startActivitySync(new Intent(getTargetContext(), MainActivity.class)
@@ -245,9 +257,16 @@ public final class NavigationProbe extends Instrumentation {
         } catch (Throwable error) {
             result.putString("failure", error.toString());
         } finally {
-            if (previewPreferences != null)
-                previewPreferences.edit().putBoolean("welcome_seen", originalWelcomeSeen)
-                        .putBoolean("animations", originalAnimations).commit();
+            if (previewPreferences != null) {
+                SharedPreferences.Editor restore = previewPreferences.edit()
+                        .putBoolean("welcome_seen", originalWelcomeSeen)
+                        .putBoolean("animations", originalAnimations);
+                if (hadWallpaper) restore.putString("wallpaper", originalWallpaper);
+                else restore.remove("wallpaper");
+                if (hadRotation) restore.putBoolean(WallpaperRotation.ENABLED, originalRotation);
+                else restore.remove(WallpaperRotation.ENABLED);
+                restore.commit();
+            }
             if (activity != null && listenerAdded[0]) {
                 Activity screen = activity;
                 runOnMainSync(() -> screen.getWindow().removeOnFrameMetricsAvailableListener(listener));
