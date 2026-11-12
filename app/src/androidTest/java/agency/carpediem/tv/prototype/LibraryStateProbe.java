@@ -6,6 +6,7 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ScrollView;
@@ -59,6 +60,30 @@ final class LibraryStateProbe {
                 int target=Math.min(max,80);
                 scroll.scrollTo(0,target);
                 savedScroll.set(scroll.getScrollY());
+            });
+            test.runOnMainSync(() -> original.findViewById(R.id.nav_home).requestFocus());
+            test.waitForIdleSync();
+            test.runOnMainSync(() -> original.findViewById(R.id.nav_apps).requestFocus());
+            test.waitForIdleSync();
+            test.runOnMainSync(() -> {
+                EditText search=original.findViewById(R.id.apps_search);
+                ScrollView scroll=original.findViewById(R.id.apps_scroll);
+                require(search!=null && scroll!=null,"Return did not reopen the library");
+                require("a".contentEquals(search.getText()),"Search query was lost between pages");
+                require(Math.abs(scroll.getScrollY()-savedScroll.get())<=2,
+                        "Scroll position was lost between pages");
+                if(selectedPackage.get()!=null)
+                    require(hasTile(original, selectedPackage.get()),
+                            "Selected app disappeared between pages");
+            });
+            test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
+            test.runOnMainSync(() -> {
+                if(selectedPackage.get()!=null)
+                    require(original.getCurrentFocus()!=null
+                                    && selectedPackage.get().equals(original.getCurrentFocus().getTag()),
+                            "Right from the rail did not restore the selected app");
+                ScrollView scroll=original.findViewById(R.id.apps_scroll);
+                savedScroll.set(scroll.getScrollY());
                 original.recreate();
             });
             for(int i=0;i<40 && recreated.get()==null;i++)SystemClock.sleep(100);
@@ -77,10 +102,21 @@ final class LibraryStateProbe {
                 require(Math.abs(scroll.getScrollY()-savedScroll.get())<=2,
                         "Scroll position was lost: "+savedScroll.get()+" -> "+scroll.getScrollY());
             });
-            result.putString("library_state","PASS: library, search, selected app and scroll survive recreation");
+            result.putString("library_state","PASS: search and scroll survive page return; selected app and state survive recreation");
         } finally {
             application.unregisterActivityLifecycleCallbacks(callbacks);
         }
     }
     private static void require(boolean value,String message){if(!value)throw new AssertionError(message);}
+    private static boolean hasTile(MainActivity screen, String pkg) {
+        ViewGroup grid=screen.findViewById(R.id.apps_grid);
+        if(grid==null)return false;
+        for(int i=0;i<grid.getChildCount();i++) {
+            View row=grid.getChildAt(i);
+            if(!(row instanceof ViewGroup))continue;
+            ViewGroup group=(ViewGroup)row;
+            for(int n=0;n<group.getChildCount();n++)if(pkg.equals(group.getChildAt(n).getTag()))return true;
+        }
+        return false;
+    }
 }

@@ -218,3 +218,13 @@ passed on MiTV-AFMU1: grid navigation, search, focus, and scroll restoration.
 The transient loading and error states were not visually captured on the
 projector. The previous preview APK was restored, test instrumentation removed,
 and accessibility services remained disabled (`null`).
+
+## Library context across pages — 2026-11-12
+
+Leaving All apps used to clear its search query. The library now retains the
+query and scroll position when the viewer visits Home or Settings and returns.
+The extended `librarystate` probe passed on MiTV-AFMU1: search, scroll, and
+selected tile survived a Home → All apps round trip, and the selected tile and
+state survived Activity recreation. The `libraryfocus` search and D-pad probe
+also passed. The test instrumentation was removed and the previous preview APK
+restored. System Home integration remains paused separately.

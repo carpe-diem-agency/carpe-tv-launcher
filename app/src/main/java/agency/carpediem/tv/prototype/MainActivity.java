@@ -1283,7 +1283,7 @@ public final class MainActivity extends Activity {
         if (page.equals(target)) { updateHomeGreeting(); return; }
         hideKeyboard();
         int direction = pageOrder(target) > pageOrder(page) ? 1 : -1;
-        page = target; query = ""; focusedPackage = pageFocus.get(target);
+        page = target; focusedPackage = pageFocus.get(target);
         findViewById("home".equals(target) ? R.id.nav_home : "apps".equals(target) ? R.id.nav_apps : R.id.nav_settings).requestFocus();
         LinearLayout cached = pageViews.get(target);
         content = pageMotion.prepare(content, cached, motionEnabled(), direction);
@@ -1295,7 +1295,6 @@ public final class MainActivity extends Activity {
             findViewById(R.id.nav_apps).setSelected("apps".equals(page));
             findViewById(R.id.nav_settings).setSelected("settings".equals(page));
             EditText search = content.findViewById(R.id.apps_search);
-            if (search != null && search.length() > 0) search.setText("");
             View entry = findPageTile(content, focusedPackage);
             if (entry == null) entry = findPageTile(content, null);
             if (entry != null) {
