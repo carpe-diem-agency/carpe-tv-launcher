@@ -760,9 +760,12 @@ public final class MainActivity extends Activity {
             Switch online = new Switch(this); online.setId(R.id.saver_online); online.setTypeface(font);
             online.setText(R.string.saver_online); online.setTextColor(Color.WHITE); online.setTextSize(14);
             online.setMinHeight(dp(52)); online.setChecked(Screensaver.prefs(this).getBoolean("saverOnline",true));
-            online.setOnCheckedChangeListener((button,enabled)->Screensaver.prefs(this).edit().putBoolean("saverOnline",enabled).apply());
+            online.setOnCheckedChangeListener((button,enabled)->{
+                Screensaver.prefs(this).edit().putBoolean("saverOnline",enabled).apply();
+                updateSaverCacheStatus();
+            });
             detail.addView(online,new LinearLayout.LayoutParams(-1,dp(62)));
-            TextView usage=label(getString(R.string.saver_cache_policy,SaverCache.reserveMb(this)),12,0xffb9c7dc); usage.setId(R.id.saver_cache_status);
+            TextView usage=label(getString(R.string.saver_cache_checking),12,0xffb9c7dc); usage.setId(R.id.saver_cache_status);
             usage.setPadding(0,dp(8),0,dp(8));detail.addView(usage);updateSaverCacheStatus();
             addSettingAction(detail, getString(R.string.saver_preview), () -> Screensaver.launch(this));
             detail.getChildAt(detail.getChildCount()-1).setId(R.id.saver_preview);
@@ -1015,8 +1018,9 @@ public final class MainActivity extends Activity {
         worker.execute(()->{
             SaverCache cache=SaverCache.get(this);long used=cache.bytes()/SaverCache.MIB,free=cache.freeBytes()/SaverCache.MIB;int reserve=SaverCache.reserveMb(this);
             runOnUiThread(()->{TextView status=findViewById(R.id.saver_cache_status);if(!destroyed&&status!=null)
-                status.setText(getString(R.string.saver_cache_usage,used,free)+"\n"+getString(R.string.saver_cache_policy,reserve)
-                        +(free<reserve&&Screensaver.prefs(this).getBoolean("saverOnline",true)?"\n"+getString(R.string.saver_cache_waiting):""));});
+                status.setText(getString(R.string.saver_cache_usage,used,free)
+                        +(free<reserve&&Screensaver.prefs(this).getBoolean("saverOnline",true)
+                        ?getString(R.string.saver_cache_waiting,reserve):""));});
         });
     }
     private void showSaverChoices(int title, String[] choices, int selected, java.util.function.IntConsumer choose) {
