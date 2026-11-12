@@ -880,12 +880,16 @@ public final class MainActivity extends Activity {
         panel.setBackground(surface(0xff172337, 20));
         TextView title = label(getString(R.string.feedback_title), 24, Color.WHITE);
         panel.addView(title);
-        TextView hint = label(getString(R.string.report_problem_hint), 14, 0xffb9c7dc);
+        TextView hint = label(getString(R.string.report_problem_hint), 16, 0xffe0e8f6);
         hint.setTypeface(font); hint.setGravity(Gravity.CENTER);
-        hint.setPadding(0, dp(10), 0, dp(14)); panel.addView(hint);
+        hint.setPadding(0, dp(10), 0, dp(4)); panel.addView(hint);
+        TextView privacy = label(getString(R.string.feedback_privacy), 13, 0xffaebed4);
+        privacy.setTypeface(font); privacy.setGravity(Gravity.CENTER);
+        privacy.setPadding(0, 0, 0, dp(14)); panel.addView(privacy);
         LinearLayout types = new LinearLayout(this);
         types.setOrientation(LinearLayout.HORIZONTAL);
         Button[] typeButtons = new Button[choices.length];
+        android.graphics.Bitmap[] qrBitmaps = new android.graphics.Bitmap[choices.length];
         ImageView qr = new ImageView(this);
         qr.setContentDescription(getString(R.string.issue_qr));
         qr.setBackgroundColor(Color.WHITE); qr.setPadding(dp(8), dp(8), dp(8), dp(8));
@@ -894,12 +898,18 @@ public final class MainActivity extends Activity {
             final int index = i;
             Button button = action(getString(choices[i]), () -> {
                 issueUrl[0] = feedbackUrl(templates[index]);
-                for (int j = 0; j < typeButtons.length; j++) typeButtons[j].setSelected(j == index);
-                showFeedbackQr(qr, fallback, issueUrl[0]);
+                for (int j = 0; j < typeButtons.length; j++) {
+                    typeButtons[j].setSelected(j == index);
+                    if (android.os.Build.VERSION.SDK_INT >= 30)
+                        typeButtons[j].setStateDescription(j == index ? getString(R.string.feedback_selected) : null);
+                }
+                showFeedbackQr(qr, fallback, issueUrl[0], qrBitmaps, index);
             });
             button.setTextSize(14); button.setGravity(Gravity.CENTER);
             button.setPadding(dp(4), 0, dp(4), 0);
             button.setSelected(i == 0);
+            if (i == 0 && android.os.Build.VERSION.SDK_INT >= 30)
+                button.setStateDescription(getString(R.string.feedback_selected));
             LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(0, dp(48), 1);
             if (i > 0) size.leftMargin = dp(6);
             types.addView(button, size); typeButtons[i] = button;
@@ -908,7 +918,7 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams qrSize = new LinearLayout.LayoutParams(dp(204), dp(204)); qrSize.topMargin = dp(14);
         panel.addView(qr, qrSize);
         panel.addView(fallback);
-        showFeedbackQr(qr, fallback, issueUrl[0]);
+        showFeedbackQr(qr, fallback, issueUrl[0], qrBitmaps, 0);
         Button open = action(getString(R.string.open_issue), () -> { dialog.dismiss(); openExternalPage(issueUrl[0]); });
         LinearLayout.LayoutParams openSize = new LinearLayout.LayoutParams(-1, dp(52)); openSize.topMargin = dp(18);
         panel.addView(open, openSize);
@@ -919,19 +929,23 @@ public final class MainActivity extends Activity {
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.getWindow().setWindowAnimations(motionEnabled() ? R.style.LumaDialogMotion : 0);
         dialog.setOnDismissListener(ignored -> { if (previousFocus != null && previousFocus.isAttachedToWindow()) previousFocus.requestFocus(); });
-        dialog.show(); dialog.getWindow().setLayout(dp(430), -2); open.requestFocus();
+        dialog.show(); dialog.getWindow().setLayout(dp(430), -2); typeButtons[0].requestFocus();
     }
     private String feedbackUrl(String template) {
         return "https://github.com/carpe-diem-agency/carpe-tv-launcher/issues/new?template=" + template;
     }
-    private void showFeedbackQr(ImageView qr, TextView fallback, String url) {
+    private void showFeedbackQr(ImageView qr, TextView fallback, String url,
+                                android.graphics.Bitmap[] cache, int index) {
         try {
-            com.google.zxing.common.BitMatrix bits = new com.google.zxing.qrcode.QRCodeWriter()
-                    .encode(url, com.google.zxing.BarcodeFormat.QR_CODE, 256, 256);
-            android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(256, 256, android.graphics.Bitmap.Config.ARGB_8888);
-            for (int y = 0; y < 256; y++) for (int x = 0; x < 256; x++)
-                bitmap.setPixel(x, y, bits.get(x, y) ? Color.BLACK : Color.WHITE);
-            qr.setImageBitmap(bitmap); qr.setVisibility(View.VISIBLE); fallback.setVisibility(View.GONE);
+            if (cache[index] == null) {
+                com.google.zxing.common.BitMatrix bits = new com.google.zxing.qrcode.QRCodeWriter()
+                        .encode(url, com.google.zxing.BarcodeFormat.QR_CODE, 256, 256);
+                android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(256, 256, android.graphics.Bitmap.Config.ARGB_8888);
+                for (int y = 0; y < 256; y++) for (int x = 0; x < 256; x++)
+                    bitmap.setPixel(x, y, bits.get(x, y) ? Color.BLACK : Color.WHITE);
+                cache[index] = bitmap;
+            }
+            qr.setImageBitmap(cache[index]); qr.setVisibility(View.VISIBLE); fallback.setVisibility(View.GONE);
         } catch (com.google.zxing.WriterException error) {
             qr.setVisibility(View.GONE); fallback.setText(url); fallback.setVisibility(View.VISIBLE);
         }

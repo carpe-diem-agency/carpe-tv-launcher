@@ -283,3 +283,9 @@ not prove native Android/Google TV compatibility with a mismatched density.
 - Launched YouTube from the preview Home tile. After an injected Home key event, Android resumed `com.google.android.apps.tv.launcherx/.home.HomeActivity`, not the selected preview. This confirms an OEM routing gap on this firmware. It does not establish the behavior of the physical remote, but it is sufficient to prevent claiming that choosing the Android Home role alone works on this stick.
 - Restored `agency.carpediem.tv.prototype` as the Home holder and its previously enabled Home bridge, verified the service bound with no crashed service, and brought the personal launcher to the foreground. No system package was disabled or removed. The isolated preview was then uninstalled so it no longer appears as a second Carpe TV in the Android Home picker; Home role and service were read back again.
 - Changed the Device warning to remain visible whenever Carpe TV holds the Home role, because `resolveActivity` and the role holder can both look correct while the OEM Home screen still appears. The warning asks users to test the remote before changing system packages.
+
+### Feedback choices — 2026-11-12
+
+- Built the isolated preview app and instrumentation APK with the offline Gradle wrapper. On MiTV-AFMU1, `NavigationProbe -e feedback yes` used D-pad Right and OK to select each topic, decoded all three QR images from actual screen captures, and verified they target the Bug, Idea and Other GitHub Issue forms. Back restored focus to Settings.
+- Saved the pre-test isolated preview APK and reinstalled it after the probe. The installed preview reports version 0.2.8. The main launcher was not changed.
+- The test does not cover a phone scan, GitHub sign-in or submitting an issue. The dialog states that a GitHub account is required and warns against sharing private data.

@@ -17,8 +17,10 @@
     <string name="version_prefix">"Версія "</string>
     <string name="developer_info">"\n\nКомпанія: Carpe Diem Agency\ncarpediem.agency"</string>
     <string name="updates">"Оновлення"</string>
-    <string name="report_problem">"Повідомити про проблему"</string>
-    <string name="report_problem_hint">"Обери тему й скануй телефоном. Потрібен акаунт GitHub. Не додавай паролі, IP-адреси чи серійні номери."</string>
+    <string name="report_problem">"Зворотний зв’язок"</string>
+    <string name="report_problem_hint">"Обери тему й скануй телефоном."</string>
+    <string name="feedback_privacy">"Потрібен акаунт GitHub. Не додавай приватних даних."</string>
+    <string name="feedback_selected">"Обрано"</string>
     <string name="feedback_title">"Зворотний зв’язок"</string>
     <string name="feedback_bug">"Помилка"</string>
     <string name="feedback_idea">"Ідея"</string>

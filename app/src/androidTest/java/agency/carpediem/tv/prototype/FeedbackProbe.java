@@ -42,10 +42,12 @@ final class FeedbackProbe {
         String[] templates = {"bug.yml", "idea.yml", "other.yml"};
         int[] labels = {R.string.feedback_bug, R.string.feedback_idea, R.string.feedback_other};
         for (int i = 0; i < templates.length; i++) {
+            if (i > 0) test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT);
+            dialog = test.getUiAutomation().getRootInActiveWindow();
             AccessibilityNodeInfo choice = find(dialog, screen.getString(labels[i]));
-            require(choice != null, "Feedback type is missing: " + templates[i]);
-            require(choice.performAction(AccessibilityNodeInfo.ACTION_CLICK),
-                    "Feedback type cannot be selected: " + templates[i]);
+            require(choice != null && choice.isFocused(),
+                    "D-pad focus missed feedback type: " + templates[i]);
+            test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
             SystemClock.sleep(180);
             dialog = test.getUiAutomation().getRootInActiveWindow();
             AccessibilityNodeInfo qr = findDescription(dialog, screen.getString(R.string.issue_qr));
