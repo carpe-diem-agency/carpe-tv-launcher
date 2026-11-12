@@ -392,6 +392,10 @@ public final class MainActivity extends Activity {
         int previousId = previous != null ? previous.getId() : View.NO_ID;
         String previousPackage = previous != null && previous.getTag() instanceof String
                 ? (String) previous.getTag() : null;
+        ScrollView previousAppsScroll = "apps".equals(page)
+                ? content.findViewById(R.id.apps_scroll) : null;
+        if (previousAppsScroll != null && restoredAppsScrollY < 0)
+            restoredAppsScrollY = previousAppsScroll.getScrollY();
         renderPage();
         String pendingPackage = pendingHomePackage;
         focusPendingHomeApp();

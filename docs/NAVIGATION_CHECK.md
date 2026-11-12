@@ -245,3 +245,14 @@ both optimized runs, with focus p95 15.70 and 14.83 ms. This supports removing
 redundant full-screen work; it is not a claim of stable 60 fps, and the
 projector view of photo wallpapers was not part of this check. The previous
 preview APK was restored and test instrumentation removed afterward.
+
+## Library context during app-list updates — 2026-11-12
+
+An app-list update rebuilt All apps and previously reset its scroll position.
+The page now captures its current scroll offset before rebuilding, then restores
+it after layout while keeping focus on the selected app. The isolated
+`librarystate` probe on MiTV-AFMU1 simulated a changed catalog with a nonzero
+scroll offset; query, scroll and focus passed after page return, Activity
+recreation and catalog update. This checks the refresh handler, not a real
+package install or uninstall broadcast. The previous 0.2.8 preview APK was
+restored, test instrumentation removed, and accessibility remained disabled.

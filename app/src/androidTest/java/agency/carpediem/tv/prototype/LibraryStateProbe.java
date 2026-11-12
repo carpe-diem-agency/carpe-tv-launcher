@@ -11,6 +11,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.view.ViewGroup;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /** Library search and scroll context must survive an Activity recreation. */
@@ -102,7 +106,51 @@ final class LibraryStateProbe {
                 require(Math.abs(scroll.getScrollY()-savedScroll.get())<=2,
                         "Scroll position was lost: "+savedScroll.get()+" -> "+scroll.getScrollY());
             });
-            result.putString("library_state","PASS: search and scroll survive page return; selected app and state survive recreation");
+            AtomicReference<Throwable> refreshError=new AtomicReference<>();
+            AtomicReference<Integer> beforeRefreshScroll=new AtomicReference<>(0);
+            test.runOnMainSync(() -> screen.findViewById(R.id.nav_apps).requestFocus());
+            test.waitForIdleSync();
+            test.runOnMainSync(() -> ((EditText)screen.findViewById(R.id.apps_search)).setText(""));
+            test.waitForIdleSync();
+            test.runOnMainSync(() -> {
+                try {
+                    ViewGroup grid=screen.findViewById(R.id.apps_grid);
+                    View tile=findFocusableTile(grid);
+                    require(tile!=null && tile.requestFocus(),"Could not focus app before package refresh: grid children="+grid.getChildCount()+", tile="+tile+", shown="+(tile!=null && tile.isShown())+", appsSelected="+screen.findViewById(R.id.nav_apps).isSelected()+", current="+screen.getCurrentFocus());
+                    selectedPackage.set((String)tile.getTag());
+                    ScrollView scroll=screen.findViewById(R.id.apps_scroll);
+                    int max=Math.max(0,scroll.getChildAt(0).getHeight()-scroll.getHeight());
+                    scroll.scrollTo(0,Math.min(max,80));
+                    beforeRefreshScroll.set(scroll.getScrollY());
+                    Field field=MainActivity.class.getDeclaredField("allApps");
+                    field.setAccessible(true);
+                    List<?> current=(List<?>)field.get(screen);
+                    require(current.size()>1,"Not enough apps to simulate package refresh");
+                    List<Object> updated=new ArrayList<>(current);
+                    updated.remove(updated.size()-1);
+                    Method showApps=MainActivity.class.getDeclaredMethod("showApps",List.class);
+                    showApps.setAccessible(true);
+                    showApps.invoke(screen,updated);
+                } catch (Throwable error) { refreshError.set(error); }
+            });
+            if(refreshError.get()!=null) {
+                Throwable error=refreshError.get();
+                if(error instanceof java.lang.reflect.InvocationTargetException && error.getCause()!=null)
+                    error=error.getCause();
+                throw new AssertionError("Package refresh setup failed: "+error,error);
+            }
+            require(beforeRefreshScroll.get()>0,"Library has no scrollable content for refresh test");
+            test.waitForIdleSync();
+            test.runOnMainSync(() -> {
+                ScrollView scroll=screen.findViewById(R.id.apps_scroll);
+                require(scroll!=null,"Package refresh left the library");
+                require(Math.abs(scroll.getScrollY()-beforeRefreshScroll.get())<=2,
+                        "Package refresh reset scroll: "+beforeRefreshScroll.get()+" -> "+scroll.getScrollY());
+                require(screen.getCurrentFocus()!=null
+                                && selectedPackage.get().equals(screen.getCurrentFocus().getTag()),
+                        "Package refresh lost the selected app");
+            });
+            result.putString("library_state","PASS: query, scroll and focus survive page return, recreation and package refresh");
         } finally {
             application.unregisterActivityLifecycleCallbacks(callbacks);
         }
@@ -118,5 +166,16 @@ final class LibraryStateProbe {
             for(int n=0;n<group.getChildCount();n++)if(pkg.equals(group.getChildAt(n).getTag()))return true;
         }
         return false;
+    }
+    private static View findFocusableTile(ViewGroup root) {
+        for(int i=0;i<root.getChildCount();i++) {
+            View child=root.getChildAt(i);
+            if(child.isFocusable() && child.getTag() instanceof String)return child;
+            if(child instanceof ViewGroup) {
+                View tile=findFocusableTile((ViewGroup)child);
+                if(tile!=null)return tile;
+            }
+        }
+        return null;
     }
 }
