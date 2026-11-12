@@ -79,6 +79,11 @@
     <string name="home_remote_check">"Перевір Home на пульті після вибору: деякі приставки все одно відкривають штатний екран. Не вимикай його, доки не перевіриш повернення."</string>
     <string name="home_route_conflict">"Android обрав Carpe TV, але системний обробник Home вказує на інший застосунок. Перевір кнопку Home на пульті, перш ніж вимикати чи змінювати будь-який лаунчер."</string>
     <string name="home_route_conflict_short">"Системний Home досі вказує на інший застосунок. Подробиці в «Пристрої»."</string>
+    <string name="home_key_service_name">Кнопка Home · Carpe TV</string>
+    <string name="home_key_service_description">Необов’язковий ярлик для кнопки Home на пульті. Реагує лише на Home, не читає вміст екрана.</string>
+    <string name="home_key_service_active">Ярлик Home на пульті · увімкнено</string>
+    <string name="home_key_service_inactive">Ярлик Home на пульті · вимкнено</string>
+    <string name="home_key_service_settings">Налаштувати кнопку Home на пульті</string>
     <string name="welcome_title">Вітаємо в Carpe TV</string>
     <string name="welcome_message">Оглянь Carpe TV, а коли будеш готовий — зроби його головним екраном. Повернути попередній екран можна в налаштуваннях.</string>
     <string name="welcome_explore">Спершу оглянути</string>

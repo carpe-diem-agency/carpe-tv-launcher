@@ -228,6 +228,9 @@ public final class MainActivity extends Activity {
             homeWarning.setText(HomeChoice.homeWarning(this));
             homeWarning.setVisibility(HomeChoice.needsRemoteHomeCheck(this) ? View.VISIBLE : View.GONE);
         }
+        TextView homeKeyStatus = content.findViewById(R.id.home_key_service_status);
+        if (homeKeyStatus != null) homeKeyStatus.setText(HomeChoice.isHomeKeyServiceActive(this)
+                ? R.string.home_key_service_active : R.string.home_key_service_inactive);
         updateShizukuStatus();
         worker.execute(this::refreshApps);
     }
@@ -822,6 +825,14 @@ public final class MainActivity extends Activity {
             try { getPackageManager().getActivityInfo(new android.content.ComponentName(this, MainActivity.class.getPackage().getName() + ".HomeEntry"), PackageManager.MATCH_DISABLED_COMPONENTS); available = true; }
             catch (PackageManager.NameNotFoundException ignored) { }
             if (available) { addSettingAction(detail, getString(R.string.make_home), () -> HomeChoice.request(this)); addSettingAction(detail, getString(R.string.choose_home), () -> HomeChoice.chooseOther(this)); }
+            if (HomeChoice.isSelected(this)) {
+                TextView shortcut = label(getString(HomeChoice.isHomeKeyServiceActive(this)
+                        ? R.string.home_key_service_active : R.string.home_key_service_inactive), 14, 0xffb9c7dc);
+                shortcut.setId(R.id.home_key_service_status);
+                shortcut.setPadding(0, dp(12), 0, dp(12)); detail.addView(shortcut);
+                addSettingAction(detail, getString(R.string.home_key_service_settings),
+                        () -> HomeChoice.openHomeKeySettings(this));
+            }
             addSettingAction(detail, getString(R.string.android_settings), () -> {
                 try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
                 catch (RuntimeException error) { Toast.makeText(this, getString(R.string.settings_unavailable), Toast.LENGTH_SHORT).show(); }
