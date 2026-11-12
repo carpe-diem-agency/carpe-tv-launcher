@@ -295,3 +295,9 @@ not prove native Android/Google TV compatibility with a mismatched density.
 - On MiTV-AFMU1, Android reported `agency.carpediem.tv.publicpreview` as the Home role holder while `cmd package resolve-activity` returned Google TV's `HomeActivity` at priority 2. This is a platform routing mismatch, not a verified physical remote route.
 - The isolated `homeroute` instrumentation check reported `home_role_selected=true`, `home_resolver_conflict=true` and confirmed that the Device page displayed the conflict warning rather than the generic remote reminder. It restored the preview app's onboarding preference and did not change the Home role or system packages.
 - Saved the installed isolated preview APK before testing and restored it after the check. The public launcher package was not updated. Direct Home from YouTube, Netflix and the physical remote still needs validation on a device where the platform actually resolves Home to Carpe TV.
+
+### Optional Home key filter experiment — 2026-11-12
+
+- Built an isolated preview with a user-enabled, key-only accessibility service that would consume a Home key before Google TV opens. It does not request screen content or enable itself.
+- On MiTV-AFMU1, the Android package manager registered the service, but Android cleared the attempted test entry from `enabled_accessibility_services` immediately. `dumpsys accessibility` showed no bound service, so the key filter could not be evaluated. An injected Home key still opened Google TV. This is **not** a verified Home fix and is not ready for release.
+- Restored `enabled_accessibility_services=null`, `accessibility_enabled=0`, and the pre-test isolated preview APK. The Home role holder remained the isolated preview. Do not claim physical remote behavior from this ADB key event.

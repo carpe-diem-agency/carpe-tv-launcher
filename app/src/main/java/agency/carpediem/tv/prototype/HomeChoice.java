@@ -2,6 +2,7 @@ package agency.carpediem.tv.prototype;
 
 import android.app.Activity;
 import android.app.role.RoleManager;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.Context;
@@ -9,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.provider.Settings;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.Toast;
 
 /** Only user-mediated platform actions. Does not disable another launcher or service. */
@@ -65,6 +67,22 @@ final class HomeChoice {
     }
     static int homeWarning(Context context) {
         return hasResolverConflict(context) ? R.string.home_route_conflict : R.string.home_remote_check;
+    }
+    static boolean isHomeKeyServiceActive(Context context) {
+        AccessibilityManager manager = (AccessibilityManager) context.getSystemService(Context.ACCESSIBILITY_SERVICE);
+        if (manager == null) return false;
+        String id = new ComponentName(context, HomeKeyService.class).flattenToString();
+        for (AccessibilityServiceInfo service : manager.getEnabledAccessibilityServiceList(
+                AccessibilityServiceInfo.FEEDBACK_ALL_MASK)) {
+            if (id.equals(service.getId())) return true;
+        }
+        return false;
+    }
+    static void openHomeKeySettings(Activity activity) {
+        try { activity.startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
+        catch (RuntimeException error) {
+            Toast.makeText(activity, R.string.settings_unavailable, Toast.LENGTH_SHORT).show();
+        }
     }
     static boolean isSelected(Context context) {
         if (Build.VERSION.SDK_INT >= 29) {
