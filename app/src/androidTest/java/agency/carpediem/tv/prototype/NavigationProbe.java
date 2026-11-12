@@ -95,6 +95,11 @@ public final class NavigationProbe extends Instrumentation {
             catch (Throwable error) { result.putString("failure",error.toString()); finish(Activity.RESULT_CANCELED,result); }
             return;
         }
+        if (args != null && "yes".equals(args.getString("librarystate"))) {
+            try { LibraryStateProbe.run(this,result); finish(Activity.RESULT_OK,result); }
+            catch (Throwable error) { result.putString("failure",error.toString()); finish(Activity.RESULT_CANCELED,result); }
+            return;
+        }
         if (args != null && "yes".equals(args.getString("feedback"))) {
             try { FeedbackProbe.run(this,result); finish(Activity.RESULT_OK,result); }
             catch (Throwable error) { result.putString("failure",error.toString()); finish(Activity.RESULT_CANCELED,result); }

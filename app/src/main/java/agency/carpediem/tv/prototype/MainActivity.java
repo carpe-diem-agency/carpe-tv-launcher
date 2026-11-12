@@ -75,6 +75,8 @@ public final class MainActivity extends Activity {
     private List<AppItem> allApps = new ArrayList<>();
     private String page = "home";
     private String query = "";
+    private int restoredAppsScrollY = -1;
+    private String restoredAppsFocusPackage;
     private Typeface font;
     private final Map<String, String> pageFocus = new java.util.HashMap<>();
     private volatile int generation;
@@ -135,7 +137,16 @@ public final class MainActivity extends Activity {
         rikka.shizuku.Shizuku.addRequestPermissionResultListener(systemPermissionResult);
         rikka.shizuku.Shizuku.addBinderReceivedListenerSticky(systemBinderReady);
         rikka.shizuku.Shizuku.addBinderDeadListener(systemBinderDead);
-        if (state != null) { page=state.getString("page","home"); settingsCategory=state.getString("category","appearance"); }
+        if (state != null) {
+            page=state.getString("page","home");
+            settingsCategory=state.getString("category","appearance");
+            query=state.getString("query", "");
+            pageFocus.put("home", state.getString("homeFocus"));
+            pageFocus.put("apps", state.getString("appsFocus"));
+            focusedPackage=pageFocus.get(page);
+            restoredAppsScrollY=state.getInt("appsScrollY", -1);
+            restoredAppsFocusPackage=state.getString("appsFocusedTile");
+        }
         try { font = new Typeface.Builder(getAssets(), "montserrat.ttf").setFontVariationSettings("'wght' 600").build(); } catch (RuntimeException ignored) { font = Typeface.DEFAULT; }
         setContentView(R.layout.activity_launcher);
         content = findViewById(R.id.content);
@@ -169,6 +180,14 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onSaveInstanceState(Bundle state) {
         state.putString("page",page); state.putString("category",settingsCategory);
+        state.putString("query",query);
+        state.putString("homeFocus",pageFocus.get("home"));
+        state.putString("appsFocus",pageFocus.get("apps"));
+        View current=getCurrentFocus();
+        state.putString("appsFocusedTile","apps".equals(page) && current!=null && current.getTag() instanceof String
+                ? (String)current.getTag() : null);
+        ScrollView appsScroll=content.findViewById(R.id.apps_scroll);
+        state.putInt("appsScrollY",appsScroll==null ? restoredAppsScrollY : appsScroll.getScrollY());
         state.putBoolean("languageFocus",languageChange || (getCurrentFocus()!=null && getCurrentFocus().getId()==R.id.language_choice));
         super.onSaveInstanceState(state);
     }
@@ -367,6 +386,18 @@ public final class MainActivity extends Activity {
         }
         if (!restoredAppFocus && (previousId == R.id.nav_home || previousId == R.id.nav_apps || previousId == R.id.nav_settings || previousId == R.id.home_wifi || previousId == R.id.apps_search)) {
             View restored = findViewById(previousId); if (restored != null) restored.requestFocus();
+        }
+        if ("apps".equals(page) && (restoredAppsScrollY >= 0 || restoredAppsFocusPackage != null)) {
+            ScrollView scroll=content.findViewById(R.id.apps_scroll);
+            int y=restoredAppsScrollY;
+            String pkg=restoredAppsFocusPackage;
+            restoredAppsScrollY=-1;
+            restoredAppsFocusPackage=null;
+            if(scroll!=null)scroll.post(()->{
+                if(!"apps".equals(page) || content.findViewById(R.id.apps_scroll)!=scroll)return;
+                if(pkg!=null){View tile=findPageTile(content,pkg);if(tile!=null)tile.requestFocus();}
+                if(y>=0)scroll.scrollTo(0,y);
+            });
         }
     }
     private void restoreLastOpenedApp() {

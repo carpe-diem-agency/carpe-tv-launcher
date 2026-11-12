@@ -176,3 +176,12 @@ to **Keep free**, matching the timeout and source selectors. The isolated
 `screensaver` probe passed the reserve-choice route and confirmed the pane
 stays open with that control focused. The test package was removed and the
 previous preview APK restored after this check.
+
+## Library state after recreation — 2026-11-12
+
+The isolated `librarystate` probe exposed a lost selected tile after Activity
+recreation. The library now saves its search query, selected app and scroll
+offset, then restores focus after the cached app list arrives. The probe passed
+on MiTV-AFMU1 at 1920×1080: library, query, selected tile and scroll offset
+survived recreation. The previous preview APK was restored, the test package
+removed and accessibility services remained disabled (`null`).
