@@ -228,3 +228,20 @@ selected tile survived a Home → All apps round trip, and the selected tile and
 state survived Activity recreation. The `libraryfocus` search and D-pad probe
 also passed. The test instrumentation was removed and the previous preview APK
 restored. System Home integration remains paused separately.
+
+## Repeated blue-background transition work — 2026-11-12
+
+The isolated preview was using the built-in blue gradient. Each page change
+recreated that same full-screen drawable and crossfaded it with itself. The
+background key now stays constant across pages for blue and plain wallpapers;
+photo wallpapers still keep their distinct Home, Apps and Settings treatments.
+
+On MiTV-AFMU1 the same 36-change `NavigationProbe` measured page p95 52.17 ms
+before the change (316 frames). A second run with an unrelated photo-only
+experiment still using blue measured 48.74 ms (314 frames); that experiment was
+discarded. With repeated blue transitions removed, two runs measured 42.05 ms
+(293 frames) and 41.82 ms (290 frames). The focus-navigation probe passed in
+both optimized runs, with focus p95 15.70 and 14.83 ms. This supports removing
+redundant full-screen work; it is not a claim of stable 60 fps, and the
+projector view of photo wallpapers was not part of this check. The previous
+preview APK was restored and test instrumentation removed afterward.

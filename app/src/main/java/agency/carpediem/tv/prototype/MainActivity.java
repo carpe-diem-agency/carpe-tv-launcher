@@ -1517,7 +1517,10 @@ public final class MainActivity extends Activity {
         boolean ready=selected.equals(loadedWallpaper) && sharpWallpaper!=null;
         // Keep the previous scene during asynchronous decoding instead of flashing a placeholder.
         if(entry.photo!=0 && !ready && sharpWallpaper!=null) return;
-        String key=page+":"+selected+":"+("home".equals(page) ? getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM) : 0)+":"+ready;
+        // The built-in blue and plain wallpapers are identical on every page.
+        // Do not crossfade a full-screen drawable with itself on each rail move.
+        String key=entry.photo==0 ? selected
+                : page+":"+selected+":"+("home".equals(page) ? getPreferences(MODE_PRIVATE).getInt("dim",RECOMMENDED_DIM) : 0)+":"+ready;
         if(key.equals(backgroundKey)) return;
         Drawable next;
         if(ready) {
