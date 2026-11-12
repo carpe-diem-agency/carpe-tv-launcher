@@ -252,6 +252,16 @@ isolated preview APK was restored, the test APK removed, and enabled
 accessibility services still read `null`. System Home integration was not
 tested because that work is paused.
 
+The same 200-cycle route was repeated with the Alpine photo wallpaper forced
+on the isolated preview. All focus checks passed. PSS at cycles 40 / 80 / 120 /
+160 / 200 was 113,129 / 111,322 / 112,886 / 113,974 / 111,710 KB; the view
+count stayed at 244. Photo wallpaper used roughly 7–9 MB more PSS than the
+blue-wallpaper run, with no sustained rise across this bounded test. These are
+separate runs, not a controlled long-duration comparison. The test restored
+the prior wallpaper and rotation preferences; the previous isolated APK was
+restored, the test APK removed, and enabled accessibility services still read
+`null`. Projector-visible transition quality remains to be checked.
+
 ## Isolated debug follow-up after layout measurement change — 2026-11-11
 
 The `.publicpreview` debug APK at source commit `21472ce` and its separate

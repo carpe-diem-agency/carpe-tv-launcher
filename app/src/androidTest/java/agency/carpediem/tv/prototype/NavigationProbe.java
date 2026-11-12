@@ -33,7 +33,7 @@ public final class NavigationProbe extends Instrumentation {
             return;
         }
         if (args != null && "yes".equals(args.getString("navigationsoak"))) {
-            try { NavigationSoakProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            try { NavigationSoakProbe.run(this, args, result); finish(Activity.RESULT_OK, result); }
             catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
             return;
         }

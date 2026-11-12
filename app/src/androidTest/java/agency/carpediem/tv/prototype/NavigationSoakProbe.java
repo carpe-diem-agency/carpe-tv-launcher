@@ -14,15 +14,24 @@ import android.view.ViewGroup;
 final class NavigationSoakProbe {
     private NavigationSoakProbe() { }
 
-    static void run(Instrumentation probe, Bundle result) {
+    static void run(Instrumentation probe, Bundle args, Bundle result) {
         if (!probe.getTargetContext().getPackageName().endsWith(".publicpreview"))
             throw new IllegalStateException("Navigation soak requires the isolated preview package");
         SharedPreferences prefs = probe.getTargetContext()
                 .getSharedPreferences(MainActivity.class.getName(), 0);
         boolean hadWelcome = prefs.contains("welcome_seen");
         boolean welcome = prefs.getBoolean("welcome_seen", false);
-        prefs.edit().putBoolean("welcome_seen", true).commit();
+        boolean photoWallpaper = args != null && "yes".equals(args.getString("photoWallpaper"));
+        boolean hadWallpaper = prefs.contains("wallpaper");
+        String wallpaper = prefs.getString("wallpaper", "alpine");
+        boolean hadRotation = prefs.contains(WallpaperRotation.ENABLED);
+        boolean rotation = prefs.getBoolean(WallpaperRotation.ENABLED, false);
+        SharedPreferences.Editor setup = prefs.edit().putBoolean("welcome_seen", true);
+        if (photoWallpaper) setup.putString("wallpaper", "alpine")
+                .putBoolean(WallpaperRotation.ENABLED, false);
+        if (!setup.commit()) throw new IllegalStateException("Cannot prepare navigation soak");
         try {
+            result.putString("wallpaper", prefs.getString("wallpaper", "alpine"));
             probe.setInTouchMode(false);
             MainActivity screen = (MainActivity) probe.startActivitySync(
                     new Intent(probe.getTargetContext(), MainActivity.class)
@@ -61,6 +70,12 @@ final class NavigationSoakProbe {
             SharedPreferences.Editor restore = prefs.edit();
             if (hadWelcome) restore.putBoolean("welcome_seen", welcome);
             else restore.remove("welcome_seen");
+            if (photoWallpaper) {
+                if (hadWallpaper) restore.putString("wallpaper", wallpaper);
+                else restore.remove("wallpaper");
+                if (hadRotation) restore.putBoolean(WallpaperRotation.ENABLED, rotation);
+                else restore.remove(WallpaperRotation.ENABLED);
+            }
             restore.commit();
         }
     }
