@@ -1,0 +1,17 @@
+name: Ідея / Feature request
+description: Запропонуй зміну Carpe TV / Suggest an improvement to Carpe TV
+title: "[Idea] "
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Що хочеш зробити і чому · What would you like to do, and why?
+      description: Опиши ситуацію без приватних даних. / Describe the use case without personal information.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Твоя пропозиція · Your suggestion
+    validations:
+      required: false
