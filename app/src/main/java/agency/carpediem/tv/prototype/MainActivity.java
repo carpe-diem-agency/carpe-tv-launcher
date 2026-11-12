@@ -94,8 +94,8 @@ public final class MainActivity extends Activity {
     private TextView systemAccessStatus;
     private boolean systemOperation;
     private AlertDialog systemConfirmation;
-    private boolean noticeDialogShowing;
-    private View pendingNoticeFocus;
+    private boolean modalDialogShowing;
+    private View pendingModalFocus;
     private void refreshSystemAccessUi(){runOnUiThread(()->{if(!destroyed)refreshApplicationAudit();});}
     private final rikka.shizuku.Shizuku.OnRequestPermissionResultListener systemPermissionResult=(code,result)->{if(code==508)refreshSystemAccessUi();};
     private final rikka.shizuku.Shizuku.OnBinderReceivedListener systemBinderReady=this::refreshSystemAccessUi;
@@ -212,7 +212,7 @@ public final class MainActivity extends Activity {
     @Override public void onWindowFocusChanged(boolean focused) {
         super.onWindowFocusChanged(focused);
         if (focused && wallpaperResumed) scheduleScreensaver(); else idleTimer.stop();
-        if (focused) focusPendingNotice();
+        if (focused) restorePendingModalFocus();
         if (focused) focusPendingHomeApp();
         if(focused && restoreLanguageFocus) {
             View choice=findViewById(R.id.language_choice);
@@ -228,7 +228,7 @@ public final class MainActivity extends Activity {
     private void bindNavigation(int id, String target) {
         View button = findViewById(id);
         button.setOnFocusChangeListener((view, focused) -> {
-            if (focused && !renderingPage && !noticeDialogShowing && pendingNoticeFocus == null) openPage(target);
+            if (focused && !renderingPage && !modalDialogShowing && pendingModalFocus == null) openPage(target);
         });
         button.setOnClickListener(view -> {
             openPage(target);
@@ -981,7 +981,8 @@ public final class MainActivity extends Activity {
         final String[] templates = {"bug.yml", "idea.yml", "other.yml"};
         final int[] choices = {R.string.feedback_bug, R.string.feedback_idea, R.string.feedback_other};
         final String[] issueUrl = {feedbackUrl(templates[0])};
-        View previousFocus = getCurrentFocus();
+        View feedbackAction = findSettingAction(getString(R.string.report_problem));
+        View previousFocus = feedbackAction != null ? feedbackAction : getCurrentFocus();
         android.app.Dialog dialog = new android.app.Dialog(this);
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
         LinearLayout panel = new LinearLayout(this);
@@ -1026,7 +1027,9 @@ public final class MainActivity extends Activity {
             types.addView(button, size); typeButtons[i] = button;
         }
         panel.addView(types, new LinearLayout.LayoutParams(-1, dp(48)));
-        LinearLayout.LayoutParams qrSize = new LinearLayout.LayoutParams(dp(204), dp(204)); qrSize.topMargin = dp(14);
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        int qrSide = Math.max(dp(96), Math.min(dp(128), screenHeight - dp(390)));
+        LinearLayout.LayoutParams qrSize = new LinearLayout.LayoutParams(qrSide, qrSide); qrSize.topMargin = dp(12);
         panel.addView(qr, qrSize);
         panel.addView(fallback);
         showFeedbackQr(qr, fallback, issueUrl[0], qrBitmaps, 0);
@@ -1036,11 +1039,27 @@ public final class MainActivity extends Activity {
         Button close = action(getString(R.string.close), dialog::dismiss);
         LinearLayout.LayoutParams closeSize = new LinearLayout.LayoutParams(-1, dp(52)); closeSize.topMargin = dp(8);
         panel.addView(close, closeSize);
-        dialog.setContentView(panel);
+        ScrollView dialogScroll = new ScrollView(this);
+        dialogScroll.setFillViewport(false);
+        dialogScroll.setVerticalScrollBarEnabled(false);
+        dialogScroll.addView(panel);
+        dialog.setContentView(dialogScroll);
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.getWindow().setWindowAnimations(motionEnabled() ? R.style.LumaDialogMotion : 0);
-        dialog.setOnDismissListener(ignored -> { if (previousFocus != null && previousFocus.isAttachedToWindow()) previousFocus.requestFocus(); });
-        dialog.show(); dialog.getWindow().setLayout(dialogWidth(430), -2); typeButtons[0].requestFocus();
+        modalDialogShowing = true;
+        dialog.setOnDismissListener(ignored -> {
+            modalDialogShowing = false;
+            if (previousFocus != null && previousFocus.isAttachedToWindow()) {
+                pendingModalFocus = previousFocus;
+                restorePendingModalFocus();
+            }
+        });
+        dialog.show();
+        int width = dialogWidth(430);
+        panel.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        dialog.getWindow().setLayout(width, Math.min(panel.getMeasuredHeight(), screenHeight - dp(32)));
+        typeButtons[0].requestFocus();
     }
     private String feedbackUrl(String template) {
         return "https://github.com/carpe-diem-agency/carpe-tv-launcher/issues/new?template=" + template;
@@ -1085,21 +1104,16 @@ public final class MainActivity extends Activity {
         scroll.addView(body);
         AlertDialog dialog = new AlertDialog.Builder(this).setTitle(title).setView(scroll)
                 .setPositiveButton(getString(R.string.close), null).create();
-        noticeDialogShowing = true;
+        modalDialogShowing = true;
         dialog.setOnDismissListener(ignored -> {
-            noticeDialogShowing = false;
+            modalDialogShowing = false;
             if (destroyed || !"settings".equals(page)) return;
-            LinearLayout detail = content.findViewById(R.id.settings_detail);
-            if (detail == null) return;
             String focusLabel = assetPath.endsWith("Montserrat-OFL.txt")
                     ? getString(R.string.font_license) : title;
-            for (int i = 0; i < detail.getChildCount(); i++) {
-                View item = detail.getChildAt(i);
-                if (item instanceof Button && focusLabel.contentEquals(((Button) item).getText())) {
-                    pendingNoticeFocus = item;
-                    focusPendingNotice();
-                    break;
-                }
+            View item = findSettingAction(focusLabel);
+            if (item != null) {
+                pendingModalFocus = item;
+                restorePendingModalFocus();
             }
         });
         dialog.show();
@@ -1107,20 +1121,29 @@ public final class MainActivity extends Activity {
             dialog.getWindow().setBackgroundDrawable(surface(0xff17253e, dp(18)));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(0xffb9d5ff);
     }
-    private void focusPendingNotice() {
-        View target = pendingNoticeFocus;
+    private void restorePendingModalFocus() {
+        View target = pendingModalFocus;
         if (target == null) return;
         if (!"settings".equals(page) || !target.isAttachedToWindow()) {
-            pendingNoticeFocus = null;
+            pendingModalFocus = null;
             return;
         }
         if (!hasWindowFocus()) return;
         boolean restored = target.isInTouchMode() ? target.requestFocusFromTouch() : target.requestFocus();
-        pendingNoticeFocus = null;
+        pendingModalFocus = null;
         if (!restored) target.post(() -> {
             if (hasWindowFocus() && target.isAttachedToWindow() && getCurrentFocus() == null)
                 target.requestFocusFromTouch();
         });
+    }
+    private View findSettingAction(String label) {
+        LinearLayout detail = content.findViewById(R.id.settings_detail);
+        if (detail == null) return null;
+        for (int i = 0; i < detail.getChildCount(); i++) {
+            View item = detail.getChildAt(i);
+            if (item instanceof Button && label.contentEquals(((Button) item).getText())) return item;
+        }
+        return null;
     }
     private String readableThirdPartyNotice(String markdown) {
         StringBuilder text = new StringBuilder();

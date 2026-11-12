@@ -389,3 +389,20 @@ focus after the modal closes. The manual ADB touch, D-pad Up, Back sequence
 still returned to the Apache action. An attempted instrumentation probe could
 not reliably tap the notice action from its test process, so it was removed;
 the manual device sequence remains the evidence for this path.
+
+## Feedback dialog focus and fit — 2026-11-12
+
+The 0.2.8 isolated preview reproduced a focus escape: after opening Report a
+problem with an ADB tap, Back followed by D-pad Up selected Home instead of
+continuing within Settings. The current branch now restores focus to the
+Feedback action after the Activity window regains focus, using the same
+modal guard as license notices. On the MiTV-AFMU1, Back left the Feedback
+action visibly focused; the next Up moved to the previous Settings category
+without opening Home.
+
+The feedback panel also exceeded the 1920 × 1080 viewport, clipping its
+Close button. Its QR size now adapts to the display height, and the panel
+can scroll on shorter displays. A device capture at 1920 × 1080 showed the
+topic choices, QR, Open on TV and Close buttons fully visible. Debug build
+and lint passed. The QR scan itself and 720p presentation were not retested
+in this pass.
