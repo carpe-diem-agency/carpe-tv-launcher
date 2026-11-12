@@ -21,7 +21,8 @@ final class HomeChoice {
             RoleManager roles = activity.getSystemService(RoleManager.class);
             if (roles != null && roles.isRoleAvailable(RoleManager.ROLE_HOME)) {
                 if (roles.isRoleHeld(RoleManager.ROLE_HOME)) {
-                    Toast.makeText(activity, AppLanguage.text(activity, R.string.home_already), Toast.LENGTH_LONG).show(); return;
+                    int message = hasResolverConflict(activity) ? R.string.home_route_conflict_short : R.string.home_already;
+                    Toast.makeText(activity, AppLanguage.text(activity, message), Toast.LENGTH_LONG).show(); return;
                 }
                 try { activity.startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_HOME), 401); return; }
                 catch (RuntimeException ignored) { }
@@ -54,6 +55,16 @@ final class HomeChoice {
         // an OEM remote still opens its own Home. Only the physical key proves
         // the routing, so keep the reminder visible after selection.
         return true;
+    }
+    static boolean hasResolverConflict(Context context) {
+        if (!isSelected(context)) return false;
+        ResolveInfo info = context.getPackageManager().resolveActivity(
+                new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY);
+        return info != null && info.activityInfo != null
+                && !context.getPackageName().equals(info.activityInfo.packageName);
+    }
+    static int homeWarning(Context context) {
+        return hasResolverConflict(context) ? R.string.home_route_conflict : R.string.home_remote_check;
     }
     static boolean isSelected(Context context) {
         if (Build.VERSION.SDK_INT >= 29) {
