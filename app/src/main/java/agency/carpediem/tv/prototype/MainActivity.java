@@ -514,7 +514,7 @@ public final class MainActivity extends Activity {
                 for (int i = 0; i < categories.getChildCount(); i++)
                     categories.getChildAt(i).setSelected(categories.getChildAt(i) == v);
                 showSettingsDetail(detail, entry[0]);
-                View target = firstFocusable(detail); if (target != null) target.requestFocus();
+                View target = settingsEntryFocus(detail, entry[0]); if (target != null) target.requestFocus();
             });
             int symbol = entry[0].equals("audit") ? R.drawable.ic_apps : entry[0].equals("screensaver") ? R.drawable.ic_screensaver : entry[0].equals("appearance") ? R.drawable.ic_monitor : entry[0].equals("favorites") ? R.drawable.ic_heart : entry[0].equals("device") ? R.drawable.ic_settings : R.drawable.ic_info;
             android.graphics.drawable.Drawable categoryIcon=getDrawable(symbol).mutate();
@@ -527,7 +527,7 @@ public final class MainActivity extends Activity {
             category.setOnKeyListener((v,key,event)->{
                 if(key==android.view.KeyEvent.KEYCODE_DPAD_RIGHT && event.getAction()==android.view.KeyEvent.ACTION_DOWN) {
                     ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0,0);
-                    View target=firstFocusable(detail);if(target!=null) target.requestFocus();return true;
+                    View target=settingsEntryFocus(detail, entry[0]);if(target!=null) target.requestFocus();return true;
                 }return false;
             });
             category.setOnFocusChangeListener((v, focused) -> {
@@ -536,7 +536,7 @@ public final class MainActivity extends Activity {
                     findViewById(R.id.nav_settings).setNextFocusRightId(category.getId());
                     if (!settingsCategory.equals(entry[0])) { settingsCategory = entry[0]; showSettingsDetail(detail, entry[0]); ((ScrollView) settings.findViewById(R.id.settings_scroll)).scrollTo(0,0); }
                     for (int i = 0; i < categories.getChildCount(); i++) categories.getChildAt(i).setSelected(categories.getChildAt(i) == category);
-                    View target = firstFocusable(detail); if (target != null) category.setNextFocusRightId(target.getId());
+                    View target = settingsEntryFocus(detail, entry[0]); if (target != null) category.setNextFocusRightId(target.getId());
                 }
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(56)); params.bottomMargin = dp(12); categories.addView(category, params);
@@ -549,7 +549,7 @@ public final class MainActivity extends Activity {
         }
         showSettingsDetail(detail, settingsCategory);
         if (settingsCategoryView != null) {
-            View first = firstFocusable(detail); if (first != null) settingsCategoryView.setNextFocusRightId(first.getId());
+            View first = settingsEntryFocus(detail, settingsCategory); if (first != null) settingsCategoryView.setNextFocusRightId(first.getId());
             findViewById(R.id.nav_settings).setNextFocusRightId(settingsCategoryView.getId());
         }
     }
@@ -746,6 +746,15 @@ public final class MainActivity extends Activity {
                     chosen.setText(getString(R.string.selected_prefix)+wallpaperName()); requestWallpaper(); updateBackground(); scheduleWallpaperRotation();
                 });
             }
+            android.widget.HorizontalScrollView gallery = appearance.findViewById(R.id.wallpaper_scroll);
+            View activePreview = appearance.findViewById(WallpaperCatalog.find(this, wallpaper()).viewId);
+            gallery.post(() -> {
+                if (!gallery.isAttachedToWindow() || activePreview == null) return;
+                View card = (View) activePreview.getParent();
+                int index = choices.indexOfChild(card);
+                View leftCard = index > 0 ? choices.getChildAt(index - 1) : card;
+                gallery.scrollTo(leftCard.getLeft(), 0);
+            });
             Switch dynamic=appearance.findViewById(R.id.dynamic_wallpapers); dynamic.setTypeface(font);
             dynamic.setChecked(getPreferences(MODE_PRIVATE).getBoolean(WallpaperRotation.ENABLED,false));
             dynamic.setOnCheckedChangeListener((view,enabled) -> {
@@ -1157,6 +1166,13 @@ public final class MainActivity extends Activity {
             if (view instanceof android.view.ViewGroup) { View nested = firstFocusable((android.view.ViewGroup) view); if (nested != null) return nested; }
         }
         return null;
+    }
+    private View settingsEntryFocus(android.view.ViewGroup detail, String category) {
+        if ("appearance".equals(category)) {
+            View selected = detail.findViewById(WallpaperCatalog.find(this, wallpaper()).viewId);
+            if (selected != null && selected.isFocusable()) return selected;
+        }
+        return firstFocusable(detail);
     }
     private void linkSettingsFocus(android.view.ViewGroup group) {
         for (int i = 0; i < group.getChildCount(); i++) {

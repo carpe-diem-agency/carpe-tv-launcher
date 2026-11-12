@@ -18,16 +18,27 @@ final class WallpaperProbe {
         boolean originalWelcome=prefs.getBoolean("welcome_seen",false);
         if(!context.getPackageName().endsWith(".publicpreview"))
             throw new IllegalStateException("Wallpaper probe requires the isolated preview package");
-        prefs.edit().putBoolean("welcome_seen",true).commit();
+        prefs.edit().putBoolean("welcome_seen",true).putString("wallpaper","blue").commit();
         probe.setInTouchMode(false);
         Activity screen=probe.startActivitySync(new Intent(context,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK));
         try {
             SystemClock.sleep(1200);
             probe.runOnMainSync(() -> screen.findViewById(R.id.nav_settings).requestFocus());
             SystemClock.sleep(500);
+            probe.runOnMainSync(() -> {
+                android.widget.HorizontalScrollView gallery = screen.findViewById(R.id.wallpaper_scroll);
+                View active = screen.findViewById(R.id.wallpaper_blue);
+                View card = (View) active.getParent();
+                if (!active.isSelected() || card.getLeft() < gallery.getScrollX()
+                        || card.getRight() > gallery.getScrollX() + gallery.getWidth())
+                    throw new AssertionError("Selected wallpaper is not fully visible in the gallery");
+            });
             java.util.List<WallpaperCatalog.Entry> entries=WallpaperCatalog.entries(context);
             probe.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT); SystemClock.sleep(200);
             probe.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT); SystemClock.sleep(200);
+            if (screen.getCurrentFocus() == null || screen.getCurrentFocus().getId() != R.id.wallpaper_blue)
+                throw new AssertionError("Gallery entry did not focus the selected wallpaper");
+            for (int i=0;i<3;i++) { probe.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_LEFT); SystemClock.sleep(120); }
             for(int i=0;i<entries.size();i++) {
                 WallpaperCatalog.Entry entry=entries.get(i);
                 if(i>0) { probe.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT); SystemClock.sleep(120); }

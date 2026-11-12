@@ -273,3 +273,13 @@ matches, in addition to checking the empty message and clearing the query.
 On MiTV-AFMU1, focus stayed in the search field and returned to the first
 app after clearing the query. No product-code change was needed. The previous
 isolated preview APK was restored and the test package removed.
+
+## Wallpaper gallery entry — 2026-11-12
+
+Opening Appearance now scrolls the gallery to the selected wallpaper and
+places D-pad focus on that thumbnail when entering the detail pane. On the
+MiTV-AFMU1 isolated preview, the wallpaper probe passed all five gallery
+choices, left/right focus, selection, rapid switches and restart persistence.
+The selected Blue card was fully visible on a 1920 × 1080 screenshot, with
+the preceding card and its caption also visible. The previous preview APK was
+restored after this check; no Home or system-service settings were changed.
