@@ -94,6 +94,7 @@ public final class MainActivity extends Activity {
     private TextView systemAccessStatus;
     private boolean systemOperation;
     private AlertDialog systemConfirmation;
+    private boolean noticeDialogShowing;
     private void refreshSystemAccessUi(){runOnUiThread(()->{if(!destroyed)refreshApplicationAudit();});}
     private final rikka.shizuku.Shizuku.OnRequestPermissionResultListener systemPermissionResult=(code,result)->{if(code==508)refreshSystemAccessUi();};
     private final rikka.shizuku.Shizuku.OnBinderReceivedListener systemBinderReady=this::refreshSystemAccessUi;
@@ -225,7 +226,7 @@ public final class MainActivity extends Activity {
     private void bindNavigation(int id, String target) {
         View button = findViewById(id);
         button.setOnFocusChangeListener((view, focused) -> {
-            if (focused && !renderingPage) openPage(target);
+            if (focused && !renderingPage && !noticeDialogShowing) openPage(target);
         });
         button.setOnClickListener(view -> {
             openPage(target);
@@ -1082,6 +1083,22 @@ public final class MainActivity extends Activity {
         scroll.addView(body);
         AlertDialog dialog = new AlertDialog.Builder(this).setTitle(title).setView(scroll)
                 .setPositiveButton(getString(R.string.close), null).create();
+        noticeDialogShowing = true;
+        dialog.setOnDismissListener(ignored -> {
+            noticeDialogShowing = false;
+            if (destroyed || !"settings".equals(page)) return;
+            LinearLayout detail = content.findViewById(R.id.settings_detail);
+            if (detail == null) return;
+            String focusLabel = assetPath.endsWith("Montserrat-OFL.txt")
+                    ? getString(R.string.font_license) : title;
+            for (int i = 0; i < detail.getChildCount(); i++) {
+                View item = detail.getChildAt(i);
+                if (item instanceof Button && focusLabel.contentEquals(((Button) item).getText())) {
+                    item.requestFocus();
+                    break;
+                }
+            }
+        });
         dialog.show();
         if (dialog.getWindow() != null)
             dialog.getWindow().setBackgroundDrawable(surface(0xff17253e, dp(18)));

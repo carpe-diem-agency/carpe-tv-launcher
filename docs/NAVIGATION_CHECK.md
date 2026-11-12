@@ -370,3 +370,16 @@ shipping a navigation regression. The previous 0.2.8 isolated APK was
 reinstalled; Home and system-service settings were not changed. A future
 dialog redesign must prove that focus stays inside the modal on a real remote
 before replacing the current notice UI.
+
+## License notice focus correction — 2026-11-12
+
+The same D-pad Up behavior also reproduced in the unchanged 0.2.8 isolated
+preview, so it was an existing focus bug, not caused by the notice redesign.
+When Android left touch mode, the Activity's Home rail gained focus behind the
+modal. Its focus listener treated that event as navigation and opened Home.
+The license dialog now marks itself active before showing; the rail ignores
+focus events until it closes, then returns focus to the notice action in
+Settings. On MiTV-AFMU1, an ADB touch-to-D-pad test kept the Settings content
+behind the Apache-2.0 notice, and Back closed it with the license action
+focused. Build and lint passed. This corrects the tested notice path; the
+styled notice redesign remains deferred.
