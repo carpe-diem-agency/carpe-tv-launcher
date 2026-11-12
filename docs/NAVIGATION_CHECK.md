@@ -345,3 +345,14 @@ language still returns focus to the language selector. Debug build and lint
 passed. The previous 0.2.8 isolated preview APK was restored and the test
 package removed after each probe. This checks Activity recreation; process
 death and a full device restart remain separate scenarios.
+
+## Language choice dialog — 2026-11-12
+
+The language selector now uses the same bounded choice sheet as the other
+Settings selectors. It shows the active option with the shared check badge,
+focus style and dialog transition. On the MiTV-AFMU1 isolated preview at
+1920 × 1080, an ADB capture showed System default, Українська, English and
+Cancel fully visible. One Back press closed the sheet and left Settings open.
+The existing `languagestate` probe passed recreation and language-focus
+restoration. This check did not change the selected language. Afterward the
+previous 0.2.8 preview APK was restored and test instrumentation removed.

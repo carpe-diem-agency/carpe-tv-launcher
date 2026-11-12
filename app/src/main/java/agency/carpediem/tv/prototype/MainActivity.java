@@ -630,7 +630,7 @@ public final class MainActivity extends Activity {
         catch(PackageManager.NameNotFoundException unavailable){Toast.makeText(this,R.string.audit_unavailable,Toast.LENGTH_LONG).show();return;}
         final boolean disable=enabled;
         String[] options={getString(disable?R.string.system_disable:R.string.system_enable),getString(R.string.system_app_settings)};
-        showSaverChoices(R.string.audit_title,options,-1,choice->{if(choice==0)confirmSystemAction(disable?"disable":"restore",pkg);else if(choice==1)openApplicationDetails(pkg);});
+        showSettingChoices(R.string.audit_title,options,-1,choice->{if(choice==0)confirmSystemAction(disable?"disable":"restore",pkg);else if(choice==1)openApplicationDetails(pkg);});
     }
     private android.app.Dialog showStockLauncherActions() {
         final String pkg = "com.google.android.apps.tv.launcherx";
@@ -810,10 +810,12 @@ public final class MainActivity extends Activity {
             });
             Button language = action(getString(R.string.language) + " · " + AppLanguage.label(this), () -> {
                 String[] tags={"","uk","en"}; String selected=AppLanguage.selected(this); int index=selected.equals("uk")?1:selected.equals("en")?2:0;
-                new AlertDialog.Builder(this).setTitle(R.string.language)
-                        .setSingleChoiceItems(new String[]{getString(R.string.language_system),"Українська","English"},index,(dialog,which)->{
-                            dialog.dismiss(); if(!tags[which].equals(AppLanguage.selected(this))) { AppLanguage.choose(this,tags[which]); languageChange=true; recreate(); }
-                        }).setNegativeButton(R.string.cancel,null).show();
+                showSettingChoices(R.string.language,
+                        new String[]{getString(R.string.language_system),"Українська","English"},index,which->{
+                            if(!tags[which].equals(AppLanguage.selected(this))) {
+                                AppLanguage.choose(this,tags[which]); languageChange=true; recreate();
+                            }
+                        });
             });
             language.setId(R.id.language_choice);
             LinearLayout.LayoutParams languageSize=new LinearLayout.LayoutParams(-1,dp(52)); languageSize.topMargin=dp(12); detail.addView(language,languageSize);
@@ -830,7 +832,7 @@ public final class MainActivity extends Activity {
                     if (value == Screensaver.DEFAULT_MINUTES) options[i] += getString(R.string.saver_recommended);
                     if (value == Screensaver.minutes(this)) selected = i;
                 }
-                showSaverChoices(R.string.saver_delay, options, selected, which -> {
+                showSettingChoices(R.string.saver_delay, options, selected, which -> {
                             Screensaver.prefs(this).edit().putInt(Screensaver.TIMEOUT, Screensaver.MINUTES[which]).apply();
                             showSettingsDetail(detail, category);
                             View target = detail.findViewById(R.id.saver_timeout); if (target != null) target.requestFocus();
@@ -840,7 +842,7 @@ public final class MainActivity extends Activity {
             detail.getChildAt(detail.getChildCount()-1).setId(R.id.saver_timeout);
             boolean aerial = "aerial".equals(Screensaver.prefs(this).getString(Screensaver.PROVIDER, "builtin"));
             addSettingAction(detail, getString(R.string.saver_source, getString(aerial ? R.string.saver_aerial : R.string.saver_builtin)), () -> {
-                showSaverChoices(R.string.saver_source_title,
+                showSettingChoices(R.string.saver_source_title,
                         new String[]{getString(R.string.saver_builtin),getString(R.string.saver_aerial)}, aerial ? 1 : 0, which -> {
                             if (which == 1 && !Screensaver.aerialAvailable(this)) {
                                 Toast.makeText(this, R.string.saver_aerial_fallback, Toast.LENGTH_LONG).show(); return;
@@ -871,7 +873,7 @@ public final class MainActivity extends Activity {
                 }
             });
             addSettingAction(detail,getString(R.string.saver_reserve,SaverCache.reserveMb(this)),()->
-                showSaverChoices(R.string.saver_reserve_title,new String[]{getString(R.string.saver_reserve_recommended),getString(R.string.saver_reserve_small)},SaverCache.reserveMb(this)==512?1:0,which->{
+                showSettingChoices(R.string.saver_reserve_title,new String[]{getString(R.string.saver_reserve_recommended),getString(R.string.saver_reserve_small)},SaverCache.reserveMb(this)==512?1:0,which->{
                     Screensaver.prefs(this).edit().putInt("saverReserveMb",which==0?1024:512).apply();
                     showSettingsDetail(detail,category);detail.findViewById(R.id.saver_reserve).requestFocus();
                 }));
@@ -1121,7 +1123,7 @@ public final class MainActivity extends Activity {
                         ?getString(R.string.saver_cache_waiting,reserve):""));});
         });
     }
-    private void showSaverChoices(int title, String[] choices, int selected, java.util.function.IntConsumer choose) {
+    private void showSettingChoices(int title, String[] choices, int selected, java.util.function.IntConsumer choose) {
         android.app.Dialog dialog = new android.app.Dialog(this);
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
         LinearLayout panel = new LinearLayout(this); panel.setOrientation(LinearLayout.VERTICAL);
@@ -1144,10 +1146,12 @@ public final class MainActivity extends Activity {
         Button cancel=action(getString(R.string.cancel),dialog::dismiss);
         LinearLayout.LayoutParams cancelSize=new LinearLayout.LayoutParams(-1,dp(44)); cancelSize.topMargin=dp(16); panel.addView(cancel,cancelSize);
         dialog.setContentView(panel); dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.getWindow().setWindowAnimations(motionEnabled() ? R.style.LumaDialogMotion : 0);
         dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         android.view.WindowManager.LayoutParams window=dialog.getWindow().getAttributes(); window.dimAmount=.55f; dialog.getWindow().setAttributes(window);
         dialog.show(); dialog.getWindow().setLayout(dialogWidth(550),-2);
         if(selectedView!=null) selectedView.requestFocus();
+        else if(list.getChildCount()>0) list.getChildAt(0).requestFocus();
     }
     private String wallpaper() { return WallpaperCatalog.find(this,getPreferences(MODE_PRIVATE).getString("wallpaper", "alpine")).key; }
     private String wallpaperName() { return getString(WallpaperCatalog.find(this,wallpaper()).title); }
