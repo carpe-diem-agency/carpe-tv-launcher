@@ -1189,6 +1189,7 @@ public final class MainActivity extends Activity {
             layout.findViewById(R.id.apps_bluetooth).setOnClickListener(v -> openBluetooth());
             EditText search = layout.findViewById(R.id.apps_search); search.setTypeface(font); search.setText(query);
             LinearLayout list = layout.findViewById(R.id.apps_grid);
+            ScrollView appScroll = layout.findViewById(R.id.apps_scroll);
             search.setShowSoftInputOnFocus(false);
             search.setOnClickListener(v -> { search.requestFocus(); ((android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(search, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT); });
             search.setOnEditorActionListener((v, actionId, event) -> { hideKeyboard(); if (libraryEntry != null) libraryEntry.requestFocus(); return true; });
@@ -1198,7 +1199,16 @@ public final class MainActivity extends Activity {
             });
             search.addTextChangedListener(new TextWatcher() {
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                public void onTextChanged(CharSequence s, int start, int before, int count) { query = s.toString(); renderList(list, allApps, false); }
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    query = s.toString();
+                    renderList(list, allApps, false);
+                    appScroll.scrollTo(0, 0);
+                    appScroll.post(() -> {
+                        appScroll.scrollTo(0, 0);
+                        list.invalidate();
+                        appScroll.invalidate();
+                    });
+                }
                 public void afterTextChanged(Editable e) {}
             });
             renderList(list, allApps, !isSidebarFocused());

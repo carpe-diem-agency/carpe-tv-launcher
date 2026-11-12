@@ -145,3 +145,14 @@ an external app or change Android settings. It checks focus behavior, not
 keyboard appearance, search latency or projected-screen layout. The prior
 isolated preview APK was restored, the instrumentation package removed, and
 the accessibility-service setting still read `null` afterward.
+
+## Library search rendering — 2026-11-12
+
+An ADB screenshot of the isolated build exposed a gap in the focus probe:
+typing `Aerial` left an empty-looking library even though Android's view tree
+contained the matching Aerial Views tile. Moving focus down made the tile
+appear. The search change now resets the grid scroll position and invalidates
+the grid and viewport after rebuilding results. On MiTV-AFMU1, the matching
+tile remained visible while the TV keyboard was open after typing and deleting
+characters. This is a visual check on the 1920×1080 output, not a projector
+review or a guarantee for other IMEs.
