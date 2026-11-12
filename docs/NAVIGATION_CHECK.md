@@ -415,7 +415,15 @@ in this pass.
 
 On the MiTV-AFMU1 isolated preview, About → Feedback → Back left Feedback
 focused. D-pad Up focused the header power control while About remained
-selected. D-pad Down returned to Feedback. The first Settings category also
-has an explicit route upward to the header. Debug build and lint passed at
+selected. D-pad Down returned to Feedback. The first Settings category keeps
+its vertical navigation boundary instead of crossing into the right-side
+header. Debug build and lint passed at
 1920 × 1080. Other Settings detail categories were not individually tested
 with the remote in this pass.
+
+Follow-up on the same stick: starting with focus on the Home rail, D-pad Down
+twice selected Settings, Right selected the first Settings category, and Up
+kept focus there. This verifies the left column's upper boundary without
+mixing ADB touch input with D-pad focus. The isolated 0.2.8 preview was used;
+the earlier touch-only attempt had retained focus on the Home rail and was
+not valid evidence for the category route.

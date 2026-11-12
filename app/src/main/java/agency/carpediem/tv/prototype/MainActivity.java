@@ -561,7 +561,7 @@ public final class MainActivity extends Activity {
         }
         for (int i = 0; i < categories.getChildCount(); i++) {
             View category = categories.getChildAt(i);
-            category.setNextFocusUpId(i == 0 ? R.id.settings_power : categories.getChildAt(i - 1).getId());
+            category.setNextFocusUpId(categories.getChildAt(Math.max(0, i - 1)).getId());
             category.setNextFocusDownId(categories.getChildAt(Math.min(categories.getChildCount() - 1, i + 1)).getId());
         }
         showSettingsDetail(detail, settingsCategory);
