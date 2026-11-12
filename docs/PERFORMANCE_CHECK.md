@@ -262,6 +262,29 @@ the prior wallpaper and rotation preferences; the previous isolated APK was
 restored, the test APK removed, and enabled accessibility services still read
 `null`. Projector-visible transition quality remains to be checked.
 
+## Artwork cache bound — 2026-11-12
+
+The app artwork cache previously retained up to 64 entries regardless of
+bitmap size. It now accounts for the allocated bytes of bitmap-backed tile
+artwork and is capped at 24 MiB. Background prefetch stops at 75% of that
+budget so it leaves room for visible tiles and favorites. This is a memory
+bound for cached artwork, not a bound on the whole app or artwork still held
+by visible views.
+
+On MiTV-AFMU1 at 1920×1080, the isolated debug build passed 200 Home → Apps →
+Settings → Apps → Home D-pad cycles before the cache change and another 200
+after it. Before: PSS at cycles 40 / 80 / 120 / 160 / 200 was 133,176 /
+131,433 / 132,949 / 133,917 / 131,873 KB. After: 131,582 / 129,724 /
+131,319 / 132,463 / 130,531 KB. The view count stayed at 244 in both runs.
+The difference is small and uncontrolled; it does not demonstrate a speed or
+memory improvement. Both runs used more PSS than the earlier 111–114 MiB
+Alpine-wallpaper run above, and the cause of that difference is not established.
+
+After adding the prefetch limit, the library-focus probe passed rail entry,
+matching and empty search results, restored grid focus and tile navigation.
+The 4K cache behavior has not yet been measured on a 4K output. The previous
+isolated preview APK was restored, and the personal launcher was untouched.
+
 ## Isolated debug follow-up after layout measurement change — 2026-11-11
 
 The `.publicpreview` debug APK at source commit `21472ce` and its separate

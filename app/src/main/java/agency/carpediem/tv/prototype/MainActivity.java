@@ -117,7 +117,20 @@ public final class MainActivity extends Activity {
     private String backgroundKey;
     private boolean renderingPage;
     private boolean languageChange, restoreLanguageFocus;
-    private final LruCache<String, Drawable.ConstantState> icons = new LruCache<>(64);
+    // Artwork grows with display resolution; an entry-count limit can retain
+    // tens of megabytes of 4K-sized banners even when few tiles are visible.
+    private final LruCache<String, Drawable.ConstantState> icons =
+            new LruCache<String, Drawable.ConstantState>(24 * 1024 * 1024) {
+                @Override protected int sizeOf(String key, Drawable.ConstantState state) {
+                    Drawable drawable = state.newDrawable();
+                    if (drawable instanceof android.graphics.drawable.BitmapDrawable) {
+                        android.graphics.Bitmap bitmap =
+                                ((android.graphics.drawable.BitmapDrawable) drawable).getBitmap();
+                        return bitmap == null ? 1 : bitmap.getAllocationByteCount();
+                    }
+                    return 1;
+                }
+            };
     private final BroadcastReceiver packagesChanged = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (!destroyed) { icons.evictAll(); displayedApps = null; worker.execute(MainActivity.this::refreshApps); }
@@ -336,7 +349,8 @@ public final class MainActivity extends Activity {
         for (AppItem app : apps) if (!favorites.contains(app.pkg)) ordered.add(app);
         int count = 0;
         for (AppItem app : ordered) {
-            if (destroyed || Thread.currentThread().isInterrupted() || count++ >= 48) break;
+            if (destroyed || Thread.currentThread().isInterrupted() || count++ >= 48
+                    || icons.size() >= icons.maxSize() * 3 / 4) break;
             loadArtwork(app.pkg);
         }
     }
