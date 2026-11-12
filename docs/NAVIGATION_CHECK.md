@@ -256,3 +256,12 @@ scroll offset; query, scroll and focus passed after page return, Activity
 recreation and catalog update. This checks the refresh handler, not a real
 package install or uninstall broadcast. The previous 0.2.8 preview APK was
 restored, test instrumentation removed, and accessibility remained disabled.
+
+## Search artwork queue — 2026-11-12
+
+Rapid search edits used to leave icon-loading tasks queued for tiles removed by
+earlier queries. Each grid rebuild now invalidates those tasks, so only the
+current query can bind artwork to its tiles. The isolated `libraryfocus` probe
+exercised rapid matching, no-match and partial queries on MiTV-AFMU1; the final
+results and D-pad focus passed. The `librarystate` probe also passed. This is a
+work-avoidance fix; no before/after frame-time improvement is claimed.

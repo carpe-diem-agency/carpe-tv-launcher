@@ -1371,7 +1371,9 @@ public final class MainActivity extends Activity {
         // Keep clipping only at the scrolling viewport, not at each grid cell/row.
         list.setClipChildren(false);
         list.setClipToPadding(false);
-        final int renderGeneration = generation;
+        // Search rebuilds the grid without rebuilding the page. Invalidate icon
+        // work queued for tiles removed by the previous query.
+        final int renderGeneration = ++generation;
         List<String> favorites = getFavorites();
         if ("home".equals(page)) {
             Map<String, AppItem> available = new LinkedHashMap<>();

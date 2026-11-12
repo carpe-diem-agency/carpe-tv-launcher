@@ -40,7 +40,12 @@ final class LibraryFocusProbe {
             key(probe, KeyEvent.KEYCODE_DPAD_UP);
             if (screen.getCurrentFocus() != search)
                 throw new AssertionError("Up from the first tile did not reach search");
-            probe.runOnMainSync(() -> search.setText(label));
+            probe.runOnMainSync(() -> {
+                search.setText(label);
+                search.setText(label + "-no-match");
+                search.setText(label.substring(0,1));
+                search.setText(label);
+            });
             SystemClock.sleep(150);
             if (!hasTile(screen, packageName))
                 throw new AssertionError("A matching app disappeared from search results");
