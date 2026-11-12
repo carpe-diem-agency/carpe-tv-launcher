@@ -384,8 +384,9 @@ public final class MainActivity extends Activity {
             if (tile == null) tile = findPageTile(content, null);
             if (tile != null) restoredAppFocus = tile.requestFocus();
         }
-        if (!restoredAppFocus && (previousId == R.id.nav_home || previousId == R.id.nav_apps || previousId == R.id.nav_settings || previousId == R.id.home_wifi || previousId == R.id.apps_search)) {
-            View restored = findViewById(previousId); if (restored != null) restored.requestFocus();
+        if (!restoredAppFocus && previousPackage == null && previousId != View.NO_ID) {
+            View restored = findViewById(previousId);
+            if (restored != null && restored.isShown() && restored.isFocusable()) restored.requestFocus();
         }
         if ("apps".equals(page) && (restoredAppsScrollY >= 0 || restoredAppsFocusPackage != null)) {
             ScrollView scroll=content.findViewById(R.id.apps_scroll);

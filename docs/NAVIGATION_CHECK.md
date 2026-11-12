@@ -185,3 +185,14 @@ offset, then restores focus after the cached app list arrives. The probe passed
 on MiTV-AFMU1 at 1920×1080: library, query, selected tile and scroll offset
 survived recreation. The previous preview APK was restored, the test package
 removed and accessibility services remained disabled (`null`).
+
+## Toolbar focus during app refresh — 2026-11-12
+
+App-list broadcasts rebuild Home or Library while a remote-control toolbar
+button can have focus. Focus restoration now accepts the visible replacement
+of that control, including Power, Wi-Fi, Bluetooth and Timer, as well as the
+existing app-tile path. The isolated `homefocus` probe passed on MiTV-AFMU1
+after refreshing both Home and Library with toolbar focus. It also passed the
+tile, Back and external-app return paths. The test closes the optional sleep
+confirmation before checking D-pad movement. The previous preview APK was
+restored, the test package removed and accessibility services remained `null`.

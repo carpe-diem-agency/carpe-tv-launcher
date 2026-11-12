@@ -101,10 +101,18 @@ final class HomeFocusProbe {
                             "App-list refresh must retain the focused tile");
                 } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
             });
+            // A package broadcast also rebuilds the current page while a
+            // toolbar action, rather than an app tile, owns remote focus.
+            checkRefreshKeepsToolbar(test, screen, R.id.home_bluetooth);
+            test.runOnMainSync(() -> screen.findViewById(R.id.nav_apps).requestFocus());
+            checkRefreshKeepsToolbar(test, screen, R.id.apps_wifi);
             test.runOnMainSync(()->screen.findViewById(R.id.nav_settings).requestFocus());
             SystemClock.sleep(350);
             test.runOnMainSync(()->screen.findViewById(R.id.settings_power).performClick());
             SystemClock.sleep(350);
+            // On devices where system access is ready, Power opens a modal
+            // confirmation. Close it before testing toolbar D-pad routing.
+            if (!screen.hasWindowFocus()) key(test,KeyEvent.KEYCODE_BACK);
             focus(test,screen,R.id.nav_home);
             test.runOnMainSync(() -> {
                 View activeSettings = screen.findViewById(R.id.content).findViewById(R.id.settings_detail);
@@ -122,7 +130,23 @@ final class HomeFocusProbe {
             if(previous==null)screen.getPreferences(0).edit().remove("last_opened_package").commit();
             else screen.getPreferences(0).edit().putString("last_opened_package",previous).commit();
         }
-        result.putString("home_focus","PASS: toolbar order, Back/Home and external-app return retain tile focus, app refresh, Power and launch motion valid");
+        result.putString("home_focus","PASS: toolbar order, Back/Home and external-app return retain tile focus, app and toolbar refresh, Power and launch motion valid");
+    }
+    private static void checkRefreshKeepsToolbar(Instrumentation test, MainActivity screen, int id) {
+        test.runOnMainSync(() -> {
+            try {
+                View button=screen.findViewById(id);
+                require(button!=null && button.requestFocus(),"Could not focus toolbar action " + id);
+                java.lang.reflect.Field displayed=MainActivity.class.getDeclaredField("displayedApps");
+                displayed.setAccessible(true); displayed.set(screen,null);
+                java.lang.reflect.Field all=MainActivity.class.getDeclaredField("allApps");
+                all.setAccessible(true);
+                java.lang.reflect.Method refresh=MainActivity.class.getDeclaredMethod("showApps",List.class);
+                refresh.setAccessible(true); refresh.invoke(screen,all.get(screen));
+                require(screen.getCurrentFocus()!=null && screen.getCurrentFocus().getId()==id,
+                        "App-list refresh moved toolbar focus " + id);
+            } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+        });
     }
     private static void checkToolbar(Instrumentation test, MainActivity screen, int page, int power,
                                      int wifi, int bluetooth, int timer) {
