@@ -32,6 +32,11 @@ public final class NavigationProbe extends Instrumentation {
             catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
             return;
         }
+        if (args != null && "yes".equals(args.getString("navigationsoak"))) {
+            try { NavigationSoakProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
         if (args != null && "yes".equals(args.getString("pairinglimit"))) {
             try { PairingLimitProbe.run(getTargetContext(), result); finish(Activity.RESULT_OK, result); }
             catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }

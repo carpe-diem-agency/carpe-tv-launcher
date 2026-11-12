@@ -236,6 +236,22 @@ changed. No product transition was altered. The previous isolated preview APK
 was restored, the instrumentation package removed, and projector-visible
 smoothness remains to be checked before release.
 
+## Repeated navigation memory check — 2026-11-12
+
+The current isolated `.publicpreview` debug build ran 200 real D-pad cycles
+through Home → Apps → Settings → Apps → Home on MiTV-AFMU1. Every 40 cycles,
+the probe checked that Home and its rail focus were restored, then sampled
+process PSS and the active window's view count. All focus checks passed.
+PSS at cycles 40 / 80 / 120 / 160 / 200 was 104,933 / 106,331 / 103,547 /
+104,187 / 105,103 KB. The view count was 244 at every checkpoint.
+
+This bounded run found no accumulating view trees or sustained PSS increase in
+that navigation path. It does not prove leak freedom over hours, wallpaper
+rotation, app install/remove events or external-app sessions. The previous
+isolated preview APK was restored, the test APK removed, and enabled
+accessibility services still read `null`. System Home integration was not
+tested because that work is paused.
+
 ## Isolated debug follow-up after layout measurement change — 2026-11-11
 
 The `.publicpreview` debug APK at source commit `21472ce` and its separate
