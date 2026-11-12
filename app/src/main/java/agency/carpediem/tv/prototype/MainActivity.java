@@ -922,7 +922,10 @@ public final class MainActivity extends Activity {
             mark.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             LinearLayout.LayoutParams markSize = new LinearLayout.LayoutParams(dp(52), dp(52)); markSize.setMarginEnd(dp(16));
             brand.addView(mark, markSize); brand.addView(label(getString(R.string.app_name), 28, Color.WHITE)); detail.addView(brand);
-            TextView info = label(getString(R.string.version_prefix) + UpdateManager.appVersion(this) + getString(R.string.developer_info), 16, 0xffb9c7dc); info.setPadding(0, dp(20), 0, dp(24)); detail.addView(info);
+            TextView version = label(getString(R.string.version_prefix) + UpdateManager.appVersion(this), 16, 0xffb9c7dc);
+            version.setPadding(0, dp(14), 0, 0); detail.addView(version);
+            TextView company = label(getString(R.string.developer_info), 16, 0xffb9c7dc);
+            company.setPadding(0, dp(4), 0, dp(22)); detail.addView(company);
             addSettingAction(detail, getString(R.string.report_problem), this::showFeedback);
             addSettingAction(detail, getString(R.string.source_code), () -> openExternalPage("https://github.com/carpe-diem-agency/carpe-tv-launcher"));
             addSettingAction(detail, getString(R.string.developer_site), () -> openExternalPage("https://carpediem.agency/"));

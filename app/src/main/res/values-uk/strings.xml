@@ -15,7 +15,7 @@
     <string name="choose_home">"Вибрати інший лаунчер"</string>
     <string name="home_service">"Служба кнопки Home"</string>
     <string name="version_prefix">"Версія "</string>
-    <string name="developer_info">"\n\nКомпанія: Carpe Diem Agency\ncarpediem.agency"</string>
+    <string name="developer_info">Компанія: Carpe Diem Agency</string>
     <string name="updates">"Оновлення"</string>
     <string name="report_problem">"Зворотний зв’язок"</string>
     <string name="report_problem_hint">"Обери тему й скануй телефоном."</string>

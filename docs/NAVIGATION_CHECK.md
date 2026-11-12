@@ -283,3 +283,13 @@ choices, left/right focus, selection, rapid switches and restart persistence.
 The selected Blue card was fully visible on a 1920 × 1080 screenshot, with
 the preceding card and its caption also visible. The previous preview APK was
 restored after this check; no Home or system-service settings were changed.
+
+## About screen hierarchy — 2026-11-12
+
+The About header now shows the app version and company as two compact rows.
+The plain-text website address was removed because the next action already
+opens that site. On the MiTV-AFMU1 isolated preview at 1920 × 1080, the
+feedback, source, website and updates actions were visible without scrolling.
+`FeedbackProbe` passed D-pad entry from About, all three rendered Issue QR
+targets and Back returning focus to Feedback. The previous preview APK was
+restored after the check; Home and system services were not changed.

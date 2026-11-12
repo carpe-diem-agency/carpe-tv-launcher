@@ -15,7 +15,7 @@
     <string name="choose_home">"Choose another launcher"</string>
     <string name="home_service">"Home button service"</string>
     <string name="version_prefix">"Version "</string>
-    <string name="developer_info">"\n\nCompany: Carpe Diem Agency\ncarpediem.agency"</string>
+    <string name="developer_info">Company: Carpe Diem Agency</string>
     <string name="updates">"Updates"</string>
     <string name="report_problem">"Feedback"</string>
     <string name="report_problem_hint">"Choose a topic and scan with your phone."</string>
