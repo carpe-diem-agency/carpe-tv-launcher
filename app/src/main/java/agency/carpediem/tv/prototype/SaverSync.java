@@ -25,7 +25,7 @@ final class SaverSync {
                 List<SaverMedia> items=SaverCatalog.load(app,active);int downloaded=0,attempts=0;
                 for(SaverMedia item:items) {
                     if(!active.getAsBoolean()||downloaded>=3||attempts>=6) break;
-                    if(cache.file(item).isFile()) continue;
+                    if(cache.hasComplete(item)) continue;
                     if(!cache.makeRoom(SaverCache.MIB)) break;
                     attempts++;HttpURLConnection connection=null;
                     try {
@@ -53,7 +53,9 @@ final class SaverSync {
         }
         BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeFile(file.getAbsolutePath(),options);
         if(options.outWidth<1280||options.outHeight<720||options.outWidth>8192||options.outHeight>8192||options.outWidth<options.outHeight*1.3) return false;
-        options.inJustDecodeBounds=false;options.inSampleSize=8;
-        Bitmap check=BitmapFactory.decodeFile(file.getAbsolutePath(),options);if(check==null) return false;check.recycle();return true;
+        Bitmap check = SaverPhotoDecoder.decode(file, 8);
+        if (check == null) return false;
+        check.recycle();
+        return true;
     }
 }

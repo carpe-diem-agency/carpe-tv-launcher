@@ -99,7 +99,7 @@ public final class SystemSetupActivity extends Activity {
         button.setText(value); button.setAllCaps(false); button.setTextSize(16);
         button.setTextColor(Color.WHITE); button.setTypeface(font);
         button.setBackgroundResource(R.drawable.nav_background);
-        button.setOnClickListener(v -> action.run());
+        UiSounds.click(button, v -> action.run());
         return button;
     }
     private LinearLayout.LayoutParams buttonSize() {

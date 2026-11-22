@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,6 +21,7 @@ import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.VideoView;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -95,21 +97,31 @@ public final class ScreensaverActivity extends Activity {
         decoder.execute(()->{
             if(!resumed||request!=ticket) return;
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-            File file=null;Bitmap photo=null;
+            File file = null;
+            Bitmap photo = null;
+            boolean invalid = false;
             try {
-                BitmapFactory.Options options=new BitmapFactory.Options();options.inScaled=false;options.inSampleSize=1;options.inPreferredConfig=Bitmap.Config.RGB_565;
-                if(slide.media==null) photo=BitmapFactory.decodeResource(getResources(),slide.resource,options);
-                else {
-                    file=cache.acquire(slide.media);
-                    if(file!=null) {
-                        options.inJustDecodeBounds=true;BitmapFactory.decodeFile(file.getAbsolutePath(),options);
-                        while(options.outWidth/options.inSampleSize>2560||options.outHeight/options.inSampleSize>1600) options.inSampleSize*=2;
-                        options.inJustDecodeBounds=false;photo=BitmapFactory.decodeFile(file.getAbsolutePath(),options);
+                if (slide.media == null) {
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inScaled = false;
+                    options.inPreferredConfig = Bitmap.Config.RGB_565;
+                    photo = BitmapFactory.decodeResource(getResources(), slide.resource, options);
+                } else {
+                    file = cache.acquire(slide.media);
+                    if (file != null) {
+                        photo = SaverPhotoDecoder.decode(file, 1);
+                        invalid = photo == null;
                     }
                 }
-            } catch(RuntimeException badMedia) { }
-            finally {if(file!=null&&photo==null) cache.release(slide.media);}
-            Bitmap ready=photo;SaverMedia decodedMedia=file!=null&&photo!=null?slide.media:null;
+            } catch (IOException | RuntimeException unavailable) {
+                // A read failure can be temporary. Keep the cache pair for a later attempt.
+            } finally {
+                if (invalid) cache.discardAfterPlaybackError(slide.media);
+                else if (file != null && photo == null) cache.release(slide.media);
+            }
+            Bitmap ready = photo;
+            SaverMedia decodedMedia = file != null && photo != null ? slide.media : null;
+            boolean rejected = invalid;
             runOnUiThread(()->{
                 if(!resumed||request!=ticket||isDestroyed()) {if(ready!=null) ready.recycle();cache.release(decodedMedia);return;}
                 if(ready!=null) {
@@ -118,7 +130,10 @@ public final class ScreensaverActivity extends Activity {
                     if(motion()) second.animate().alpha(1f).setDuration(800).setInterpolator(new android.view.animation.PathInterpolator(.22f,.61f,.36f,1f)).withEndAction(this::finishSwap).start();
                     else {second.setAlpha(1f);finishSwap();}
                     showCredit(slide.media);timer.postDelayed(advance,60000);
-                } else timer.postDelayed(advance,500);
+                } else {
+                    if (rejected) removeCurrentSlide(slide.key);
+                    timer.postDelayed(advance, 500);
+                }
             });
         });
     }
@@ -134,12 +149,36 @@ public final class ScreensaverActivity extends Activity {
             }return false;
         });
         video.setOnCompletionListener(player->{if(resumed&&request==ticket)advance.run();});
-        video.setOnErrorListener((player,what,extra)->{if(resumed&&request==ticket)timer.postDelayed(advance,500);return true;});
+        video.setOnErrorListener((player, what, extra) -> {
+            if (resumed && request == ticket) {
+                // A dead media service can fail even with a valid local file.
+                boolean discard = what != MediaPlayer.MEDIA_ERROR_SERVER_DIED;
+                stopVideo(discard);
+                if (discard) removeCurrentSlide(item.id);
+                timer.removeCallbacks(videoTimeout);
+                timer.removeCallbacks(advance);
+                timer.postDelayed(advance, 500);
+            }
+            return true;
+        });
         video.setVideoPath(file.getAbsolutePath());timer.postDelayed(videoTimeout,10000);
     }
+    private void removeCurrentSlide(String key) {
+        if (slides.size() > 1 && slides.get(index).key.equals(key)) {
+            slides.remove(index);
+            index = (index + slides.size() - 1) % slides.size();
+        }
+    }
+
     private void stopVideo() {
+        stopVideo(false);
+    }
+    private void stopVideo(boolean discard) {
         videoVisible=false;video.setOnPreparedListener(null);video.setOnCompletionListener(null);video.setOnErrorListener(null);video.setOnInfoListener(null);
-        video.stopPlayback();video.setVisibility(View.GONE);cache.release(pinnedVideo);pinnedVideo=null;first.setAlpha(1f);
+        video.stopPlayback();video.setVisibility(View.GONE);
+        if (discard) cache.discardAfterPlaybackError(pinnedVideo);
+        else cache.release(pinnedVideo);
+        pinnedVideo=null;first.setAlpha(1f);
     }
     private void showCredit(SaverMedia item) {
         credit.setText(item==null?"":item.displayTitle()+" · "+item.credit);credit.setVisibility(item==null?View.GONE:View.VISIBLE);positionClock(item!=null);
@@ -151,7 +190,14 @@ public final class ScreensaverActivity extends Activity {
     private void finishSwap() {first.setImageDrawable(second.getDrawable());first.setAlpha(1f);second.setAlpha(0f);second.setImageDrawable(null);}
     @Override protected void onPause() {
         resumed=false;++ticket;if(networkActive!=null) networkActive.set(false);timer.removeCallbacks(advance);timer.removeCallbacks(videoTimeout);
-        first.animate().cancel();second.animate().cancel();stopVideo();cache.release(pinnedPhoto);pinnedPhoto=null;super.onPause();
+        first.animate().cancel();
+        second.animate().cancel();
+        // Keep the decoded photo visible while the next request waits on resume.
+        if (second.getDrawable() != null) finishSwap();
+        stopVideo();
+        cache.release(pinnedPhoto);
+        pinnedPhoto = null;
+        super.onPause();
     }
     @Override protected void onDestroy() {decoder.shutdownNow();first.setImageDrawable(null);second.setImageDrawable(null);super.onDestroy();}
     @Override public boolean dispatchKeyEvent(KeyEvent event) {

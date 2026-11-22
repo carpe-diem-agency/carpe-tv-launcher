@@ -98,3 +98,39 @@ provenance from the planned public artifact. The signed draft workflow has
 not yet run with production signing credentials, so its actual output must
 still be checked. The LGPL combined-work and installation-information review
 remains a separate publication gate.
+
+## 0.2.31 local release with the source-built AAR · 2026-11-21
+
+Downloaded run #3 artifact `13842003990` and matched the ZIP against the
+GitHub Actions digest `d9a0e999f23b3e470648090ef4bd06232b763e9ff85d042fa3677fbd6530d21c`.
+The source bundle in that run's commit `563b24f` is byte-identical to the
+bundle in candidate source `73d7aa5`. The historical native compilation can
+therefore supply the source-built AAR for a new local relink check.
+
+Built and ran lint for Carpe TV 0.2.31 (38) offline with that AAR. The
+release runtime graph excludes the JitPack SPAKE2 module. All four native
+files in the new APK exactly match the AAR and differ from their counterparts
+in the cached JitPack-based candidate. The compiled manifest and all other ZIP
+entries except `classes.dex` and those four native files are byte-identical.
+The two AARs contain the same Java class names. Only `Spake2Role.class`
+differs at the byte level, and its member signatures and `javap -p -s -c`
+disassembly match. This comparison does not certify behavioral equivalence.
+
+The unsigned APK SHA-256 is
+`4c9d12880325170e13817193b3265d64aea74d1ae167cbc1377fec6d234b11bc`.
+The private SSD bundle `release-candidate-0.2.31-38-spake2-source` contains
+the APK, both source archives, Actions ZIP, AAR, internal update fixture and
+checksums. The new build proves packaging against this source-built AAR.
+Fresh native compilation in the final release workflow and production signing
+remain separate.
+
+The separately test-signed `agency.carpediem.tv.validation.publicpreview`
+release build used that same AAR with the update feed disabled. All four
+packaged native hashes matched the unsigned candidate. On Xiaomi TV Stick,
+the test installed this isolated build, completed Explore first and exercised
+Home, Apps and Settings. Cleanup removed the test package and verified the
+owner build's APK, preferences, Home role and accessibility state. APK SHA-256
+`e198aa00504c862ba282858315fd766ef7d33cca3497c0045733a2d251feb5a9`.
+Private evidence `release-gfxinfo-summary-relink-source-rail-0231-20261121.json`.
+This check covers launcher operation with the libraries packaged. It did
+not open the system setup wizard or exercise the SPAKE2 handshake.

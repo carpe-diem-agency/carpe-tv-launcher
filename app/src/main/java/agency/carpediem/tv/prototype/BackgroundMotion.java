@@ -9,9 +9,9 @@ import android.view.View;
 final class BackgroundMotion {
     private ImageView front, back;
     private boolean initialized;
-    BackgroundMotion(ImageView first, ImageView second, View shell) {
+    BackgroundMotion(ImageView first, ImageView second, View glow, View shell) {
         front = first; back = second;
-        shell.setTranslationZ(2); front.setTranslationZ(1); back.setTranslationZ(0);
+        shell.setTranslationZ(2); glow.setTranslationZ(1.5f); front.setTranslationZ(1); back.setTranslationZ(0);
     }
     void show(Drawable drawable, boolean animate) {
         front.animate().cancel(); back.animate().cancel();

@@ -120,3 +120,315 @@ Settings → Power was activated by tap, and the captured frame showed Home
 behind the timer. The preview package was then removed; the personal launcher
 was again foreground and the Android Home role holder. This verifies the
 direct-click path, while physical remote navigation still needs release testing.
+
+## Settings Back route — 2026-11-12
+
+When focus is inside the settings detail pane, Back now returns to the
+selected category. A second Back from the category list still returns Home.
+This matches the existing Left route and avoids losing the settings context.
+On MiTV-AFMU1, the isolated `settingsfocus` instrumentation probe passed
+rail → category → detail → Back → category → next category → detail → Left →
+category → Left → rail, then direct category activation → detail → Back to
+that same category. The probe did not change any system setting. The
+previous isolated preview APK was restored after the test; a visual check on
+the projected display is still pending.
+
+## Library search focus — 2026-11-12
+
+The isolated `libraryfocus` instrumentation probe passed on MiTV-AFMU1:
+Apps rail → first tile → search; entering the first app's full name retained
+that app in results and Down/Up moved between result and search; an unmatched
+query showed the empty-state message and kept focus in search; clearing it
+restored the grid; Down returned to the first tile and Left to the Apps rail.
+The test used the stick's installed app list and did not open
+an external app or change Android settings. It checks focus behavior, not
+keyboard appearance, search latency or projected-screen layout. The prior
+isolated preview APK was restored, the instrumentation package removed, and
+the accessibility-service setting still read `null` afterward.
+
+## Library search rendering — 2026-11-12
+
+An ADB screenshot of the isolated build exposed a gap in the focus probe:
+typing `Aerial` left an empty-looking library even though Android's view tree
+contained the matching Aerial Views tile. Moving focus down made the tile
+appear. The search change now resets the grid scroll position and invalidates
+the grid and viewport after rebuilding results. On MiTV-AFMU1, the matching
+tile remained visible while the TV keyboard was open after typing and deleting
+characters. This is a visual check on the 1920×1080 output, not a projector
+review or a guarantee for other IMEs.
+
+## Screensaver settings density — 2026-11-12
+
+On the 1920×1080 Xiaomi stick, the three-line cache explanation pushed the
+**Preview now** action partly below the visible area. D-pad Down did scroll it
+fully into view, so the route worked but the layout was unnecessarily dense.
+The cache usage and low-space state now occupy one line, and toggling online
+downloads refreshes that state immediately. An isolated preview screenshot
+showed **Preview now** fully visible; the switch-off state kept the shorter
+status. The `screensaver` instrumentation probe then passed idle boundaries,
+offline photo launch, remote dismissal and settings focus/reserve navigation.
+The test package was removed and the previous preview APK restored. The visual
+check used ADB capture; projector appearance remains to be reviewed.
+
+Selecting a new free-space reserve previously rebuilt the Screensaver pane
+and moved focus to the online-download switch. The selection now returns focus
+to **Keep free**, matching the timeout and source selectors. The isolated
+`screensaver` probe passed the reserve-choice route and confirmed the pane
+stays open with that control focused. The test package was removed and the
+previous preview APK restored after this check.
+
+## Library state after recreation — 2026-11-12
+
+The isolated `librarystate` probe exposed a lost selected tile after Activity
+recreation. The library now saves its search query, selected app and scroll
+offset, then restores focus after the cached app list arrives. The probe passed
+on MiTV-AFMU1 at 1920×1080: library, query, selected tile and scroll offset
+survived recreation. The previous preview APK was restored, the test package
+removed and accessibility services remained disabled (`null`).
+
+## Toolbar focus during app refresh — 2026-11-12
+
+App-list broadcasts rebuild Home or Library while a remote-control toolbar
+button can have focus. Focus restoration now accepts the visible replacement
+of that control, including Power, Wi-Fi, Bluetooth and Timer, as well as the
+existing app-tile path. The isolated `homefocus` probe passed on MiTV-AFMU1
+after refreshing both Home and Library with toolbar focus. It also passed the
+tile, Back and external-app return paths. The test closes the optional sleep
+confirmation before checking D-pad movement. The previous preview APK was
+restored, the test package removed and accessibility services remained `null`.
+
+## Settings category selection — 2026-11-12
+
+Opening a category directly could display its controls while leaving the
+previous category visually selected. Both D-pad focus and direct activation now
+update the selected category. The isolated `settingsfocus` probe activated a
+different category, checked that the old highlight cleared, navigated into its
+controls, then returned with Back. It passed on MiTV-AFMU1. The earlier preview
+APK was restored and the test instrumentation removed afterward. This does not
+replace a projector visual review of the settings screen.
+
+## App catalog loading and empty states — 2026-11-12
+
+Before the first package scan finishes, Home and All apps now display quiet,
+nonfocusable tile placeholders instead of claiming there are no apps. A
+completed empty catalog has its own message; a failed scan has a retry button.
+Search still uses its separate no-match message after loading. The isolated
+preview built successfully, and the `libraryfocus` and `librarystate` probes
+passed on MiTV-AFMU1: grid navigation, search, focus, and scroll restoration.
+The transient loading and error states were not visually captured on the
+projector. The previous preview APK was restored, test instrumentation removed,
+and accessibility services remained disabled (`null`).
+
+## Library context across pages — 2026-11-12
+
+Leaving All apps used to clear its search query. The library now retains the
+query and scroll position when the viewer visits Home or Settings and returns.
+The extended `librarystate` probe passed on MiTV-AFMU1: search, scroll, and
+selected tile survived a Home → All apps round trip, and the selected tile and
+state survived Activity recreation. The `libraryfocus` search and D-pad probe
+also passed. The test instrumentation was removed and the previous preview APK
+restored. System Home integration remains paused separately.
+
+## Repeated blue-background transition work — 2026-11-12
+
+The isolated preview was using the built-in blue gradient. Each page change
+recreated that same full-screen drawable and crossfaded it with itself. The
+background key now stays constant across pages for blue and plain wallpapers;
+photo wallpapers still keep their distinct Home, Apps and Settings treatments.
+
+On MiTV-AFMU1 the same 36-change `NavigationProbe` measured page p95 52.17 ms
+before the change (316 frames). A second run with an unrelated photo-only
+experiment still using blue measured 48.74 ms (314 frames); that experiment was
+discarded. With repeated blue transitions removed, two runs measured 42.05 ms
+(293 frames) and 41.82 ms (290 frames). The focus-navigation probe passed in
+both optimized runs, with focus p95 15.70 and 14.83 ms. This supports removing
+redundant full-screen work; it is not a claim of stable 60 fps, and the
+projector view of photo wallpapers was not part of this check. The previous
+preview APK was restored and test instrumentation removed afterward.
+
+## Library context during app-list updates — 2026-11-12
+
+An app-list update rebuilt All apps and previously reset its scroll position.
+The page now captures its current scroll offset before rebuilding, then restores
+it after layout while keeping focus on the selected app. The isolated
+`librarystate` probe on MiTV-AFMU1 simulated a changed catalog with a nonzero
+scroll offset; query, scroll and focus passed after page return, Activity
+recreation and catalog update. This checks the refresh handler, not a real
+package install or uninstall broadcast. The previous 0.2.8 preview APK was
+restored, test instrumentation removed, and accessibility remained disabled.
+
+## Search artwork queue — 2026-11-12
+
+Rapid search edits used to leave icon-loading tasks queued for tiles removed by
+earlier queries. Each grid rebuild now invalidates those tasks, so only the
+current query can bind artwork to its tiles. The isolated `libraryfocus` probe
+exercised rapid matching, no-match and partial queries on MiTV-AFMU1; the final
+results and D-pad focus passed. The `librarystate` probe also passed. This is a
+work-avoidance fix; no before/after frame-time improvement is claimed.
+
+## Empty-search D-pad boundary — 2026-11-12
+
+The isolated `libraryfocus` probe now presses Down after a query with no app
+matches, in addition to checking the empty message and clearing the query.
+On MiTV-AFMU1, focus stayed in the search field and returned to the first
+app after clearing the query. No product-code change was needed. The previous
+isolated preview APK was restored and the test package removed.
+
+## Wallpaper gallery entry — 2026-11-12
+
+Opening Appearance now scrolls the gallery to the selected wallpaper and
+places D-pad focus on that thumbnail when entering the detail pane. On the
+MiTV-AFMU1 isolated preview, the wallpaper probe passed all five gallery
+choices, left/right focus, selection, rapid switches and restart persistence.
+The selected Blue card was fully visible on a 1920 × 1080 screenshot, with
+the preceding card and its caption also visible. The previous preview APK was
+restored after this check; no Home or system-service settings were changed.
+
+## About screen hierarchy — 2026-11-12
+
+The About header now shows the app version and company as two compact rows.
+The plain-text website address was removed because the next action already
+opens that site. On the MiTV-AFMU1 isolated preview at 1920 × 1080, the
+feedback, source, website and updates actions were visible without scrolling.
+`FeedbackProbe` passed D-pad entry from About, all three rendered Issue QR
+targets and Back returning focus to Feedback. The previous preview APK was
+restored after the check; Home and system services were not changed.
+
+## Dialog bounds at 720p — 2026-11-12
+
+The launcher dialogs now cap their width to the available screen width with
+16 dp side margins. The screensaver choice list also caps its height to leave
+room for the heading, Cancel action and outer margins. In the isolated preview
+on MiTV-AFMU1, a temporary 1280 × 720 logical-size capture showed the full
+screensaver dialog, including the last option and Cancel, without clipping.
+The selected option remained visibly focused. Android's 1920 × 1080 override
+was restored and read back after the capture. This verifies layout on one
+device at two logical sizes; other TV densities still need release testing.
+
+## Home, library and settings at 720p — 2026-11-12
+
+The current isolated preview was checked on MiTV-AFMU1 with a temporary
+1280 × 720 logical size. The `libraryfocus` probe passed rail, matching and
+empty search, and return to the app grid. The `settingsfocus` probe passed
+rail, category, detail, Back and Left routes. The `wallpapers` probe passed
+all five choices, D-pad scrolling, selection, rapid switches and persistence
+after Activity restart. Its reported native heap was 73,268,192 bytes; this
+single reading is not a peak-memory measurement.
+
+The captured Settings screen showed the selected Blue wallpaper and its
+caption fully in view, with the other visible cards and controls within the
+720p viewport. A Home capture immediately after changing display size showed
+the transient Android resolution warning; a settled capture showed Carpe TV
+Home and all five favorite tiles. The initial warning frame is not counted as
+the launcher layout. The Apps capture from the earlier 0.2.8 preview was not
+used as evidence for the current branch; its focus behavior was covered by
+the current instrumentation probe.
+
+After testing, the 1920 × 1080 override was restored, the previous 0.2.8
+isolated preview APK reinstalled, and the instrumentation package removed.
+Accessibility services remained disabled (`null`). This check did not exercise
+physical Home routing, which is paused separately.
+
+## Settings focus after Activity recreation — 2026-11-12
+
+Settings already saved the selected category but did not save which control
+held focus. The Activity now saves whether focus was in the category list or
+detail pane and, for the detail pane, its focusable control position. It
+restores that position after the rebuilt pane is attached, falling back to
+the first category control if the old position is no longer available. The
+language selector retains its existing, more specific focus restoration.
+
+On MiTV-AFMU1 the isolated `settingsfocus` probe entered Screensaver, focused
+the source control, recreated the Activity and found the same control focused
+on the rebuilt Settings page. The `languagestate` probe also passed: changing
+language still returns focus to the language selector. Debug build and lint
+passed. The previous 0.2.8 isolated preview APK was restored and the test
+package removed after each probe. This checks Activity recreation; process
+death and a full device restart remain separate scenarios.
+
+## Language choice dialog — 2026-11-12
+
+The language selector now uses the same bounded choice sheet as the other
+Settings selectors. It shows the active option with the shared check badge,
+focus style and dialog transition. On the MiTV-AFMU1 isolated preview at
+1920 × 1080, an ADB capture showed System default, Українська, English and
+Cancel fully visible. One Back press closed the sheet and left Settings open.
+The existing `languagestate` probe passed recreation and language-focus
+restoration. This check did not change the selected language. Afterward the
+previous 0.2.8 preview APK was restored and test instrumentation removed.
+
+## Text notice dialog experiment — 2026-11-12
+
+An isolated preview replaced the stock Screensaver credits dialog and reused
+the same styled container for long license notices. Build and lint passed. A
+1920 × 1080 capture showed the short credits panel fitting its contents and
+the Apache-2.0 notice scrolling. However, pressing D-pad Up in the license
+dialog moved focus to Home behind the dialog. Switching the container from a
+plain Dialog to AlertDialog and intercepting D-pad keys did not prevent the
+focus escape in the ADB test. The UI experiment was reverted rather than
+shipping a navigation regression. The previous 0.2.8 isolated APK was
+reinstalled; Home and system-service settings were not changed. A future
+dialog redesign must prove that focus stays inside the modal on a real remote
+before replacing the current notice UI.
+
+## License notice focus correction — 2026-11-12
+
+The same D-pad Up behavior also reproduced in the unchanged 0.2.8 isolated
+preview, so it was an existing focus bug, not caused by the notice redesign.
+When Android left touch mode, the Activity's Home rail gained focus behind the
+modal. Its focus listener treated that event as navigation and opened Home.
+The license dialog now marks itself active before showing; the rail ignores
+focus events until it closes, then returns focus to the notice action in
+Settings. On MiTV-AFMU1, an ADB touch-to-D-pad test kept the Settings content
+behind the Apache-2.0 notice, and Back closed it with the license action
+focused. Build and lint passed. This corrects the tested notice path; the
+styled notice redesign remains deferred.
+
+Follow-up: focus restoration now waits for the Activity window to regain
+focus after the modal closes. The manual ADB touch, D-pad Up, Back sequence
+still returned to the Apache action. An attempted instrumentation probe could
+not reliably tap the notice action from its test process, so it was removed;
+the manual device sequence remains the evidence for this path.
+
+## Feedback dialog focus and fit — 2026-11-12
+
+The 0.2.8 isolated preview reproduced a focus escape: after opening Report a
+problem with an ADB tap, Back followed by D-pad Up selected Home instead of
+continuing within Settings. The current branch now restores focus to the
+Feedback action after the Activity window regains focus, using the same
+modal guard as license notices. On the MiTV-AFMU1, Back left the Feedback
+action visibly focused; the next Up moved to the previous Settings category
+without opening Home.
+
+The subsequent Settings focus correction changes that last route: Up from
+the first detail action now focuses the header power control, and Down returns
+to that action. It no longer switches categories as a side effect.
+
+The feedback panel also exceeded the 1920 × 1080 viewport, clipping its
+Close button. Its QR size now adapts to the display height, and the panel
+can scroll on shorter displays. A device capture at 1920 × 1080 showed the
+topic choices, QR, Open on TV and Close buttons fully visible. Debug build
+and lint passed. The QR scan itself and 720p presentation were not retested
+in this pass.
+
+## Settings detail to header focus — 2026-11-12
+
+On the MiTV-AFMU1 isolated preview, About → Feedback → Back left Feedback
+focused. D-pad Up focused the header power control while About remained
+selected. D-pad Down returned to Feedback. The first Settings category keeps
+its vertical navigation boundary instead of crossing into the right-side
+header. Debug build and lint passed at
+1920 × 1080. Other Settings detail categories were not individually tested
+with the remote in this pass.
+
+Follow-up on the same stick: starting with focus on the Home rail, D-pad Down
+twice selected Settings, Right selected the first Settings category, and Up
+kept focus there. This verifies the left column's upper boundary without
+mixing ADB touch input with D-pad focus. The isolated 0.2.8 preview was used;
+the earlier touch-only attempt had retained focus on the Home rail and was
+not valid evidence for the category route.
+
+The `settingsfocus` device probe now covers this boundary and the
+detail → header → same detail round trip, including a selected wallpaper
+that is not the first card. On MiTV-AFMU1 it passed with Back, Left, direct
+category activation and Activity recreation checks. Build and lint passed.

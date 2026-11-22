@@ -1,5 +1,11 @@
 # Isolated first-run check
 
+## Xiaomi · 0.2.51 (58) · 2026-11-22
+
+Свіже встановлення ізольованої debug збірки відкрило привітання з фокусом на «Спершу оглянути». Back закрив вікно без запису вибору. Наступний запуск Activity знову показав привітання. D-pad OK на підтвердженій кнопці «Спершу оглянути» зберіг вибір, а третій запуск залишив фокус на внутрішній «Головній» без привітання. Один Down відкрив «Програми». Власний тестовий пакет прибрано й стан основної збірки звірено. Доказ `validation-probes-summary-first-run-guarded-0251.json`.
+
+## Історична перевірка · 2026-11-11
+
 Tested on Xiaomi MiTV-AFMU1, Android TV 14, with a 1920×1080 UI at 320 dpi.
 The test APK used `-PisolatedPreview`, which adds `.publicpreview` to the
 application ID. It installed beside the personal Carpe TV build. After

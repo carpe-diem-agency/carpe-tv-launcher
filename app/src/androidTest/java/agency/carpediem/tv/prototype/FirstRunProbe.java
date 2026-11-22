@@ -4,52 +4,88 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.view.KeyEvent;
+import android.view.View;
+import android.widget.Button;
+import java.util.HashMap;
+import java.util.Map;
 
-/** Runs only against the isolated preview package, never a selected Home app. */
+/** First-run dismissal and opt-in on the isolated validation package. */
 final class FirstRunProbe {
-    static void run(Instrumentation test, Bundle result) {
+    static void run(Instrumentation test, Bundle result) throws Exception {
+        if (!"agency.carpediem.tv.validation.publicpreview".equals(test.getTargetContext().getPackageName())) {
+            throw new IllegalStateException("First run requires the disposable validation package");
+        }
         test.setInTouchMode(false);
         SharedPreferences preferences = test.getTargetContext()
                 .getSharedPreferences(MainActivity.class.getName(), 0);
-        boolean previous = preferences.getBoolean("welcome_seen", false);
+        Map<String, ?> saved = new HashMap<>(preferences.getAll());
+        MainActivity screen = null;
         try {
-            preferences.edit().remove("welcome_seen").commit();
-            MainActivity first = launch(test);
-            require(!hasFocus(test, first), "Welcome dialog did not take window focus");
+            require(preferences.edit().remove("welcome_seen").commit(), "Prepare first-run preference");
+            screen = launch(test);
+            awaitExplore(test, screen);
             test.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
-            SystemClock.sleep(250);
-            require(!preferences.getBoolean("welcome_seen", false), "Back marked welcome complete");
-            test.runOnMainSync(first::finish);
-            MainActivity second = launch(test);
-            require(!hasFocus(test, second), "Welcome dialog did not reappear after Back");
-            test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
+            awaitMainWindow(test, screen);
+            require(!preferences.contains("welcome_seen"), "Back marked welcome complete");
+            close(test, screen);
+            screen = launch(test);
+            awaitExplore(test, screen);
+            // Only the verified Explore button may receive the activation key.
             test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
-            SystemClock.sleep(250);
-            require(preferences.getBoolean("welcome_seen", false), "Explore choice was not persisted");
-            test.runOnMainSync(second::finish);
-            MainActivity third = launch(test);
-            require(hasFocus(test, third), "Welcome dialog reappeared after explicit choice");
-            result.putString("first_run", "PASS: Back re-prompts; explicit choice persists across cold launch");
-            test.runOnMainSync(third::finish);
+            awaitMainWindow(test, screen);
+            require(preferences.getBoolean("welcome_seen", false), "Explore first was not persisted");
+            close(test, screen);
+
+            screen = launch(test);
+            awaitMainWindow(test, screen);
+            MainActivity relaunched = screen;
+            View home = relaunched.findViewById(R.id.nav_home);
+            SettingsStructureProbe.await(test, () -> home.isSelected() && home.hasFocus(),
+                    "Relaunch did not focus the internal Home rail");
+            test.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN);
+            SettingsStructureProbe.await(test, () -> relaunched.findViewById(R.id.nav_apps).isSelected()
+                    && relaunched.findViewById(R.id.apps_grid) != null, "Down did not open the app library");
+            result.putString("first_run",
+                    "PASS: Back leaves welcome pending; verified Explore persists across Activity relaunch, Down opens Apps");
         } finally {
-            preferences.edit().putBoolean("welcome_seen", previous).commit();
+            try {
+                if (screen != null) close(test, screen);
+            } finally {
+                SettingsStructureProbe.restore(preferences, saved);
+            }
         }
     }
 
     private static MainActivity launch(Instrumentation test) {
-        MainActivity screen = (MainActivity) test.startActivitySync(
+        return (MainActivity) test.startActivitySync(
                 new Intent(test.getTargetContext(), MainActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-        SystemClock.sleep(600);
-        return screen;
     }
 
-    private static boolean hasFocus(Instrumentation test, MainActivity screen) {
-        boolean[] value = {false};
-        test.runOnMainSync(() -> value[0] = screen.hasWindowFocus());
-        return value[0];
+    private static void awaitExplore(Instrumentation test, MainActivity screen) throws Exception {
+        String explore = screen.getString(R.string.welcome_explore);
+        SettingsStructureProbe.await(test, () -> {
+            View modal = welcome(screen);
+            View focus = modal == null ? null : modal.findFocus();
+            return modal != null && modal.hasWindowFocus() && focus instanceof Button && focus.isEnabled()
+                    && focus.isShown() && explore.contentEquals(((Button) focus).getText());
+        }, "Welcome did not focus Explore first");
+    }
+
+    private static void awaitMainWindow(Instrumentation test, MainActivity screen) throws Exception {
+        SettingsStructureProbe.await(test, () -> screen.hasWindowFocus() && welcome(screen) == null,
+                "Main did not own focus after welcome");
+    }
+
+    private static View welcome(MainActivity screen) {
+        return ModalFocusProbe.ownedModal(screen, screen.getString(R.string.welcome_title),
+                screen.getString(R.string.welcome_explore));
+    }
+
+    private static void close(Instrumentation test, MainActivity screen) throws Exception {
+        SettingsStructureProbe.finish(test, screen);
+        SettingsStructureProbe.quiescent(test, screen);
     }
 
     private static void require(boolean condition, String message) {

@@ -1,5 +1,24 @@
 # Runtime dependency audit for the public APK
 
+## Local candidate 0.2.31 (38) · 2026-11-21
+
+Re-ran `:app:dependencies --configuration releaseRuntimeClasspath --offline`
+on the exact app/build inputs used by `73d7aa5`. The resolved runtime versions
+match the table below and the notice embedded in the APK. Gradle resolved the
+requested Bouncy Castle provider 1.81 to 1.86 and Shizuku's requested AndroidX
+Annotation 1.3.0 to 1.9.1. Kotlin stdlib 1.9.24 comes from Annotation JVM.
+
+Compared APK entries with the resolved cached AARs. All four ABI variants of
+`libconscrypt_jni.so` and all four of `libspake2.so` matched byte for byte.
+`check_release_apk.py` also matched all six required license texts and both
+notices against the source. Evidence for this check is the unsigned APK at
+`release-candidate/0.2.31-38/` and the private
+`release-dependency-inventory-0231-offline.log` in the active runtime.
+The SPAKE2 source rebuild, production APK and distribution review still have
+separate acceptance checks.
+
+## Historical inventory · 2026-11-11
+
 Checked against `:app:dependencies --configuration releaseRuntimeClasspath` and
 `app-release-unsigned.apk` on 2026-11-11. This is an inventory, not a legal
 clearance or a complete software bill of materials.

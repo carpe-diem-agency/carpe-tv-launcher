@@ -21,7 +21,8 @@ vectors form the current visual system.
   force a global display resolution. Test captures are 1920×1080; 4K output and
   other aspect ratios require separate device validation.
 
-Source of truth for sizes/colors: `app/src/main/res/values/design_tokens.xml`.
+Shared size/color tokens live in `app/src/main/res/values/design_tokens.xml`.
+This is not yet an exhaustive replacement of component-specific literals.
 Do not add a new visual/focus convention per page. New features must preserve
 D-pad routes, legibility at viewing distance and bounded bitmap memory.
 
@@ -32,3 +33,27 @@ contains System default / Українська / English; selection affects this
 returns focus to the language row after recreation. Third-party names/system dialogs
 remain device-owned. The updater uses the same Montserrat/surface/focus vocabulary,
 with a scrolling panel and bounded descriptions. The app label is Carpe TV.
+
+## Shared-token extraction checkpoint — 2026-11-15
+
+Candidate 0.2.18 (25) centralizes exact existing secondary/link/body text
+colors (`cd_text_secondary` #B9C7DC, `cd_text_link` #B9D5FF,
+`cd_text_body` #D8E4F3), modal surface (`cd_modal_surface` #172337),
+control radius14dp and focus/default strokes2dp/1dp. Seven affected source/
+resource files preserve their prior values and XML units; fonts, timing
+and behavior were not normalized. Distinct component colors and legacy
+programmatic raw-pixel radii are intentionally preserved, pending separate
+visual review. Remaining updater motion/style observations are unverified.
+
+Independent `tools/verify_design_tokens.py` equivalence PASS compares full
+normalized Main/Updates code, resolved XML, existing tokens and baseline
+SHA against the SSD seven-file manifest. A negative control changed one
+channel #B9C7DC→#B9C7DD in an SSD copy and correctly failed. Evidence:
+`/Volumes/CarpeTVBuild/design-token-equivalence-20261115/report.json` and
+`negative-color-report.json` alongside it. This proves scoped value
+equivalence, not a complete DS1 audit or perceived visual correctness.
+
+SDK validation and main builds passed; lint0errors72warnings. Candidate25
+has not been installed: last verified main22, device unavailable and old
+interrupted-modal cleanup not proven. Runtime/visual verification remains
+pending; do not infer it from source equivalence or compilation.

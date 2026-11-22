@@ -41,23 +41,28 @@ cd /path/to/carpe-tv-launcher
 ```
 
 The resulting `app/build/outputs/apk/release/app-release-unsigned.apk` is
-**not installable** until signed. Before signing, compare the four
-`jni/<ABI>/libspake2.so` entries in the AAR with the corresponding
-`lib/<ABI>/libspake2.so` entries in the APK. The source-build workflow performs
-this byte-for-byte check and fails if an ABI is missing or differs. The
-workflow's optional `modified_probe` also verifies that a test source edit
-survives into all four APK libraries. Run
-`python3 scripts/check_release_apk.py app/build/outputs/apk/release/app-release-unsigned.apk`
-to check packaged artwork and license files.
+**not installable** until signed. Verify the packaged libraries and assets:
+
+```sh
+python3 scripts/verify_spake2_relink.py \
+  /path/to/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar \
+  app/build/outputs/apk/release/app-release-unsigned.apk
+python3 scripts/check_release_apk.py app/build/outputs/apk/release/app-release-unsigned.apk
+```
+
+The verifier compares the native binaries for all four ABIs byte for byte.
+The signed-release workflow uses the same verifier after signing. The
+source-build workflow can also check a test-only marker from modified source.
 
 Sign with your own key using Android's `apksigner`, then run
 `apksigner verify --verbose modified-carpe-tv.apk`. Android requires signed
 APKs; an APK signed with a different key cannot update the official package
-in place. For a side-by-side functional test, build with
-`-PisolatedPreview` too, which adds `.publicpreview` to the application ID.
-For the ordinary application ID, removing an existing differently signed app
-may also remove its settings. Keep the stock Home launcher available while
-testing a modified build.
+in place. Before a side-by-side test, verify the actual APK application ID is
+unused on the test device. `-PisolatedPreview` produces
+`agency.carpediem.tv.publicpreview`, which may already be someone's personal
+launcher. In that case, use a separate test device or build the modified APK
+with a distinct application ID. Leave any existing launcher's APK and app data
+in place. Keep the stock Home launcher available while testing a modified build.
 
 The [source record](SPAKE2_SOURCE.md) documents successful clean-runner builds,
 all four library matches, and an isolated signed device test using a modified

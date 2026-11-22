@@ -25,7 +25,10 @@ queries rather than QUERY_ALL_PACKAGES. The updater requests INTERNET and REQUES
 microphone, camera, location or broad storage permissions. The public build
 contains no Accessibility service.
 
-Build dependencies: Gradle 9.8.2, Android Gradle Plugin 9.5.0, JDK 17, compile/target SDK 34 (Build Tools 36). Built-in Kotlin is disabled for this Java-only application to avoid adding Kotlin runtime dependencies.
+Build dependencies: Gradle 9.9.0, Android Gradle Plugin 9.5.1, JDK 17,
+compile/target SDK 34 (Build Tools 36). The launcher is written in Java and
+disables AGP's built-in Kotlin plugin. The release runtime still contains a
+transitive Kotlin standard library from AndroidX Annotation JVM.
 Wrapper distribution SHA-256 is pinned. GitHub Actions are pinned to commit SHAs.
 CI and release workflows use different, minimal token permissions.
 

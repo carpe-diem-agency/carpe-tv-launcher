@@ -12,16 +12,27 @@ manifest = json.loads(pathlib.Path(sys.argv[2]).read_text())
 version = manifest.get('versionName')
 if not isinstance(version, str) or not re.fullmatch(r'[0-9]+(?:\.[0-9]+){2}', version):
     raise SystemExit('invalid release versionName')
+releases = 'https://github.com/carpe-diem-agency/carpe-tv-launcher/releases'
+release_url = f'{releases}/tag/v{version}'
+apk_url = f'{releases}/download/v{version}/carpe-tv.apk'
+if manifest.get('apkUrl') != apk_url:
+    raise SystemExit('update.json APK URL does not match the release version')
 html = page.read_text()
 old = '<html lang="uk" data-release-ready="false">'
 if html.count(old) != 1:
     raise SystemExit('missing preview page marker')
 html = html.replace(old, '<html lang="uk" data-release-ready="true">')
 metadata_end = ',"url":"https://carpe-diem-agency.github.io/carpe-tv-launcher/"}'
-download = ',"downloadUrl":"https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"'
-if html.count(metadata_end) != 1 or download in html:
+download = ',"downloadUrl":' + json.dumps(apk_url)
+if html.count(metadata_end) != 1 or '"downloadUrl"' in html:
     raise SystemExit('unexpected structured download metadata')
 html = html.replace(metadata_end, download + metadata_end)
+latest_apk = f'href="{releases}/latest/download/carpe-tv.apk"'
+latest_release = f'href="{releases}/latest"'
+if html.count(latest_apk) != 2 or html.count(latest_release) != 4:
+    raise SystemExit('unexpected preview release links')
+html = html.replace(latest_apk, f'href="{apk_url}"')
+html = html.replace(latest_release, f'href="{release_url}"')
 old_description = 'Ознайомся з проєктом і підготовкою релізу.'
 if html.count(old_description) != 1:
     raise SystemExit('unexpected preview description')

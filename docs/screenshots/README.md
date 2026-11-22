@@ -1,12 +1,11 @@
 # Screenshots
 
-The current install-page previews are `docs/assets/home-preview.jpg` and
-`docs/assets/settings-preview.jpg`, captured from an isolated public APK
-on MiTV-AFMU1 at 1920×1080. The Home preview was recaptured from the 0.2.8
-isolated debug build on 2026-11-11 to show one timer control in the toolbar;
-the Settings preview remains an earlier capture. They contain
-no addresses, pairing codes, camera views, or personal analytics. The library
-capture is deliberately excluded because it shows apps installed by the owner.
+The install-page Home and Settings previews were captured from the isolated
+non-debuggable Carpe TV 0.2.44 (51) build on MiTV-AFMU1 at 1920×1080 and
+scaled to 1280×720. Home shows the new default blue wallpaper and the
+launcher’s initial favorites. Settings shows Appearance & sound with the
+blue wallpaper selected. The captures exclude personal account screens,
+device identifiers and the installed-app catalog.
 
 The comparison also uses `docs/assets/google-tv-home-test-stick.png`, a real
 1920×1080 capture of the stock Google TV Home on the same MiTV-AFMU1. It shows

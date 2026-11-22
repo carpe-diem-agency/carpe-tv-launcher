@@ -15,7 +15,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 MEDIA = {'.jpg', '.jpeg', '.png', '.webp'}
 PRIVATE = ROOT / 'app/src/debug/res'
 NATURE = ROOT / 'app/src/main/res/drawable-nodpi'
+RAW = ROOT / 'app/src/main/res/raw'
 REQUIRED = {'wallpaper_alpine.jpg', 'wallpaper_aurora.jpg', 'wallpaper_como.jpg'}
+REQUIRED_SOUNDS = {'ui_click.wav', 'ui_focus.wav'}
 REQUIRED_LICENSES = {
     'Apache-2.0.txt',
     'GPL-3.0.txt',
@@ -37,6 +39,14 @@ KNOWN_PRIVATE_HASHES = {
 }
 
 
+def validate_apk_zip(path):
+    try:
+        with zipfile.ZipFile(path) as archive:
+            if archive.testzip() is not None:
+                raise ValueError('CRC mismatch')
+    except Exception:
+        raise RuntimeError('APK ZIP integrity check failed') from None
+
 def digest(data):
     return hashlib.sha256(data).hexdigest()
 
@@ -47,9 +57,16 @@ def source_hashes(directory):
 
 
 def check(apk):
+    try:
+        validate_apk_zip(apk)
+    except RuntimeError:
+        print("FAIL: APK ZIP integrity check failed", file=sys.stderr)
+        return 1
     private = source_hashes(PRIVATE)
     nature = {digest((NATURE / name).read_bytes()): name for name in REQUIRED}
+    sounds = {digest((RAW / name).read_bytes()): name for name in REQUIRED_SOUNDS}
     found_nature = set()
+    found_sounds = set()
     errors = []
     with zipfile.ZipFile(apk) as archive:
         for name in sorted(REQUIRED_LICENSES | REQUIRED_NOTICES):
@@ -60,7 +77,15 @@ def check(apk):
             elif archive.read(packaged) != source.read_bytes():
                 errors.append(f'Packaged license/notice differs from source: {name}')
         for member in archive.infolist():
-            if member.is_dir() or pathlib.PurePosixPath(member.filename).suffix.lower() not in MEDIA:
+            if member.is_dir():
+                continue
+            suffix = pathlib.PurePosixPath(member.filename).suffix.lower()
+            if suffix == '.wav':
+                sound = sounds.get(digest(archive.read(member)))
+                if sound is not None:
+                    found_sounds.add(sound)
+                continue
+            if suffix not in MEDIA:
                 continue
             fingerprint = digest(archive.read(member))
             if fingerprint in private or fingerprint in KNOWN_PRIVATE_HASHES:
@@ -69,10 +94,13 @@ def check(apk):
                 found_nature.add(nature[fingerprint])
     for name in sorted(REQUIRED - found_nature):
         errors.append(f'Redistributable default photo missing from APK: {name}')
+    for name in sorted(REQUIRED_SOUNDS - found_sounds):
+        errors.append(f'Required interface sound missing or changed in APK: {name}')
     if errors:
         print('\n'.join(errors), file=sys.stderr)
         return 1
     print(f'Release artifact checks passed: {len(found_nature)} nature photos, '
+          f'{len(found_sounds)} interface sounds, '
           f'{len(REQUIRED_LICENSES)} required license texts, '
           f'{len(REQUIRED_NOTICES)} notices, no known private artwork.')
     return 0

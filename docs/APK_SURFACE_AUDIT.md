@@ -1,5 +1,26 @@
 # APK permissions and components
 
+## Local candidate 0.2.31 (38) · 2026-11-21
+
+Checked the unsigned `agency.carpediem.tv` candidate from `73d7aa5` with
+`aapt dump badging`, `permissions` and `xmltree`. APK SHA-256
+`8af89d6161e56e9304da19b8c853efad136cc0562730ad26c628b578fdef5919`.
+The compiled manifest equals 0.2.30 (37) after removing version code/name and
+source-line annotations. Min SDK 26, target and compile SDK 34. Backup is
+disabled. The four requested permissions are listed below.
+
+- The TV launcher activity and download-complete receiver are exported. The
+  exported Home alias is disabled by default. The exported Shizuku provider
+  requires `android.permission.INTERACT_ACROSS_USERS_FULL`.
+- The sleep receiver, setup activity, screensaver, updates activity and
+  installer callback receiver are private. The manifest contains no
+  Accessibility service.
+
+This is an inventory of the exact build. Production signing and runtime
+permission behavior have separate acceptance checks.
+
+## Historical inventory · 0.2.8 (15)
+
 Inspected the built `app-release-unsigned.apk` with Android build-tools `aapt`
 on 2026-11-11. The artifact is Carpe TV `agency.carpediem.tv`, version
 `0.2.8` (code 15), min SDK 26, target SDK 34, approximately 16 MB. This is

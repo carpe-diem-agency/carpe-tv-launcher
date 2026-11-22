@@ -13,7 +13,7 @@
   <meta property="og:description" content="Те, що любиш дивитись, поруч. Улюблені програми, пошук і заставка в легкому лаунчері для пульта.">
   <meta property="og:url" content="https://carpe-diem-agency.github.io/carpe-tv-launcher/">
   <meta property="og:image" content="https://carpe-diem-agency.github.io/carpe-tv-launcher/assets/home-preview.jpg">
-  <meta property="og:image:alt" content="Головний екран Carpe TV з улюбленими програмами на гірському фоні">
+  <meta property="og:image:alt" content="Головний екран Carpe TV з улюбленими програмами на синьому фоні">
   <meta property="og:image:width" content="1920">
   <meta property="og:image:height" content="1080">
   <meta name="twitter:card" content="summary_large_image">
@@ -103,9 +103,11 @@
     [data-release-ready="false"] .release-only, [data-release-ready="true"] .preview-only { display: none !important; }
     .steps { padding: clamp(27px, 3vw, 45px); border: 1px solid var(--edge); border-radius: 30px; background: var(--surface); box-shadow: 0 24px 80px rgba(1, 8, 18, .35); backdrop-filter: blur(24px); }
     .steps h2 { margin: 0 0 22px; font-size: clamp(28px, 2.5vw, 40px); line-height: 1.15; letter-spacing: -.04em; }
-    ol { list-style: none; counter-reset: steps; padding: 0; margin: 0; }
-    .steps li { counter-increment: steps; display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; column-gap: 16px; padding: 19px 0; border-top: 1px solid var(--edge); font-size: clamp(17px, 1.45vw, 22px); line-height: 1.42; }
-    .steps li::before { content: counter(steps); display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid rgba(255,255,255,.36); border-radius: 11px; font-size: 17px; font-weight: 700; line-height: 1; }
+    .steps ol { list-style: none; counter-reset: steps; padding: 0; margin: 0; }
+    .steps li { padding: 19px 0; border-top: 1px solid var(--edge); font-size: clamp(17px, 1.45vw, 22px); line-height: 1.42; }
+    .steps ol li { counter-increment: steps; display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; column-gap: 16px; }
+    .steps ul { list-style: none; padding: 0; margin: 0; }
+    .steps ol li::before { content: counter(steps); display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid rgba(255,255,255,.36); border-radius: 11px; font-size: 17px; font-weight: 700; line-height: 1; }
     .aside { margin: 18px 0 0; color: var(--muted); font-size: clamp(15px, 1.1vw, 18px); line-height: 1.5; }
     .showcase { padding: 52px 0 58px; }
     .showcase h2 { margin: 0 0 10px; font-size: clamp(29px, 3vw, 46px); letter-spacing: -.04em; }
@@ -154,17 +156,33 @@
     [hidden] { display: none !important; }
     @media (max-width: 850px) {
       .frame { gap: 44px; }
-      main { grid-template-columns: 1fr; gap: 46px; }
+      main { grid-template-columns: minmax(0, 1fr); gap: 46px; }
       .intro { padding-top: 28px; }
       h1 { max-width: 15ch; }
       .lead { margin-bottom: 30px; }
-      .showcase-grid { grid-template-columns: 1fr; }
+      .showcase-grid { grid-template-columns: minmax(0, 1fr); }
       .compare-grid { grid-template-columns: 1fr; }
       .benefits { grid-template-columns: 1fr; }
       .trust-grid { grid-template-columns: 1fr; }
       .device-row { grid-template-columns: 1fr auto; gap: 8px 14px; }
       .device-row span { grid-column: 1; }
       .device-state { grid-column: 2; grid-row: 1 / span 2; }
+    }
+    @media (max-width: 520px) {
+      .frame { padding-inline: clamp(16px, 5vw, 24px); }
+      header { gap: 12px; }
+      .brand { gap: 9px; }
+      .brand-mark { width: 32px; height: 32px; }
+      .languages button { padding: 8px 11px; }
+      .primary-actions { width: 100%; gap: 10px; }
+      .download { flex: 1; min-width: 0; flex-wrap: wrap; gap: 5px 9px; min-height: 58px; padding: 12px; font-size: 18px; }
+      .download svg { width: 22px; height: 22px; }
+      .github-link { width: 58px; min-height: 58px; border-radius: 16px; }
+      .github-link svg { width: 25px; height: 25px; }
+      .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .device-row { grid-template-columns: minmax(0, 1fr); }
+      .device-state { grid-column: 1; grid-row: auto; justify-self: start; }
+      footer { flex-wrap: wrap; gap: 12px; }
     }
     /* TV browsers often expose a 960 × 540 CSS viewport on a 1920 × 1080 output. */
     @media (min-width: 851px) and (max-height: 700px) {
@@ -182,8 +200,9 @@
       .secondary { font-size: 14px; }
       .steps { padding: 20px 22px; border-radius: 20px; }
       .steps h2 { margin-bottom: 10px; font-size: 24px; }
-      .steps li { grid-template-columns: 26px minmax(0, 1fr); column-gap: 10px; padding: 9px 0; font-size: 15px; line-height: 1.3; }
-      .steps li::before { width: 25px; height: 25px; border-radius: 8px; font-size: 13px; }
+      .steps li { padding: 9px 0; font-size: 15px; line-height: 1.3; }
+      .steps ol li { grid-template-columns: 26px minmax(0, 1fr); column-gap: 10px; }
+      .steps ol li::before { width: 25px; height: 25px; border-radius: 8px; font-size: 13px; }
       .aside { margin-top: 8px; font-size: 12px; line-height: 1.3; }
       footer { padding-top: 8px; font-size: 11px; }
     }
@@ -210,11 +229,12 @@
         <p class="lead">Легкий домашній екран для Android TV. Програми під рукою, керування з пульта.</p>
         <div class="actions">
           <div class="primary-actions">
-          <a class="download release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Завантажити APK <span class="download-version" data-release-version>v0.2.8</span></a>
-          <button class="download preview-only" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Завантажити APK <span class="download-version">v0.2.8</span></button>
+          <a class="download release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Завантажити APK <span class="download-version" data-release-version>v0.2.65</span></a>
+          <button class="download preview-only" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Завантажити APK <span class="download-version">У розробці</span></button>
           <a class="github-link" href="https://github.com/carpe-diem-agency/carpe-tv-launcher" aria-label="Carpe TV на GitHub" title="Carpe TV на GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2.2c-3.21.7-3.89-1.36-3.89-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.16 1.18a10.98 10.98 0 0 1 5.75 0c2.19-1.49 3.15-1.18 3.15-1.18.63 1.59.23 2.77.11 3.06.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.77 1.05.77 2.12v3.15c0 .31.21.68.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg></a>
           </div>
           <a class="secondary release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest">Усі файли релізу</a>
+          <p class="preview-notice preview-only"><strong>Тестова збірка 0.2.65.</strong> Локальна перевірка на Xiaomi TV Stick. Публічного APK поки немає.</p>
         </div>
       </section>
       <section class="intro" data-copy="en" hidden>
@@ -222,30 +242,49 @@
         <p class="lead">A lightweight home screen for Android TV. Your apps close at hand, controlled with a remote.</p>
         <div class="actions">
           <div class="primary-actions">
-          <a class="download release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Download APK <span class="download-version" data-release-version>v0.2.8</span></a>
-          <button class="download preview-only" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Download APK <span class="download-version">v0.2.8</span></button>
+          <a class="download release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest/download/carpe-tv.apk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Download APK <span class="download-version" data-release-version>v0.2.65</span></a>
+          <button class="download preview-only" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v2h16v-2"/></svg> Download APK <span class="download-version">In development</span></button>
           <a class="github-link" href="https://github.com/carpe-diem-agency/carpe-tv-launcher" aria-label="Carpe TV on GitHub" title="Carpe TV on GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2.2c-3.21.7-3.89-1.36-3.89-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.16 1.18a10.98 10.98 0 0 1 5.75 0c2.19-1.49 3.15-1.18 3.15-1.18.63 1.59.23 2.77.11 3.06.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.77 1.05.77 2.12v3.15c0 .31.21.68.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg></a>
           </div>
           <a class="secondary release-only" href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest">Release files</a>
+          <p class="preview-notice preview-only"><strong>Test build 0.2.65.</strong> Local testing on Xiaomi TV Stick. A public APK is not available yet.</p>
         </div>
       </section>
-      <section class="steps" data-copy="uk">
+      <section class="steps preview-only" data-copy="uk">
+        <h2>Що перевірили на Xiaomi</h2>
+        <ul>
+          <li>Пошук, введення з екранної клавіатури й повернення до тієї самої плитки.</li>
+          <li>Шість розділів налаштувань, смужки ОЗП і сховища та звуки інтерфейсу.</li>
+          <li>Офлайн-заставку, відновлення після помилки медіа та оновлення APK зі збереженням налаштувань.</li>
+        </ul>
+        <p class="aside">Дії системної кнопки Home залежать від прошивки. Перевірки інших моделей ще попереду.</p>
+      </section>
+      <section class="steps preview-only" data-copy="en" hidden>
+        <h2>Tested on Xiaomi</h2>
+        <ul>
+          <li>Search, on-screen keyboard input and focus restoration to the same tile.</li>
+          <li>Six settings sections, RAM and storage bars, and interface sounds.</li>
+          <li>Offline screensaver, media error recovery and an APK upgrade that retained settings.</li>
+        </ul>
+        <p class="aside">The system Home button depends on the firmware. Other models still need testing.</p>
+      </section>
+      <section class="steps release-only" data-copy="uk">
         <h2>Як встановити</h2>
         <ol>
           <li>Завантаж APK на TV. Без браузера — передай файл із телефона.</li>
           <li>Відкрий APK, дозволь встановлення для програми, яка відкрила файл, і підтвердь запит Android.</li>
-          <li>Запусти Carpe TV. Спершу оглянь його або обери головним екраном.</li>
+          <li>Запусти Carpe TV зі списку програм і налаштуй під себе.</li>
         </ol>
         <p class="aside">Один APK; системні функції налаштовуються окремо.</p>
         <p class="aside"><strong>Кнопка Home:</strong> обери Carpe TV у системному списку домашніх екранів і перевір фізичним пультом. Деякі прошивки можуть ігнорувати цей вибір.</p>
         <p class="aside"><strong>Повернення:</strong> обери штатний лаунчер у системних налаштуваннях Home. Штатний лаунчер не видаляй.</p>
       </section>
-      <section class="steps" data-copy="en" hidden>
+      <section class="steps release-only" data-copy="en" hidden>
         <h2>Install in three steps</h2>
         <ol>
           <li>Download the APK on your TV. No browser? Transfer it from your phone.</li>
           <li>Open the APK, allow the app that opened the file to install it, then confirm in Android.</li>
-          <li>Open Carpe TV. Explore it first or choose it as your Home screen.</li>
+          <li>Open Carpe TV from the app list and make it yours.</li>
         </ol>
         <p class="aside">The basic launcher needs one APK. Extra system controls are optional.</p>
         <p class="aside"><strong>Home button:</strong> select Carpe TV in Android's Home app chooser and verify with the physical remote. Some firmware may ignore this choice.</p>
@@ -254,10 +293,10 @@
     </main>
     <section class="comparison" data-copy="uk" aria-labelledby="compare-title-uk">
       <h2 id="compare-title-uk">Менше кроків до улюбленого</h2>
-      <p>Carpe TV відкриває обрані програми на головному екрані. Усі встановлені програми зібрані в бібліотеці з пошуком, а фон і заставку можна змінити під себе.</p>
+      <p>Carpe TV відкриває обрані програми на головному екрані. Програми, які можна запустити, зібрані в бібліотеці з пошуком, а фон і заставку можна змінити під себе.</p>
       <div class="compare-grid">
         <figure><div class="compare-screen"><img src="assets/google-tv-home-test-stick.png" width="1920" height="1080" loading="lazy" alt="Штатний головний екран Google TV з рядами рекомендацій і програм на Xiaomi TV Stick"></div><figcaption>Штатний Google TV · знімок з того самого Xiaomi TV Stick</figcaption></figure>
-        <figure><div class="compare-screen"><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Головний екран Carpe TV з улюбленими програмами"></div><figcaption>Carpe TV · знімок тестової збірки на Xiaomi TV Stick</figcaption></figure>
+        <figure><div class="compare-screen"><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Головний екран Carpe TV з улюбленими програмами"></div><figcaption>Carpe TV 0.2.61 · знімок на Xiaomi TV Stick</figcaption></figure>
       </div>
       <div class="benefits">
         <div><strong>Один APK</strong><span>Завантаж, відкрий і підтвердь встановлення в Android. Для базового лаунчера не потрібні root чи комп’ютер.</span></div>
@@ -267,10 +306,10 @@
     </section>
     <section class="comparison" data-copy="en" hidden aria-labelledby="compare-title-en">
       <h2 id="compare-title-en">Fewer steps to your favorites</h2>
-      <p>Carpe TV puts favorite apps on Home. All installed apps are in a searchable library, while the wallpaper and screensaver are yours to choose.</p>
+      <p>Carpe TV puts favorite apps on Home. Launchable apps are in a searchable library, while the wallpaper and screensaver are yours to choose.</p>
       <div class="compare-grid">
         <figure><div class="compare-screen"><img src="assets/google-tv-home-test-stick.png" width="1920" height="1080" loading="lazy" alt="Stock Google TV home screen with recommendation and app rows on a Xiaomi TV Stick"></div><figcaption>Stock Google TV · captured on the same Xiaomi TV Stick</figcaption></figure>
-        <figure><div class="compare-screen"><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Home with favorite apps"></div><figcaption>Carpe TV · test build on Xiaomi TV Stick</figcaption></figure>
+        <figure><div class="compare-screen"><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Home with favorite apps"></div><figcaption>Carpe TV 0.2.61 · captured on Xiaomi TV Stick</figcaption></figure>
       </div>
       <div class="benefits">
         <div><strong>One APK</strong><span>Download, open and confirm installation in Android. Basic use needs no root or computer.</span></div>
@@ -282,10 +321,10 @@
       <h2 id="showcase-title-uk">Поглянь на Carpe TV</h2>
       <p>Відкрий бібліотеку, додай програму в обране та зміни порядок плиток пультом. Записано на Xiaomi TV Stick 4K; набір програм залежить від пристрою.</p>
       <div class="showcase-grid">
-        <figure><video controls playsinline preload="none" poster="assets/home-preview.jpg" aria-label="Навігація Carpe TV пультом: бібліотека, обране та порядок плиток"><source src="assets/interface-preview.mp4" type="video/mp4">Твій браузер не підтримує відео.</video><figcaption>Бібліотека → обране → порядок плиток · 10 с</figcaption></figure>
+        <figure><video controls playsinline preload="none" poster="assets/home-preview.jpg" aria-label="Навігація Carpe TV пультом: бібліотека, обране та порядок плиток"><source src="assets/interface-preview.mp4" type="video/mp4">Твій браузер не підтримує відео.</video><figcaption>Попередній огляд: бібліотека → обране → порядок плиток · 10 с</figcaption></figure>
         <div class="shots">
-          <figure><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Головний екран Carpe TV з улюбленими програмами на гірському фоні"><figcaption>Головна</figcaption></figure>
-          <figure><img src="assets/settings-preview.jpg" width="1280" height="720" loading="lazy" alt="Налаштування Carpe TV з вибором фону та затемнення"><figcaption>Налаштування</figcaption></figure>
+          <figure><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Головний екран Carpe TV з улюбленими програмами на синьому фоні"><figcaption>Головна</figcaption></figure>
+          <figure><img src="assets/settings-preview.jpg" width="1280" height="720" loading="lazy" alt="Налаштування Carpe TV з вибором фону та затемнення"><figcaption>«Вигляд і звук» · 0.2.61</figcaption></figure>
         </div>
       </div>
     </section>
@@ -293,18 +332,42 @@
       <h2 id="showcase-title-en">See Carpe TV</h2>
       <p>Open the app library, add a favorite, and rearrange Home tiles with the remote. Recorded on a Xiaomi TV Stick 4K; installed apps vary by device.</p>
       <div class="showcase-grid">
-        <figure><video controls playsinline preload="none" poster="assets/home-preview.jpg" aria-label="Carpe TV remote navigation: app library, favorites and tile order"><source src="assets/interface-preview.mp4" type="video/mp4">Your browser cannot play this video.</video><figcaption>Library → favorites → tile order · 10 sec</figcaption></figure>
+        <figure><video controls playsinline preload="none" poster="assets/home-preview.jpg" aria-label="Carpe TV remote navigation: app library, favorites and tile order"><source src="assets/interface-preview.mp4" type="video/mp4">Your browser cannot play this video.</video><figcaption>Earlier preview: library → favorites → tile order · 10 sec</figcaption></figure>
         <div class="shots">
-          <figure><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Home with favorite apps over a mountain lake wallpaper"><figcaption>Home</figcaption></figure>
-          <figure><img src="assets/settings-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Settings with wallpaper and dimming controls"><figcaption>Settings</figcaption></figure>
+          <figure><img src="assets/home-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Home with favorite apps on the blue wallpaper"><figcaption>Home</figcaption></figure>
+          <figure><img src="assets/settings-preview.jpg" width="1280" height="720" loading="lazy" alt="Carpe TV Settings with wallpaper and dimming controls"><figcaption>Appearance &amp; sound · 0.2.61</figcaption></figure>
         </div>
+      </div>
+    </section>
+    <section class="trust" data-copy="uk" aria-labelledby="settings-title-uk">
+      <h2 id="settings-title-uk">Налаштуй під себе</h2>
+      <p>Шість розділів: оформлення, заставка, програми та інформація про пристрій — кожен на своєму місці.</p>
+      <div class="trust-grid">
+        <div><strong>Вигляд і звук</strong><span>Галерея шпалер, анімований синій фон, затемнення та мова. Окремі звуки переміщення й натискання з регулюванням гучності та прослуховуванням.</span></div>
+        <div><strong>Заставка</strong><span>Час увімкнення, джерело фото й відео, перегляд зараз та очищення завантажених файлів.</span></div>
+        <div><strong>Обране</strong><span>Швидкий доступ до улюблених програм і власний порядок плиток на головному екрані.</span></div>
+        <div><strong>Програми</strong><span>Стан системних програм оновлюється кожні п’ять секунд, поки відкрито цей розділ. Звідси можна перейти до керування всіма програмами в Android.</span></div>
+        <div><strong>Пристрій</strong><span>ОЗП і сховище показують, скільки зайнято із загального обсягу, скільки вільно та рівень заповнення за кольором смужки. Діагностичний звіт для звернень.</span></div>
+        <div><strong>Про лаунчер</strong><span>Версія, оновлення, автори й ліцензії. Помилка, ідея чи інше звернення — через QR-код до GitHub Issues. Потрібен акаунт GitHub.</span></div>
+      </div>
+    </section>
+    <section class="trust" data-copy="en" hidden aria-labelledby="settings-title-en">
+      <h2 id="settings-title-en">Make it yours</h2>
+      <p>Six settings sections keep appearance, screensavers, apps and device information easy to find.</p>
+      <div class="trust-grid">
+        <div><strong>Appearance &amp; sound</strong><span>Wallpaper gallery, animated blue wallpaper, dimming and language. Separate navigation and click sounds with volume controls and a preview.</span></div>
+        <div><strong>Screensaver</strong><span>Start delay, photo and video sources, a preview and downloaded-file cleanup.</span></div>
+        <div><strong>Favorites</strong><span>Quick access to favorite apps, arranged in your own order on Home.</span></div>
+        <div><strong>Apps</strong><span>System app status refreshes every five seconds while this section is open. A shortcut opens the Android app manager.</span></div>
+        <div><strong>Device</strong><span>RAM and storage show used and total capacity, free space, and color-coded usage bars. A diagnostic report helps describe problems.</span></div>
+        <div><strong>About</strong><span>Version, updates, authors and licenses. Scan a QR code to report a bug, suggest an idea or send other feedback through GitHub Issues. A GitHub account is required.</span></div>
       </div>
     </section>
     <section class="devices" data-copy="uk" aria-labelledby="devices-title-uk">
       <h2 id="devices-title-uk">Пристрої</h2>
       <p>Позначаємо окремо те, що перевірили на приставці, і те, що ще чекає тесту. Вибір Home та системні дії можуть відрізнятися між прошивками.</p>
       <div class="device-list">
-        <div class="device-row"><strong>Xiaomi TV Stick 4K · MiTV-AFMU1</strong><span>Android TV 14 · інтерфейс і оновлення перевірені; Home після YouTube відкрив Google TV</span><span class="device-state tested">Перевірено частково</span></div>
+        <div class="device-row"><strong>Xiaomi TV Stick 4K · MiTV-AFMU1</strong><span>Android TV 14 · перевірено пошук, збереження фокуса, налаштування, заставку й оновлення 0.2.64 → 0.2.65 через ADB</span><span class="device-state tested">Перевірено частково</span></div>
         <div class="device-row"><strong>Xiaomi Mi Box</strong><span>Окремий тест заплановано</span><span class="device-state">Не перевірено</span></div>
         <div class="device-row"><strong>Інші Android TV / Google TV</strong><span>Потребують перевірки на конкретній моделі</span><span class="device-state">Не перевірено</span></div>
       </div>
@@ -313,7 +376,7 @@
       <h2 id="devices-title-en">Devices</h2>
       <p>We distinguish device testing from planned support. Home selection and system controls can differ across firmware.</p>
       <div class="device-list">
-        <div class="device-row"><strong>Xiaomi TV Stick 4K · MiTV-AFMU1</strong><span>Android TV 14 · UI and test updater checked; Home after YouTube opened Google TV</span><span class="device-state tested">Partly tested</span></div>
+        <div class="device-row"><strong>Xiaomi TV Stick 4K · MiTV-AFMU1</strong><span>Android TV 14 · search, focus restoration, settings, screensaver and the 0.2.64 → 0.2.65 ADB upgrade tested</span><span class="device-state tested">Partly tested</span></div>
         <div class="device-row"><strong>Xiaomi Mi Box</strong><span>Device test planned</span><span class="device-state">Untested</span></div>
         <div class="device-row"><strong>Other Android TV / Google TV</strong><span>Needs testing on each model</span><span class="device-state">Untested</span></div>
       </div>
@@ -323,7 +386,7 @@
       <div class="trust-grid">
         <div><strong>Код і ліцензія</strong><span>Код можна переглянути на <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher">GitHub</a>. Він поширюється за <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/LICENSE">Apache 2.0</a>; ліцензії сторонніх компонентів зібрані <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/THIRD_PARTY_NOTICES.md">окремо</a>.</span></div>
         <div><strong>Звідки брати файл</strong><span class="release-only">APK публікуємо в <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest">GitHub Releases</a>. Там само буде контрольна сума <code>SHA256SUMS</code> для перевірки завантаженого файлу.</span><span class="preview-only">APK для завантаження ще немає. Після випуску файл і його контрольну суму розмістимо в GitHub Releases.</span></div>
-        <div><strong>Що потрібно для запуску</strong><span>Для основних функцій достатньо встановити APK і вибрати Carpe TV домашнім екраном в Android. Root і Shizuku не потрібні; системні дії вмикаються окремо.</span></div>
+        <div><strong>Що потрібно для запуску</strong><span>Для основних функцій достатньо встановити APK і запустити Carpe TV. Root і Shizuku не потрібні. Заміна штатного головного екрана потребує окремої перевірки на вашій моделі.</span></div>
       </div>
       <p class="aside">Програма надається «як є», без гарантій, передбачених ліцензією. <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/SECURITY.md">Як повідомити про проблему безпеки</a>.</p>
     </section>
@@ -332,7 +395,7 @@
       <div class="trust-grid">
         <div><strong>Code and license</strong><span>Read the code on <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher">GitHub</a>. It is licensed under <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/LICENSE">Apache 2.0</a>; third-party licenses are listed <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/THIRD_PARTY_NOTICES.md">separately</a>.</span></div>
         <div><strong>Where to get the file</strong><span class="release-only">The APK is published in <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/releases/latest">GitHub Releases</a>, with a <code>SHA256SUMS</code> file to verify the download.</span><span class="preview-only">The APK is not available to download yet. The file and its checksum will appear in GitHub Releases.</span></div>
-        <div><strong>What you need</strong><span>Install the APK and select Carpe TV as your Home screen in Android. Basic features need neither root nor Shizuku; system controls are enabled separately.</span></div>
+        <div><strong>What you need</strong><span>Install the APK and open Carpe TV. Basic features need neither root nor Shizuku. Replacing the stock Home screen needs separate verification on your model.</span></div>
       </div>
       <p class="aside">The software is provided “as is” without warranties under its license. <a href="https://github.com/carpe-diem-agency/carpe-tv-launcher/blob/main/SECURITY.md">Report a security issue</a>.</p>
     </section>

@@ -12,6 +12,6 @@
         android:importantForAccessibility="no"/>
     <TextView android:id="@+id/audit_app_state" android:layout_width="112dp"
         android:layout_height="wrap_content" android:gravity="end|center_vertical"
-        android:textSize="12sp" android:maxLines="2" android:textColor="#B9C7DC"
+        android:textSize="12sp" android:maxLines="2" android:textColor="@color/cd_text_secondary"
         android:importantForAccessibility="no"/>
 </LinearLayout>

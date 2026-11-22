@@ -1,0 +1,12 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="agency.carpediem.tv.testfixture.catalog" android:versionCode="1" android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34"/>
+    <application android:label="Carpe QA Калина" android:testOnly="true" android:allowBackup="false" android:theme="@android:style/Theme.Material.NoActionBar">
+        <activity android:name="agency.carpediem.tv.testfixture.catalog.CatalogActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

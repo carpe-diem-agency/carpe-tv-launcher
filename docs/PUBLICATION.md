@@ -1,5 +1,12 @@
 # Before switching visibility to public
 
+The current Carpe TV plan is a private release. The public-distribution steps
+below describe the separate publication path. The exact local 0.2.55 archive
+passed offline signing rehearsal and an in-place ADB update on Xiaomi with a
+disposable certificate. The independently recoverable release key and the installer
+update flow are still open for the private release.
+[Current device evidence](RELEASE_APK_DEVICE_TEST.md#exact-0255-62-app-list-route-after-update-2026-11-22).
+
 - [x] Adopt Carpe TV as the working app/repository name; Luma TV has been replaced.
 - [ ] Complete public branding review before general distribution.
 - [x] Select an explicit code license with the project owner: Apache-2.0 for
@@ -23,10 +30,11 @@
       stable APK exists, the page shows a source preview without a download
       action or structured download metadata. A stable release switches the
       page to installation mode only after all four release assets are present
-      and the downloaded APK and source archive match `SHA256SUMS`, while
-      `update.json` matches the APK hash, size, package ID, release URL and
-      exact version tag. The draft-release workflow also requires the tag to
-      equal `v` plus the APK's `versionName`.
+      and the downloaded APK and source archive match `SHA256SUMS`.
+      Both workflows require the APK's signer to match the configured repository
+      fingerprint. The `update.json` file must match the APK hash, size,
+      package ID, release URL and exact version tag. The draft-release workflow
+      also requires the tag to equal `v` plus the APK's `versionName`.
 - [x] Enable GitHub Pages from Actions and verify the live Ukrainian source
       preview at `https://carpe-diem-agency.github.io/carpe-tv-launcher/`.
 - [ ] Publish and test that install page only after the public stable release
@@ -149,3 +157,16 @@
 
 This checklist is preparation for a later public release, not a reason to stop
 private development. No workflow changes repository visibility automatically.
+
+## Public updater requested · 2026-11-22
+
+The owner requested a public update channel after approving the Updates screen
+on Xiaomi. The installed 0.2.65 preview uses `agency.carpediem.tv.publicpreview`
+with an empty feed. The release variant uses `agency.carpediem.tv` and the
+repository's GitHub Releases endpoint. Install the public package alongside
+the preview for first-use checks. Android cannot update the preview in place
+with a differently named package, and its settings stay in the preview.
+
+The next public artifact needs a stable release signing identity and matching
+`update.json`. The 0.2.65 archive was verified with a disposable identity only.
+The existing SPAKE2 distribution review and production signing remain open.

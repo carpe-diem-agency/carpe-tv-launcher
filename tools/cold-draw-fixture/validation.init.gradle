@@ -1,0 +1,18 @@
+gradle.beforeProject { project ->
+    def runtime = new File(System.getProperty('carpe.coldDrawRuntime'))
+    project.layout.buildDirectory.set(new File(runtime, project.path == ':' ? 'build/root' : 'build/' + project.path.substring(1).replace(':', '/')))
+    project.plugins.withId('com.android.application') {
+        project.androidComponents.finalizeDsl { dsl ->
+            if (!project.hasProperty('isolatedPreview')) {
+                throw new GradleException('Cold draw fixture requires the isolated validation preview')
+            }
+            dsl.defaultConfig.applicationId = 'agency.carpediem.tv.validation'
+            def release = dsl.buildTypes.getByName('release')
+            release.signingConfig = dsl.signingConfigs.getByName('debug')
+            release.buildConfigField('String', 'UPDATE_FEED_URL', '""')
+            def fixture = project.rootProject.file('tools/cold-draw-fixture')
+            dsl.sourceSets.getByName('release').java.srcDir(new File(fixture, 'java'))
+            dsl.sourceSets.getByName('release').manifest.srcFile(new File(fixture, 'AndroidManifest.xml'))
+        }
+    }
+}

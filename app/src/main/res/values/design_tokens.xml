@@ -13,4 +13,11 @@
     <dimen name="cd_heading_size">32sp</dimen>
     <dimen name="cd_header_height">56dp</dimen>
     <dimen name="cd_control_height">52dp</dimen>
+    <color name="cd_text_secondary">#B9C7DC</color>
+    <color name="cd_text_link">#B9D5FF</color>
+    <color name="cd_text_body">#D8E4F3</color>
+    <color name="cd_modal_surface">#172337</color>
+    <dimen name="cd_radius_control">14dp</dimen>
+    <dimen name="cd_stroke_focus">2dp</dimen>
+    <dimen name="cd_stroke_default">1dp</dimen>
 </resources>

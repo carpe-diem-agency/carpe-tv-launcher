@@ -8,7 +8,8 @@ public final class UpdateDownloadReceiver extends BroadcastReceiver {
     @Override public void onReceive(Context context, Intent intent) {
         if (!DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction()) ||
                 intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID,-2) != UpdateManager.prefs(context).getLong("downloadId",-1)) return;
+        long id=intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID,-2);
         Context app = context.getApplicationContext(); PendingResult pending = goAsync();
-        UpdateManager.WORKER.execute(() -> { try { UpdateManager.refreshNow(app); } finally { pending.finish(); } });
+        UpdateManager.WORKER.execute(() -> { try { UpdateManager.refreshNow(app,id); } finally { pending.finish(); } });
     }
 }

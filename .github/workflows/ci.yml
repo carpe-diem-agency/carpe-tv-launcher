@@ -29,6 +29,8 @@ jobs:
         run: python3 scripts/check_repository.py
       - name: Check Pages download gate
         run: python3 scripts/test_verify_pages_release.py
+      - name: Check release tag identity
+        run: bash scripts/test_check_release_tag.sh
       - name: Build and lint
         run: ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest assembleRelease lintDebug
       - name: Check release artwork

@@ -3,6 +3,13 @@ description: Запропонуй зміну Carpe TV / Suggest an improvement t
 title: "[Idea] "
 body:
   - type: textarea
+    id: device
+    attributes:
+      label: Інформація для діагностики · Diagnostic information
+      description: Необов’язково; QR-код Carpe TV заповнює автоматично. Переглянь перед надсиланням. / Optional; filled by the Carpe TV QR code. Review before submitting.
+    validations:
+      required: false
+  - type: textarea
     id: goal
     attributes:
       label: Що хочеш зробити і чому · What would you like to do, and why?

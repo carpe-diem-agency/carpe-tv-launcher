@@ -1,5 +1,6 @@
 package agency.carpediem.tv.prototype;
 
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -7,49 +8,83 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import java.util.function.Supplier;
 
 /** Composes square icons once on the artwork worker, keeping logos undistorted. */
 final class AppArtwork {
-    static Drawable prepare(Resources resources, Drawable source) {
+    @FunctionalInterface
+    interface Source {
+        Drawable load() throws PackageManager.NameNotFoundException;
+    }
+
+    static Drawable.ConstantState load(Resources resources, Source banner, Source icon, Supplier<Drawable> defaultIcon) {
+        Drawable.ConstantState state = prepareSource(resources, banner);
+        if (state == null) state = prepareSource(resources, icon);
+        return state != null ? state : defaultIcon.get().getConstantState();
+    }
+
+    private static Drawable.ConstantState prepareSource(Resources resources, Source source) {
+        try {
+            Drawable drawable = source.load();
+            return drawable == null ? null : prepare(resources, drawable).getConstantState();
+        } catch (PackageManager.NameNotFoundException | RuntimeException unavailable) {
+            return null;
+        }
+    }
+
+    private static Drawable prepare(Resources resources, Drawable source) {
         int available = resources.getDisplayMetrics().widthPixels
                 - resources.getDimensionPixelSize(R.dimen.cd_sidebar_width)
                 - resources.getDimensionPixelSize(R.dimen.cd_content_gap)
                 - resources.getDimensionPixelSize(R.dimen.cd_safe_horizontal);
         int cardWidth = Math.max(320, Math.min(768, Math.round(available / 5f - 16 * resources.getDisplayMetrics().density)));
         int cardHeight = Math.round(cardWidth * 9f / 16);
-        if (source.getIntrinsicWidth() > source.getIntrinsicHeight() * 1.3f) {
+        int sourceWidth = source.getIntrinsicWidth();
+        int sourceHeight = source.getIntrinsicHeight();
+        boolean hasIntrinsicSize = sourceWidth > 0 && sourceHeight > 0;
+        if (hasIntrinsicSize && sourceWidth > sourceHeight * 1.3f) {
             // The on-screen card is ~300×168 px at 1080p. Bound large native
             // banners/complex drawables once instead of retaining full-size textures.
-            Rect bounds = new Rect(source.getBounds());
             Bitmap banner = Bitmap.createBitmap(cardWidth, cardHeight, Bitmap.Config.ARGB_8888);
-            float scale = Math.max((float) cardWidth / source.getIntrinsicWidth(), (float) cardHeight / source.getIntrinsicHeight());
-            int w = Math.round(source.getIntrinsicWidth() * scale), h = Math.round(source.getIntrinsicHeight() * scale);
-            source.setBounds((cardWidth - w) / 2, (cardHeight - h) / 2, (cardWidth + w) / 2, (cardHeight + h) / 2);
-            source.draw(new Canvas(banner)); source.setBounds(bounds);
+            float scale = Math.max((float) cardWidth / sourceWidth, (float) cardHeight / sourceHeight);
+            int w = Math.round(sourceWidth * scale), h = Math.round(sourceHeight * scale);
+            draw(source, new Canvas(banner), (cardWidth - w) / 2, (cardHeight - h) / 2,
+                    (cardWidth + w) / 2, (cardHeight + h) / 2);
             return new BitmapDrawable(resources, banner);
         }
-        Rect original = new Rect(source.getBounds());
         Bitmap sample = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888);
         Drawable backdrop = source instanceof android.graphics.drawable.AdaptiveIconDrawable
                 ? ((android.graphics.drawable.AdaptiveIconDrawable) source).getBackground() : source;
         if (backdrop == null) backdrop = source;
-        Rect backdropBounds = new Rect(backdrop.getBounds());
-        backdrop.setBounds(0, 0, 32, 32); backdrop.draw(new Canvas(sample));
-        backdrop.setBounds(backdropBounds);
-        int background = background(sample);
-        Bitmap tile = Bitmap.createBitmap(cardWidth, cardHeight, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(tile); canvas.drawColor(background);
-        if (background == 0xff172238) extendTwoTone(canvas, sample);
-        sample.recycle();
-        float ratio = source.getIntrinsicWidth() > 0 && source.getIntrinsicHeight() > 0
-                ? (float) source.getIntrinsicWidth() / source.getIntrinsicHeight() : 1f;
+        Bitmap tile;
+        Canvas canvas;
+        try {
+            draw(backdrop, new Canvas(sample), 0, 0, 32, 32);
+            int background = background(sample);
+            tile = Bitmap.createBitmap(cardWidth, cardHeight, Bitmap.Config.ARGB_8888);
+            canvas = new Canvas(tile);
+            canvas.drawColor(background);
+            if (background == 0xff172238) extendTwoTone(canvas, sample);
+        } finally {
+            sample.recycle();
+        }
+        float ratio = hasIntrinsicSize ? (float) sourceWidth / sourceHeight : 1f;
         int height = Math.round(cardHeight * 148f / 180), width = Math.round(height * ratio);
         int maxWidth = Math.round(cardWidth * 280f / 320);
         if (width > maxWidth) { width = maxWidth; height = Math.round(width / ratio); }
-        source.setBounds((cardWidth - width) / 2, (cardHeight - height) / 2,
+        draw(source, canvas, (cardWidth - width) / 2, (cardHeight - height) / 2,
                 (cardWidth + width) / 2, (cardHeight + height) / 2);
-        source.draw(canvas); source.setBounds(original);
         return new BitmapDrawable(resources, tile);
+    }
+
+    private static void draw(Drawable source, Canvas canvas, int left, int top, int right, int bottom) {
+        Rect original = new Rect(source.getBounds());
+        try {
+            source.setBounds(left, top, right, bottom);
+            source.draw(canvas);
+        } finally {
+            source.setBounds(original);
+        }
     }
 
     private static void extendTwoTone(Canvas canvas, Bitmap sample) {

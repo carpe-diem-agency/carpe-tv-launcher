@@ -3,6 +3,7 @@ package agency.carpediem.tv.prototype;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -20,8 +21,232 @@ import java.util.List;
 public final class NavigationProbe extends Instrumentation {
     private Bundle args;
     @Override public void onCreate(Bundle arguments) { super.onCreate(arguments); args=arguments; start(); }
+    @Override public Activity newActivity(ClassLoader loader, String className, Intent intent)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+        Activity activity = super.newActivity(loader, className, intent);
+        if (args != null && "yes".equals(args.getString("launcherfont"))
+                && MainActivity.class.getName().equals(className)) {
+            Configuration override = new Configuration();
+            override.fontScale = intent.getFloatExtra("probe_font_scale", 1f);
+            override.setLocale(java.util.Locale.forLanguageTag(intent.getStringExtra("probe_locale")));
+            activity.applyOverrideConfiguration(override);
+        }
+        return activity;
+    }
     @Override public void onStart() {
         Bundle result = new Bundle();
+        if (args != null && "yes".equals(args.getString("launcherfont"))) {
+            try { LauncherFontProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("navigationaccessibility"))) {
+            try { NavigationAccessibilityProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("audioexternal"))) {
+            try {
+                String witness = args.getString("audiowitness");
+                if (witness == null) throw new IllegalArgumentException("External audio witness is required");
+                AudioCoexistenceProbe.run(this, result, witness);
+                finish(Activity.RESULT_OK, result);
+            } catch (Throwable error) {
+                result.putString("failure", error.toString());
+                finish(Activity.RESULT_CANCELED, result);
+            }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("audiocoexistence"))) {
+            try { AudioCoexistenceProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("uisounds"))) {
+            try { UiSoundsProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("settingsstructure"))) {
+            try { SettingsStructureProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("modaltouch"))) {
+            try { ModalFocusProbe.run(this, result, true); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("libraryartwork"))) {
+            try { LibraryArtworkProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("librarypool"))) {
+            try { LibraryPoolProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("libraryinputperf"))) {
+            try { LibraryInputLatencyProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("libraryperf"))) {
+            try { LibraryPerformanceProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("updatecallback"))) {
+            try { UpdateInstallCallbackProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("updateorphanpending"))) {
+            try { UpdateOrphanProbe.run(this, result, true); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("updaterehearsal"))) {
+            try { UpdateInstallRehearsalProbe.run(this, args, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("updatechain"))) {
+            try { UpdateChainProbe.run(this, args, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("updateenqueuecrash"))) {
+            try { UpdateProcessDeathProbe.run(this, args, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("updateorphan"))) {
+            try { UpdateOrphanProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("updatecancel"))) {
+            try { UpdateCancelProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("updatebackup"))) {
+            try { UpdateBackupProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("wallpapercache"))) {
+            try { WallpaperCacheProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("pendinglibrary"))) {
+            try { PendingLibraryStateProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("inactivelibrary"))) {
+            try { InactiveLibraryStateProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("authorsstate"))) {
+            try { AuthorsStateProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("modalfocus"))) {
+            try { ModalFocusProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("catalogscanerror"))) {
+            try { CatalogScanErrorProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("catalogstate"))) {
+            try { CatalogStateProbe.run(this, result); CatalogStateProbe.verifyCorruptPreferences(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("largefont"))) {
+            try { LargeFontProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("catalogbroadcast"))) {
+            try { CatalogBroadcastProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("cataloglaunchdenied"))) {
+            try { CatalogBroadcastProbe.verifyDeniedLaunch(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("startupdraw"))) {
+            try { StartupDrawProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("longsession"))) {
+            try { LongSessionProbe.run(this, args, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("librarycomposition"))) {
+            try { LibraryCompositionProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("librarysoftkeys"))) {
+            try { LibraryImeProbe.run(this, result, true); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("libraryime"))) {
+            try { LibraryImeProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("libraryfocus"))) {
+            try { LibraryFocusProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("focusring"))) {
+            try { SettingsContrastProbe.runFocusRing(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("homecontrast"))) {
+            try { SettingsContrastProbe.runHome(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("settingscontrast"))) {
+            try { SettingsContrastProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("settingscompact"))) {
+            try { SettingsFocusProbe.runCompact(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("settingsfocus"))) {
+            try { SettingsFocusProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("navigationsoak"))) {
+            try { NavigationSoakProbe.run(this, args, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
         if (args != null && "yes".equals(args.getString("pairinglimit"))) {
             try { PairingLimitProbe.run(getTargetContext(), result); finish(Activity.RESULT_OK, result); }
             catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
@@ -55,6 +280,21 @@ public final class NavigationProbe extends Instrumentation {
             catch(Throwable error) {result.putString("failure",error.toString());finish(Activity.RESULT_CANCELED,result);}
             return;
         }
+        if (args != null && "yes".equals(args.getString("corruptsaverphoto"))) {
+            try { CorruptSaverPhotoProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("savervideolifecycle"))) {
+            try { SaverVideoLifecycleProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("saversourcefailure"))) {
+            try { SaverSourceFailureProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
         if (args != null && "yes".equals(args.getString("screensaver"))) {
             try { ScreensaverProbe.run(this, result); finish(Activity.RESULT_OK,result); }
             catch (Throwable error) { result.putString("failure",error.toString()); finish(Activity.RESULT_CANCELED,result); }
@@ -85,6 +325,21 @@ public final class NavigationProbe extends Instrumentation {
             catch (Throwable error) { result.putString("failure",error.toString()); finish(Activity.RESULT_CANCELED,result); }
             return;
         }
+        if (args != null && "yes".equals(args.getString("librarystate"))) {
+            try { LibraryStateProbe.run(this,result); finish(Activity.RESULT_OK,result); }
+            catch (Throwable error) { result.putString("failure",error.toString()); finish(Activity.RESULT_CANCELED,result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("diagnosticscompact"))) {
+            try { FeedbackProbe.runCompactDiagnostics(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("feedbackbounded"))) {
+            try { FeedbackProbe.runBounded(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
         if (args != null && "yes".equals(args.getString("feedback"))) {
             try { FeedbackProbe.run(this,result); finish(Activity.RESULT_OK,result); }
             catch (Throwable error) { result.putString("failure",error.toString()); finish(Activity.RESULT_CANCELED,result); }
@@ -98,6 +353,21 @@ public final class NavigationProbe extends Instrumentation {
         if (args != null && "yes".equals(args.getString("reorder"))) {
             try { ReorderProbe.run(this,result); finish(Activity.RESULT_OK,result); }
             catch(Throwable error) {result.putString("failure",error.toString());finish(Activity.RESULT_CANCELED,result);}
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("headeredge"))) {
+            try { HeaderConnectivityProbe.verifyEdges(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("headerconnectivity"))) {
+            try { HeaderConnectivityProbe.run(this, result); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
+            return;
+        }
+        if (args != null && "yes".equals(args.getString("appauditroute"))) {
+            try { AppAuditProbe.run(this, result, true); finish(Activity.RESULT_OK, result); }
+            catch (Throwable error) { result.putString("failure", error.toString()); finish(Activity.RESULT_CANCELED, result); }
             return;
         }
         if (args != null && "yes".equals(args.getString("appaudit"))) {
@@ -138,16 +408,37 @@ public final class NavigationProbe extends Instrumentation {
         SharedPreferences previewPreferences = null;
         boolean originalWelcomeSeen = false;
         boolean originalAnimations = true;
+        boolean hadWelcome = false;
+        boolean hadAnimations = false;
+        String originalWallpaper = null;
+        boolean hadWallpaper = false;
+        boolean originalRotation = false;
+        boolean hadRotation = false;
         boolean compareWithoutMotion = args != null && "yes".equals(args.getString("noMotion"));
+        boolean comparePlainWallpaper = args != null && "yes".equals(args.getString("plainWallpaper"));
+        boolean comparePhotoWallpaper = args != null && "yes".equals(args.getString("photoWallpaper"));
         try {
             if (getTargetContext().getPackageName().endsWith(".publicpreview")) {
                 previewPreferences = getTargetContext().getSharedPreferences(MainActivity.class.getName(), 0);
+                hadWelcome = previewPreferences.contains("welcome_seen");
+                hadAnimations = previewPreferences.contains("animations");
                 originalWelcomeSeen = previewPreferences.getBoolean("welcome_seen", false);
                 originalAnimations = previewPreferences.getBoolean("animations", true);
+                hadWallpaper = previewPreferences.contains("wallpaper");
+                originalWallpaper = previewPreferences.getString("wallpaper", null);
+                hadRotation = previewPreferences.contains(WallpaperRotation.ENABLED);
+                originalRotation = previewPreferences.getBoolean(WallpaperRotation.ENABLED, false);
                 if (!previewPreferences.edit().putBoolean("welcome_seen", true).commit())
                     throw new IllegalStateException("Cannot prepare isolated navigation probe");
                 if (compareWithoutMotion && !previewPreferences.edit().putBoolean("animations", false).commit())
                     throw new IllegalStateException("Cannot prepare reduced-motion probe");
+                if (comparePlainWallpaper && !previewPreferences.edit().putString("wallpaper", "plain")
+                        .putBoolean(WallpaperRotation.ENABLED, false).commit())
+                    throw new IllegalStateException("Cannot prepare plain-wallpaper probe");
+                if (comparePhotoWallpaper && !previewPreferences.edit().putString("wallpaper", "alpine")
+                        .putBoolean(WallpaperRotation.ENABLED, false).commit())
+                    throw new IllegalStateException("Cannot prepare photo-wallpaper probe");
+                result.putString("wallpaper", WallpaperCatalog.find(getTargetContext(),previewPreferences.getString("wallpaper",null)).key);
             }
             setInTouchMode(false);
             activity = startActivitySync(new Intent(getTargetContext(), MainActivity.class)
@@ -245,9 +536,18 @@ public final class NavigationProbe extends Instrumentation {
         } catch (Throwable error) {
             result.putString("failure", error.toString());
         } finally {
-            if (previewPreferences != null)
-                previewPreferences.edit().putBoolean("welcome_seen", originalWelcomeSeen)
-                        .putBoolean("animations", originalAnimations).commit();
+            if (previewPreferences != null) {
+                SharedPreferences.Editor restore = previewPreferences.edit();
+                if (hadWelcome) restore.putBoolean("welcome_seen", originalWelcomeSeen);
+                else restore.remove("welcome_seen");
+                if (hadAnimations) restore.putBoolean("animations", originalAnimations);
+                else restore.remove("animations");
+                if (hadWallpaper) restore.putString("wallpaper", originalWallpaper);
+                else restore.remove("wallpaper");
+                if (hadRotation) restore.putBoolean(WallpaperRotation.ENABLED, originalRotation);
+                else restore.remove(WallpaperRotation.ENABLED);
+                restore.commit();
+            }
             if (activity != null && listenerAdded[0]) {
                 Activity screen = activity;
                 runOnMainSync(() -> screen.getWindow().removeOnFrameMetricsAvailableListener(listener));

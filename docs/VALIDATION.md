@@ -289,9 +289,15 @@ not prove native Android/Google TV compatibility with a mismatched density.
 - Built the isolated preview app and instrumentation APK with the offline Gradle wrapper. On MiTV-AFMU1, `NavigationProbe -e feedback yes` used D-pad Right and OK to select each topic, decoded all three QR images from actual screen captures, and verified they target the Bug, Idea and Other GitHub Issue forms. Back restored focus to Settings.
 - Saved the pre-test isolated preview APK and reinstalled it after the probe. The installed preview reports version 0.2.8. The main launcher was not changed.
 - The test does not cover a phone scan, GitHub sign-in or submitting an issue. The dialog states that a GitHub account is required and warns against sharing private data.
+- On 2026-11-12 the probe was strengthened to enter Settings, select About and open Feedback with the D-pad instead of invoking the dialog directly. It passed again on MiTV-AFMU1: the Feedback button received focus, all three rendered QR codes decoded to their Issue forms, and Back returned focus to Feedback. The previous preview APK was restored, the test package was removed, and accessibility services remained disabled (`null`).
 
 ### Home role and OEM resolver mismatch — 2026-11-12
 
 - On MiTV-AFMU1, Android reported `agency.carpediem.tv.publicpreview` as the Home role holder while `cmd package resolve-activity` returned Google TV's `HomeActivity` at priority 2. This is a platform routing mismatch, not a verified physical remote route.
 - The isolated `homeroute` instrumentation check reported `home_role_selected=true`, `home_resolver_conflict=true` and confirmed that the Device page displayed the conflict warning rather than the generic remote reminder. It restored the preview app's onboarding preference and did not change the Home role or system packages.
 - Saved the installed isolated preview APK before testing and restored it after the check. The public launcher package was not updated. Direct Home from YouTube, Netflix and the physical remote still needs validation on a device where the platform actually resolves Home to Carpe TV.
+
+### Display output and interface size — 2026-11-12
+
+- The Device page now labels the active HDMI mode separately from the logical interface size. On MiTV-AFMU1 the isolated preview showed `3840 × 2160 · 60.0 Hz` for video output and `1920 × 1080` for the interface. The added line and the controls below it fit in a 1920×1080 ADB capture.
+- `assembleDebug` and `lintDebug` passed offline. The previous isolated preview APK was restored after visual inspection. This is a display-information correction; no global density, resolution, Home role or system package was changed.

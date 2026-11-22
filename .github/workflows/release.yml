@@ -52,7 +52,7 @@ jobs:
           ANDROID_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-          RELEASE_CERT_SHA256: ${{ secrets.RELEASE_CERT_SHA256 }}
+          RELEASE_CERT_SHA256: ${{ vars.RELEASE_CERT_SHA256 }}
         run: |
           python3 scripts/check_repository.py
           python3 - <<'PYCODE'
@@ -61,7 +61,7 @@ jobs:
           tag = os.environ['RELEASE_TAG']
           if tag != 'v' + version:
               raise SystemExit('Tag must exactly match v + APK versionName')
-          for name in ('KEYSTORE_BASE64','ANDROID_STORE_PASSWORD','ANDROID_KEY_ALIAS','ANDROID_KEY_PASSWORD','RELEASE_CERT_SHA256'):
+          for name in ('KEYSTORE_BASE64','ANDROID_STORE_PASSWORD','ANDROID_KEY_ALIAS','ANDROID_KEY_PASSWORD'):
               if not os.environ.get(name): raise SystemExit('Release signing secrets are not configured')
           if not re.fullmatch(r'[0-9a-fA-F]{64}', os.environ['RELEASE_CERT_SHA256'].replace(':','')):
               raise SystemExit('RELEASE_CERT_SHA256 must be a SHA-256 certificate digest')
@@ -75,13 +75,13 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
-          ./gradlew --no-daemon assembleRelease lintDebug \
+          ./gradlew --no-daemon assembleRelease lintRelease \
             -Pspake2Aar="$RUNNER_TEMP/spake2-source/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar"
       - name: Verify and create draft
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}
-          RELEASE_CERT_SHA256: ${{ secrets.RELEASE_CERT_SHA256 }}
+          RELEASE_CERT_SHA256: ${{ vars.RELEASE_CERT_SHA256 }}
         run: |
           python3 - <<'PYCODE'
           from pathlib import Path
@@ -91,38 +91,19 @@ jobs:
               raise SystemExit('Release APK is missing the public update feed')
           PYCODE
           python3 scripts/check_release_apk.py app/build/outputs/apk/release/app-release.apk
-          python3 - <<'PYCODE'
-          import hashlib, os, zipfile
-          aar = os.path.join(os.environ['RUNNER_TEMP'], 'spake2-source/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar')
-          apk = 'app/build/outputs/apk/release/app-release.apk'
-          with zipfile.ZipFile(aar) as source, zipfile.ZipFile(apk) as packaged:
-              names = sorted(n for n in source.namelist() if n.startswith('jni/') and n.endswith('/libspake2.so'))
-              if len(names) != 4:
-                  raise SystemExit(f'Expected four SPAKE2 ABI libraries, found {len(names)}')
-              for name in names:
-                  packaged_name = 'lib/' + name.removeprefix('jni/')
-                  if hashlib.sha256(source.read(name)).digest() != hashlib.sha256(packaged.read(packaged_name)).digest():
-                      raise SystemExit(f'Signed APK native library differs from source AAR: {packaged_name}')
-                  print('Verified source-built native library:', packaged_name)
-          PYCODE
+          python3 scripts/verify_spake2_relink.py "$RUNNER_TEMP/spake2-source/spake2-java-2.2.1/android/build/outputs/aar/android-release.aar" app/build/outputs/apk/release/app-release.apk
           APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -mindepth 2 -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$APK_SIGNER"
           "$APK_SIGNER" verify --verbose app/build/outputs/apk/release/app-release.apk
-          "$APK_SIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk > "$RUNNER_TEMP/apk-certs.txt"
-          python3 - <<'PYCODE'
-          import os, pathlib, re
-          output = pathlib.Path(os.environ['RUNNER_TEMP'], 'apk-certs.txt').read_text()
-          found = re.findall(r'Signer #\d+ certificate SHA-256 digest: ([0-9a-fA-F:]+)', output)
-          expected = os.environ['RELEASE_CERT_SHA256'].replace(':', '').lower()
-          if len(found) != 1 or found[0].replace(':', '').lower() != expected:
-              raise SystemExit('APK signing certificate differs from the pinned release identity')
-          PYCODE
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk dist/carpe-tv.apk
           cp compliance/source/spake2-java-2.2.1-with-submodule.tar.gz dist/
           (cd compliance/source && sha256sum -c SHA256SUMS)
           (cd dist && sha256sum carpe-tv.apk spake2-java-2.2.1-with-submodule.tar.gz > SHA256SUMS)
           python3 scripts/make_update_manifest.py dist/carpe-tv.apk --expected-application-id agency.carpediem.tv --apk-url "https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/carpe-tv.apk" --output dist/update.json
+          python3 scripts/verify_pages_release.py dist --repository "$GITHUB_REPOSITORY" --tag "$RELEASE_TAG" \
+            --expected-cert-sha256 "$RELEASE_CERT_SHA256"
+          bash scripts/check_release_tag.sh origin "$RELEASE_TAG" "$GITHUB_SHA"
           gh release create "$RELEASE_TAG" dist/carpe-tv.apk dist/SHA256SUMS dist/update.json dist/spake2-java-2.2.1-with-submodule.tar.gz --draft --prerelease --target "$GITHUB_SHA" --title "Carpe TV $RELEASE_TAG" --notes-file CHANGELOG.md
       - name: Remove temporary signing key
         if: always()

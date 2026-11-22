@@ -17,7 +17,7 @@ final class WallpaperRotation {
         List<WallpaperCatalog.Entry> photos=new ArrayList<>();
         for(WallpaperCatalog.Entry entry:WallpaperCatalog.entries(context)) if(entry.photo!=0) photos.add(entry);
         if(photos.size()<2) {prefs.edit().putLong(CHANGED_AT,now).apply();return false;}
-        String current=WallpaperCatalog.find(context,prefs.getString("wallpaper","alpine")).key;
+        String current=WallpaperCatalog.find(context,prefs.getString("wallpaper",null)).key;
         int index=-1;
         for(int i=0;i<photos.size();i++) if(photos.get(i).key.equals(current)) index=i;
         prefs.edit().putString("wallpaper",photos.get((index+1)%photos.size()).key).putLong(CHANGED_AT,now).apply();

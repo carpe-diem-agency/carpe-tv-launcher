@@ -1,0 +1,4 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true"><objectAnimator android:propertyName="alpha" android:valueTo="0.94" android:valueType="floatType" android:duration="110" android:interpolator="@interpolator/library_press_in"/></item>
+    <item><objectAnimator android:propertyName="alpha" android:valueTo="1" android:valueType="floatType" android:duration="190" android:interpolator="@interpolator/library_press_out"/></item>
+</selector>

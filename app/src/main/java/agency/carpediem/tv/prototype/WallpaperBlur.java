@@ -17,15 +17,17 @@ final class WallpaperBlur {
     static Bitmap loadOrCreate(android.content.Context context, int resource, String key) {
         java.io.File cache = new java.io.File(context.getCacheDir(), "wallpaper-" + key + "-blur-v4.png");
         BitmapFactory.Options bounds = new BitmapFactory.Options(); bounds.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(cache.getPath(), bounds);
+        if (PngCacheIntegrity.valid(cache)) BitmapFactory.decodeFile(cache.getPath(), bounds);
         if (bounds.outWidth > 0 && bounds.outWidth <= 512 && bounds.outHeight > 0 && bounds.outHeight <= 512) {
             Bitmap cached = BitmapFactory.decodeFile(cache.getPath()); if (cached != null) return cached;
         }
         Bitmap bitmap = create(context.getResources(), resource);
-        java.io.File temporary = new java.io.File(context.getCacheDir(), "wallpaper-" + key + "-blur-v4.tmp");
-        try (java.io.FileOutputStream output = new java.io.FileOutputStream(temporary)) {
-            if (bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)) { output.flush(); if (!temporary.renameTo(cache)) temporary.delete(); }
-        } catch (java.io.IOException ignored) { temporary.delete(); }
+        try {
+            AtomicCacheFile.write(cache,output->bitmap.compress(Bitmap.CompressFormat.PNG,100,output));
+        } catch (java.io.IOException | UnsupportedOperationException | SecurityException unavailable) {
+            // Cache publication is optional. Keep the generated image and any
+            // previous complete cache entry if storage cannot publish atomically.
+        }
         return bitmap;
     }
     static Bitmap create(Resources resources, int resource) {

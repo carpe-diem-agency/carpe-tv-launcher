@@ -5,8 +5,8 @@ body:
   - type: textarea
     id: device
     attributes:
-      label: Пристрій / Android / версія Carpe TV · Device / Android / app version
-      description: Без серійних номерів, IP-адрес і паролів. / No serial numbers, IP addresses or credentials.
+      label: Інформація для діагностики · Diagnostic information
+      description: Заповнюється QR-кодом Carpe TV. Переглянь перед надсиланням; без серійних номерів, IP-адрес і паролів. / Filled by the Carpe TV QR code. Review before submitting; no serial numbers, IP addresses or credentials.
     validations:
       required: true
   - type: textarea

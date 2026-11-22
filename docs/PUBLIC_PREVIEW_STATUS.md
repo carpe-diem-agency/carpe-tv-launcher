@@ -1,5 +1,27 @@
 # Public source preview
 
+## Current development checkpoint · 2026-11-15
+
+The working source is **0.2.18 (versionCode 25)**. Its debug main and isolated
+validation APKs build successfully; lint reports 0 errors and 72 warnings.
+The latest confirmed installation on the Xiaomi stick is **0.2.15 (22)**.
+The newer build has not been installed: device connectivity, interrupted-test
+cleanup and the remaining runtime checks are still pending. These local builds
+are not a public stable release.
+
+The current settings structure is documented in [SETTINGS_STRUCTURE](SETTINGS_STRUCTURE.md):
+appearance and sound, screensaver, favorites, apps, device and About. It includes
+agreed navigation/click sounds, RAM/storage usage bars, diagnostics and GitHub-only
+feedback with QR codes. Shared design tokens and atomic wallpaper-cache publication
+have local verification; this does not close the full P1/P2 acceptance checklist.
+
+System Home integration (P0) is deferred and requires separate owner approval.
+See [PUBLICATION](PUBLICATION.md) for the evidence and remaining gates.
+The website remains a source preview, with public APK downloads disabled until
+verified release assets are available. Older gallery media is labeled accordingly.
+
+## Historical export and validation notes
+
 This source began as a clean export of the private Carpe TV development tree at
 `d00dcdc9929de8f001b71b602818d04dcbd7b539`. It now has its own history
 in the public [carpe-tv-launcher repository](https://github.com/carpe-diem-agency/carpe-tv-launcher).
@@ -29,7 +51,7 @@ debug test on one stick, not a release or multi-device soak result. Details
 are in [performance checks](PERFORMANCE_CHECK.md).
 The release media check finds the three documented CC0 landscape photos and
 none of the known private artwork. This is not a complete rights or secret
-audit. The current unsigned APK is `agency.carpediem.tv`, version 0.2.8,
+audit. At the original export checkpoint, the unsigned APK was `agency.carpediem.tv`, version 0.2.8,
 approximately 16 MB; its manifest permissions and exported components are
 recorded in the [APK surface audit](APK_SURFACE_AUDIT.md). See the
 [publication checklist](PUBLICATION.md) for the remaining gates.

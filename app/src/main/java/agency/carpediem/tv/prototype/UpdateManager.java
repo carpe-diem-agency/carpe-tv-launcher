@@ -32,6 +32,24 @@ final class UpdateManager {
     static final ExecutorService WORKER = Executors.newSingleThreadExecutor();
     private static final AtomicBoolean REFRESHING = new AtomicBoolean();
     private static final AtomicBoolean BUSY = new AtomicBoolean();
+    private static final UpdateOperation DOWNLOAD_OPERATION=new UpdateOperation();
+    private static String activeDownloadOperation;
+    private static UpdateOperation.Token activeDownloadToken;
+    private static UpdateOperation.Token adoptDownload(Context c) {
+        String identity=prefs(c).getString("downloadOperation",null);
+        if(identity==null) {
+            identity=java.util.UUID.randomUUID().toString();
+            prefs(c).edit().putString("downloadOperation",identity).commit();
+        }
+        if(!identity.equals(activeDownloadOperation)||!DOWNLOAD_OPERATION.isCurrent(activeDownloadToken)) {
+            activeDownloadOperation=identity;activeDownloadToken=DOWNLOAD_OPERATION.begin();
+        }
+        return activeDownloadToken;
+    }
+    private static boolean currentDownload(Context c,UpdateOperation.Token token,String identity,long id) {
+        return DOWNLOAD_OPERATION.isCurrent(token)&&identity.equals(prefs(c).getString("downloadOperation",null))
+                &&(id<0||id==prefs(c).getLong("downloadId",-1));
+    }
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences("updates", Context.MODE_PRIVATE); }
     static boolean debug(Context c) { return (c.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0; }
     static long version(PackageInfo p) { return Build.VERSION.SDK_INT >= 28 ? p.getLongVersionCode() : p.versionCode; }
@@ -44,6 +62,7 @@ final class UpdateManager {
     }
     static void error(Context c, Exception e) {
         if(e instanceof UpdateError) { UpdateError problem=(UpdateError)e; setState(c,"error",problem.resource,problem.suffix); }
+        else if(e instanceof SocketTimeoutException) setState(c,"error",R.string.update_timeout);
         else setState(c,"error",R.string.update_action_failed);
     }
     static void setState(Context c,String state,int resource) { setState(c,state,resource,""); }
@@ -76,22 +95,92 @@ final class UpdateManager {
         Context c=context.getApplicationContext(); WORKER.execute(() -> recoverNow(c));
     }
     static void recoverNow(Context c) {
-        String state=state(c);
-        boolean previousProcess=prefs(c).getInt("operationPid",-1)!=android.os.Process.myPid();
-        if(previousProcess && (state.equals("checking") || state.equals("preparing"))) {
-            setState(c,"idle",R.string.update_action_failed);
-        } else if(previousProcess && state.equals("verifying")) {
-            prefs(c).edit().putString("state","downloading").apply(); refreshNow(c);
-        } else if(state.equals("installing") || state.equals("confirming")) {
-            int id=prefs(c).getInt("sessionId",-1);
-            if(id<0 || c.getPackageManager().getPackageInstaller().getSessionInfo(id)==null) {
-                try { if(target(c).isFile()) setState(c,"ready",R.string.update_repeat_install); else setState(c,"idle",R.string.update_action_failed); }
-                catch(Exception error) { setState(c,"idle",R.string.update_action_failed); }
+        boolean refresh=false;
+        synchronized(DOWNLOAD_OPERATION) {
+            if(prefs(c).getBoolean("enqueuePending",false)) {
+                try {recoverEnqueue(c);} catch(Exception unavailable) {error(c,unavailable);}
+                return;
+            }
+            String state=state(c);
+            boolean previousProcess=prefs(c).getInt("operationPid",-1)!=android.os.Process.myPid();
+            if(previousProcess && (state.equals("checking") || state.equals("preparing"))) {
+                DOWNLOAD_OPERATION.cancel(()->{activeDownloadOperation=null;activeDownloadToken=null;});
+                setState(c,"idle",R.string.update_action_failed);
+            } else if(state.equals("downloading") || (previousProcess && state.equals("verifying"))) {
+                adoptDownload(c);
+                if(state.equals("verifying")) prefs(c).edit().putString("state","downloading").apply();
+                refresh=true;
+            } else if(state.equals("installing") || state.equals("confirming")) {
+                int id=prefs(c).getInt("sessionId",-1);
+                if(id<0 || c.getPackageManager().getPackageInstaller().getSessionInfo(id)==null) {
+                    clearInstallSession(c);
+                    try { if(target(c).isFile()) setState(c,"ready",R.string.update_repeat_install); else setState(c,"idle",R.string.update_action_failed); }
+                    catch(Exception error) { setState(c,"idle",R.string.update_action_failed); }
+                }
             }
         }
+        if(refresh) refreshNow(c);
+    }
+    private static boolean validDownloadFile(String name) {
+        return name!=null&&name.matches("carpe-update-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.apk");
+    }
+    /** Idempotent rollback of an enqueue whose returned ID was not durably published. */
+    private static void recoverEnqueue(Context c) throws Exception {
+        String name=prefs(c).getString("enqueueFile",null);
+        String identity=prefs(c).getString("enqueueOperation",null);
+        String transport=prefs(c).getString("enqueueUri",null);
+        if(!validDownloadFile(name)||identity==null||!name.equals("carpe-update-"+identity+".apk"))
+            throw new IOException("Invalid enqueue journal");
+        if(transport==null) throw new IOException("Missing enqueue URI");
+        Uri transportUri=Uri.parse(transport);
+        String requestMarker="carpe-update-"+identity;
+        if(!requestMarker.equals(transportUri.getFragment())) throw new IOException("Invalid enqueue marker");
+        safeUrl(c,transportUri.buildUpon().fragment(null).build().toString());
+        if(!identity.equals(prefs(c).getString("downloadOperation",null))) throw new IOException("Enqueue ownership changed");
+        File directory=c.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if(directory==null) throw new IOException("Download storage unavailable");
+        File file=new File(directory,name);String destination=Uri.fromFile(file).toString();
+        DownloadManager dm=c.getSystemService(DownloadManager.class);
+        ArrayList<Long> matching=new ArrayList<>();
+        try(Cursor rows=dm.query(new DownloadManager.Query())) {
+            if(rows==null) throw new IOException("Download query unavailable");
+            while(rows.moveToNext()) {
+                String marker=rows.getString(rows.getColumnIndexOrThrow(DownloadManager.COLUMN_URI));
+                String uri=rows.getString(rows.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI));
+                String description=rows.getString(rows.getColumnIndexOrThrow(DownloadManager.COLUMN_DESCRIPTION));
+                UpdateDestinationMatch.Result match=UpdateDestinationMatch.match(transport,destination,requestMarker,marker,uri,description);
+                if(match==UpdateDestinationMatch.Result.CONFLICT) throw new IOException("Orphan destination mismatch");
+                if(match==UpdateDestinationMatch.Result.MATCH) matching.add(rows.getLong(rows.getColumnIndexOrThrow(DownloadManager.COLUMN_ID)));
+            }
+        }
+        for(long id:matching) {
+            dm.remove(id);
+            try(Cursor row=dm.query(new DownloadManager.Query().setFilterById(id))) {
+                if(row==null||row.moveToFirst()) throw new IOException("Orphan removal incomplete");
+            }
+        }
+        if(file.exists()&&!file.delete()) throw new IOException("Orphan file removal incomplete");
+        // Clear only after every cleanup step succeeded; retries can safely repeat removals.
+        Map<String,?> before=prefs(c).getAll();
+        SharedPreferences.Editor recovered=prefs(c).edit().remove("enqueuePending").remove("enqueueFile").remove("enqueueOperation").remove("enqueueUri")
+                .putString("state","available").putString("messageKey","update_cancelled")
+                .putString("messageSuffix","").putInt("operationPid",android.os.Process.myPid());
+        if(name.equals(prefs(c).getString("downloadFile",null))) recovered.remove("downloadFile").remove("downloadId").remove("downloaded");
+        if(!recovered.commit()) {
+            SharedPreferences.Editor retry=prefs(c).edit().putBoolean("enqueuePending",true).putString("enqueueFile",name)
+                    .putString("enqueueOperation",identity).putString("enqueueUri",transport)
+                    .putString("state","error").putString("messageKey","update_action_failed").putString("messageSuffix","");
+            if(before.containsKey("downloadFile")) retry.putString("downloadFile",(String)before.get("downloadFile"));
+            if(before.containsKey("downloadId")) retry.putLong("downloadId",(Long)before.get("downloadId"));
+            if(before.containsKey("downloaded")) retry.putLong("downloaded",(Long)before.get("downloaded"));
+            retry.commit();
+            throw new IOException("Cannot finish orphan recovery");
+        }
+        DOWNLOAD_OPERATION.cancel(()->{activeDownloadOperation=null;activeDownloadToken=null;});
     }
     static void maybeCheck(Context context) {
         Context c = context.getApplicationContext();
+        if(prefs(c).getBoolean("enqueuePending",false)) {recover(c);return;}
         if (busy(c) && prefs(c).getInt("operationPid",-1)!=android.os.Process.myPid()) { recover(c); return; }
         if (source().isEmpty() || busy(c) || "ready".equals(state(c))) return;
         if (System.currentTimeMillis() - prefs(c).getLong("checkedAt", 0) > 24L * 60 * 60 * 1000) check(c, source());
@@ -111,7 +200,13 @@ final class UpdateManager {
             HttpURLConnection h = (HttpURLConnection) u.openConnection();
             h.setConnectTimeout(10000); h.setReadTimeout(15000); h.setInstanceFollowRedirects(false);
             h.setRequestMethod(method); h.setRequestProperty("Accept", "application/json, application/octet-stream");
-            int code = h.getResponseCode();
+            int code;
+            try {
+                code = h.getResponseCode();
+            } catch (IOException | RuntimeException error) {
+                h.disconnect();
+                throw error;
+            }
             if (code >= 300 && code < 400) {
                 String location = h.getHeaderField("Location"); h.disconnect();
                 if (location == null) throw new UpdateError(c,R.string.update_bad_redirect);
@@ -150,6 +245,7 @@ final class UpdateManager {
     }
     static void check(Context context, String feed) {
         Context c = context.getApplicationContext();
+        if(prefs(c).getBoolean("enqueuePending",false)) {recover(c);return;}
         if (feed.isEmpty()) { setState(c,"idle",R.string.update_no_feed); return; }
         if (busy(c) || "ready".equals(state(c)) || !BUSY.compareAndSet(false, true)) return;
         setState(c,"checking",R.string.update_checking);
@@ -180,35 +276,65 @@ final class UpdateManager {
     static File target(Context c) throws Exception {
         File directory = c.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
         if (directory == null) throw new UpdateError(c,R.string.storage_unavailable);
-        return new File(directory, "carpe-update.apk");
+        String name=prefs(c).getString("downloadFile",null);
+        if(name!=null&&!validDownloadFile(name)) throw new IOException("Invalid download filename");
+        return new File(directory,name==null?"carpe-update.apk":name);
     }
     static void download(Context context) {
         Context c = context.getApplicationContext();
-        if (!"available".equals(state(c)) && !"error".equals(state(c))) return;
-        setState(c,"preparing",R.string.update_preparing);
+        final UpdateOperation.Token token;final String identity;final JSONObject captured;
+        synchronized(DOWNLOAD_OPERATION) {
+            if(prefs(c).getBoolean("enqueuePending",false)) {recover(c);return;}
+            if (!"available".equals(state(c)) && !"error".equals(state(c))) return;
+            try {captured=metadata(c);} catch(Exception error) {error(c,error);return;}
+            identity=java.util.UUID.randomUUID().toString();
+            activeDownloadOperation=identity;token=activeDownloadToken=DOWNLOAD_OPERATION.begin();
+            prefs(c).edit().putString("downloadOperation",identity).commit();
+            setState(c,"preparing",R.string.update_preparing);
+        }
         WORKER.execute(() -> {
             try {
-                JSONObject m = metadata(c); long size = m.getLong("byteSize");
+                JSONObject m = captured; long size = m.getLong("byteSize");
                 if (size > MAX_BYTES || size < 1024) throw new UpdateError(c,R.string.update_apk_size);
-                File file = target(c); File dir = file.getParentFile(); if (!dir.exists() && !dir.mkdirs()) throw new UpdateError(c,R.string.storage_failed);
+                File file = target(c); File dir = file.getParentFile();
+                synchronized(DOWNLOAD_OPERATION) {
+                    if(!currentDownload(c,token,identity,-1)) return;
+                    if (!dir.exists() && !dir.mkdirs()) throw new UpdateError(c,R.string.storage_failed);
+                }
                 if (dir.getUsableSpace() < size * 2 + 20 * 1024 * 1024) throw new UpdateError(c,R.string.storage_low);
                 HttpURLConnection h = connect(c, m.getString("apkUrl"), "HEAD");
                 String finalUrl;
                 try { if (h.getContentLengthLong() != size) throw new UpdateError(c,R.string.update_server_size); finalUrl = h.getURL().toString(); } finally { h.disconnect(); }
+                synchronized(DOWNLOAD_OPERATION) {
+                if(!currentDownload(c,token,identity,-1)) return;
                 DownloadManager dm = c.getSystemService(DownloadManager.class);
                 long old = prefs(c).getLong("downloadId", -1); if (old != -1) dm.remove(old);
                 if (file.exists() && !file.delete()) throw new UpdateError(c,R.string.update_cleanup_failed);
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(finalUrl))
+                String requestMarker="carpe-update-"+identity;
+                String transportUri=Uri.parse(finalUrl).buildUpon().fragment(requestMarker).build().toString();
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(transportUri))
                         .setTitle(AppLanguage.text(c, R.string.update_download_title_prefix) + m.getString("versionName"))
-                        .setDescription(AppLanguage.text(c, R.string.update_notification_description))
+                        .setDescription(AppLanguage.text(c,R.string.update_notification_description)
+                                +UpdateDestinationMatch.descriptionSuffix(requestMarker))
                         .setMimeType("application/vnd.android.package-archive")
                         .setAllowedOverMetered(false).setAllowedOverRoaming(false)
-                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-                        .setDestinationInExternalFilesDir(c, Environment.DIRECTORY_DOWNLOADS, "carpe-update.apk");
+                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                String destinationName="carpe-update-"+identity+".apk";
+                request.setDestinationInExternalFilesDir(c,Environment.DIRECTORY_DOWNLOADS,destinationName);
+                if(!prefs(c).edit().putBoolean("enqueuePending",true).putString("enqueueFile",destinationName)
+                        .putString("enqueueOperation",identity).putString("enqueueUri",transportUri).commit()) throw new IOException("Cannot persist enqueue journal");
                 long id = dm.enqueue(request);
-                prefs(c).edit().putLong("downloadId", id).putLong("downloaded", 0).apply();
-                setState(c,"downloading",R.string.update_downloading);
-            } catch (Exception e) { error(c, e); }
+                if(!prefs(c).edit().putLong("downloadId",id).putLong("downloaded",0).putString("downloadFile",destinationName)
+                        .putBoolean("enqueuePending",false).putString("state","downloading")
+                        .putString("messageKey","update_downloading").putString("messageSuffix","")
+                        .putInt("operationPid",android.os.Process.myPid()).putLong("stateAt",System.currentTimeMillis()).commit()) {
+                    prefs(c).edit().putBoolean("enqueuePending",true).commit();
+                    dm.remove(id);throw new IOException("Cannot publish download identity");
+                }
+                }
+            } catch (Exception e) {
+                synchronized(DOWNLOAD_OPERATION) {if(currentDownload(c,token,identity,-1)) error(c,e);}
+            }
         });
     }
     static void refresh(Context context) {
@@ -216,22 +342,43 @@ final class UpdateManager {
         if (!"downloading".equals(state(c)) || !REFRESHING.compareAndSet(false, true)) return;
         WORKER.execute(() -> { try { refreshNow(c); } finally { REFRESHING.set(false); } });
     }
-    static void refreshNow(Context c) {
-        if (!"downloading".equals(state(c))) return;
-        long id = prefs(c).getLong("downloadId", -1);
+    interface Verification { void verify(Context c,File file,JSONObject metadata) throws Exception; }
+    static void refreshNow(Context c) { refreshNow(c,-1,UpdateManager::validateApk); }
+    static void refreshNow(Context c,long expectedId) {refreshNow(c,expectedId,UpdateManager::validateApk);}
+    static void refreshNow(Context c,long expectedId,Verification verifier) {
+        final long id;final String identity;final UpdateOperation.Token token;final JSONObject captured;
+        synchronized(DOWNLOAD_OPERATION) {
+            if(!"downloading".equals(state(c))) return;
+            id=prefs(c).getLong("downloadId",-1);
+            if(id<0||(expectedId>=0&&expectedId!=id)) return;
+            token=adoptDownload(c);identity=activeDownloadOperation;
+            try {captured=metadata(c);} catch(Exception error) {cleanupDownload(c);error(c,error);return;}
+        }
         try (Cursor cursor = c.getSystemService(DownloadManager.class).query(new DownloadManager.Query().setFilterById(id))) {
             if (cursor == null || !cursor.moveToFirst()) throw new UpdateError(c,R.string.update_download_missing);
             long bytes = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
-            prefs(c).edit().putLong("downloaded", bytes).apply();
-            if (bytes > metadata(c).getLong("byteSize") || bytes > MAX_BYTES) { c.getSystemService(DownloadManager.class).remove(id); throw new UpdateError(c,R.string.update_server_large); }
             int status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
-            if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                setState(c,"verifying",R.string.update_verifying); validateApk(c, target(c)); setState(c,"ready",R.string.update_ready);
-            } else if (status == DownloadManager.STATUS_FAILED) throw new UpdateError(c,R.string.update_download_failed);
-        } catch (Exception e) { cleanupDownload(c); error(c, e); }
+            synchronized(DOWNLOAD_OPERATION) {
+                if(!currentDownload(c,token,identity,id)) return;
+                prefs(c).edit().putLong("downloaded",bytes).apply();
+                if(bytes>captured.getLong("byteSize")||bytes>MAX_BYTES) throw new UpdateError(c,R.string.update_server_large);
+                if(status==DownloadManager.STATUS_SUCCESSFUL) setState(c,"verifying",R.string.update_verifying);
+                else if(status==DownloadManager.STATUS_FAILED) throw new UpdateError(c,R.string.update_download_failed);
+            }
+            if(status==DownloadManager.STATUS_SUCCESSFUL) {
+                verifier.verify(c,target(c),captured);
+                synchronized(DOWNLOAD_OPERATION) {if(currentDownload(c,token,identity,id)) setState(c,"ready",R.string.update_ready);}
+            }
+        } catch(Exception error) {
+            synchronized(DOWNLOAD_OPERATION) {
+                if(currentDownload(c,token,identity,id)) {cleanupDownload(c);error(c,error);}
+            }
+        }
     }
     static void validateApk(Context c, File file) throws Exception {
-        JSONObject m = metadata(c);
+        validateApk(c,file,metadata(c));
+    }
+    private static void validateApk(Context c,File file,JSONObject m) throws Exception {
         if (!file.isFile() || file.length() != m.getLong("byteSize") || file.length() > MAX_BYTES) throw new UpdateError(c,R.string.update_incomplete);
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         try (InputStream in = new FileInputStream(file)) { byte[] b = new byte[32768]; int n; while ((n = in.read(b)) != -1) digest.update(b,0,n); }
@@ -255,23 +402,99 @@ final class UpdateManager {
         try { File f = target(c); if (f.exists()) f.delete(); } catch (Exception ignored) { }
         prefs(c).edit().remove("downloadId").remove("downloaded").apply();
     }
-    static void cancel(Context c) { cleanupDownload(c); setState(c,"available",R.string.update_cancelled); }
+    static void cancel(Context c) {
+        DOWNLOAD_OPERATION.cancel(()->{
+            activeDownloadOperation=null;activeDownloadToken=null;
+            if(prefs(c).getBoolean("enqueuePending",false)) {
+                try {recoverEnqueue(c);} catch(Exception unavailable) {error(c,unavailable);return;}
+            }
+            cleanupDownload(c);prefs(c).edit().remove("downloadOperation").commit();
+            setState(c,"available",R.string.update_cancelled);
+        });
+    }
     private static void backup(Context c) throws Exception {
         File directory = new File(c.getFilesDir(), "update-rollback"); if (!directory.exists() && !directory.mkdirs()) throw new UpdateError(c,R.string.backup_failed);
         try (InputStream in = new FileInputStream(c.getApplicationInfo().sourceDir); OutputStream out = new FileOutputStream(new File(directory,"previous.apk"))) { byte[] b = new byte[32768]; int n; while ((n=in.read(b)) != -1) out.write(b,0,n); }
-        JSONObject settings = new JSONObject();
-        for (Map.Entry<String, ?> entry : c.getSharedPreferences("MainActivity", Context.MODE_PRIVATE).getAll().entrySet()) {
-            Object value = entry.getValue(); settings.put(entry.getKey(), value instanceof Set ? new JSONArray((Set<?>) value) : value);
-        }
-        JSONObject export = new JSONObject(); export.put("schemaVersion",1); export.put("versionCode",version(installed(c))); export.put("preferences",settings);
+        String className=MainActivity.class.getName(),packageName=c.getPackageName();
+        String mainStore=className.startsWith(packageName+".")
+                ? className.substring(packageName.length()+1) : className;
+        JSONObject stores=new JSONObject(),types=new JSONObject();
+        JSONObject settings=backupPreferences(c,mainStore,stores,types,false);
+        if(!"MainActivity".equals(mainStore)) backupPreferences(c,"MainActivity",stores,types,false);
+        backupPreferences(c,"ui_sounds",stores,types,false);
+        // Only the updater's persistent user choice is portable, never download/session state.
+        backupPreferences(c,"updates",stores,types,true);
+        JSONObject export = new JSONObject(); export.put("schemaVersion",2); export.put("versionCode",version(installed(c)));
+        export.put("mainPreferenceStore",mainStore); export.put("preferenceStores",stores); export.put("preferenceTypes",types);
+        export.put("preferences",settings); // Flat actual-Main values for older export readers.
         try (Writer out = new OutputStreamWriter(new FileOutputStream(new File(directory,"preferences.json")), "UTF-8")) { out.write(export.toString()); }
+    }
+    private static JSONObject backupPreferences(Context c,String name,JSONObject stores,JSONObject types,boolean updater) throws Exception {
+        JSONObject values=new JSONObject(),valueTypes=new JSONObject();
+        for(Map.Entry<String,?> entry:c.getSharedPreferences(name,Context.MODE_PRIVATE).getAll().entrySet()) {
+            if(updater && !"autoDownload".equals(entry.getKey())) continue;
+            Object value=entry.getValue();String type;
+            if(value instanceof String) type="string";
+            else if(value instanceof Boolean) type="boolean";
+            else if(value instanceof Integer) type="int";
+            else if(value instanceof Long) type="long";
+            else if(value instanceof Float) type="float";
+            else if(value instanceof Set) type="stringSet";
+            else throw new IOException("Unsupported preference type");
+            values.put(entry.getKey(),value instanceof Set ? new JSONArray((Set<?>)value) : value);
+            valueTypes.put(entry.getKey(),type);
+        }
+        stores.put(name,values);types.put(name,valueTypes);return values;
+    }
+    private static void clearInstallSession(Context c) {
+        prefs(c).edit().remove("sessionId").remove("sessionDownloadOperation").remove("sessionDownloadId").commit();
+    }
+    static boolean installCallback(Context c,int sessionId,int status) {
+        synchronized(DOWNLOAD_OPERATION) {
+            if(sessionId<0||sessionId!=prefs(c).getInt("sessionId",-1)) return false;
+            String state=state(c);
+            String binding=prefs(c).getString("sessionDownloadOperation",null);
+            boolean active=state.equals("installing")||state.equals("confirming");
+            boolean owns=binding!=null&&binding.equals(prefs(c).getString("downloadOperation",null))
+                    &&prefs(c).getLong("sessionDownloadId",-2)==prefs(c).getLong("downloadId",-1);
+            if(!active||(binding!=null&&!owns)) {clearInstallSession(c);return false;}
+            if(status==PackageInstaller.STATUS_PENDING_USER_ACTION) {
+                if(!owns) return false; // Legacy sessions cannot establish ownership from a newer download.
+                setState(c,"confirming",R.string.update_confirm);return true;
+            }
+            if(status==PackageInstaller.STATUS_SUCCESS) {
+                if(owns) {
+                    DOWNLOAD_OPERATION.cancel(()->{
+                        activeDownloadOperation=null;activeDownloadToken=null;cleanupDownload(c);
+                        prefs(c).edit().remove("metadata").remove("downloadOperation").commit();
+                    });
+                }
+                clearInstallSession(c);setState(c,"idle",R.string.update_success);
+            } else {
+                clearInstallSession(c);
+                setState(c,"ready",status==PackageInstaller.STATUS_FAILURE_ABORTED ? R.string.update_install_cancelled : R.string.update_installer_failed);
+            }
+            return false;
+        }
+    }
+    static void installConfirmationFailed(Context c,int sessionId) {
+        synchronized(DOWNLOAD_OPERATION) {
+            if(sessionId==prefs(c).getInt("sessionId",-1)&&"confirming".equals(state(c))) {
+                clearInstallSession(c);setState(c,"ready",R.string.update_repeat_install);
+            }
+        }
     }
     static void install(Activity activity) {
         if (!"ready".equals(state(activity))) return;
         if (!activity.getPackageManager().canRequestPackageInstalls()) {
             activity.startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + activity.getPackageName()))); return;
         }
-        Context c = activity.getApplicationContext(); setState(c,"installing",R.string.update_installing);
+        Context c = activity.getApplicationContext();final String downloadIdentity;final long downloadId;
+        synchronized(DOWNLOAD_OPERATION) {
+            if(!"ready".equals(state(c))) return;
+            adoptDownload(c);downloadIdentity=activeDownloadOperation;downloadId=prefs(c).getLong("downloadId",-1);
+            setState(c,"installing",R.string.update_installing);
+        }
         WORKER.execute(() -> {
             int id = -1; PackageInstaller installer = c.getPackageManager().getPackageInstaller();
             try {
@@ -279,7 +502,13 @@ final class UpdateManager {
                 PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
                 params.setAppPackageName(c.getPackageName()); params.setSize(file.length());
                 if (Build.VERSION.SDK_INT >= 31) params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED);
-                id = installer.createSession(params); prefs(c).edit().putInt("sessionId",id).commit();
+                id = installer.createSession(params);
+                synchronized(DOWNLOAD_OPERATION) {
+                    if(!"installing".equals(state(c))||!downloadIdentity.equals(prefs(c).getString("downloadOperation",null))
+                            ||downloadId!=prefs(c).getLong("downloadId",-1)) throw new IOException("Installation operation changed");
+                    if(!prefs(c).edit().putInt("sessionId",id).putString("sessionDownloadOperation",downloadIdentity)
+                            .putLong("sessionDownloadId",downloadId).commit()) throw new IOException("Cannot persist installation session");
+                }
                 try (PackageInstaller.Session session = installer.openSession(id)) {
                     try (InputStream input = new FileInputStream(file); OutputStream output = session.openWrite("base.apk",0,file.length())) {
                         byte[] b = new byte[32768]; int n; while ((n=input.read(b)) != -1) output.write(b,0,n); session.fsync(output);
@@ -291,7 +520,13 @@ final class UpdateManager {
                 }
             } catch (Exception e) {
                 if (id != -1) try { installer.abandonSession(id); } catch (Exception ignored) { }
-                setState(c,"ready",R.string.update_repeat_install);
+                synchronized(DOWNLOAD_OPERATION) {
+                    if(downloadIdentity.equals(prefs(c).getString("downloadOperation",null))
+                            &&downloadId==prefs(c).getLong("downloadId",-1)&&"installing".equals(state(c))) {
+                        if(id==prefs(c).getInt("sessionId",-1)) clearInstallSession(c);
+                        setState(c,"ready",R.string.update_repeat_install);
+                    }
+                }
             }
         });
     }

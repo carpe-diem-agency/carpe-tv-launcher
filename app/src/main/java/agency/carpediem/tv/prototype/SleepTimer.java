@@ -1,6 +1,5 @@
 package agency.carpediem.tv.prototype;
 
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -46,7 +45,6 @@ public final class SleepTimer extends BroadcastReceiver {
         try { manager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, deadline, alarm(c, deadline)); }
         catch (RuntimeException error) { cancel(c); throw error; }
     }
-    static void show(Activity a) { new SleepTimerDialog(a).show(); }
     private static void toast(Context c, int message) { Toast.makeText(c, message, Toast.LENGTH_LONG).show(); }
     @Override public void onReceive(Context c, Intent i) {
         if (!ACTION.equals(i.getAction())) return;

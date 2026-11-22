@@ -2,9 +2,9 @@
 
 This public source uses Android application ID `agency.carpediem.tv`. It is a
 separate app from the personal development build, which uses
-`agency.carpediem.tv.prototype`. Installing one does not replace the other or
-copy its settings. The Java namespace remains `agency.carpediem.tv.prototype`
-until a later code migration; it is not the installable application ID.
+`agency.carpediem.tv.publicpreview` when built with `-PisolatedPreview`.
+Each package keeps its own settings. The Java namespace is
+`agency.carpediem.tv.prototype`.
 
 ## Build
 
@@ -45,10 +45,10 @@ confirmation and the one-time "install unknown apps" permission for Carpe TV.
 Create and back up a dedicated release key outside Git. Losing the key prevents
 updates with the same application ID. Set these GitHub Actions environment
 secrets in the `release` environment: `RELEASE_KEYSTORE_BASE64`,
-`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD` and
-`RELEASE_CERT_SHA256`. Record the signing certificate's SHA-256 digest from
-the backed-up key in the last secret. The workflow verifies that the signed
-APK matches this pinned identity before creating a draft.
+`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD`.
+Set the repository Actions variable `RELEASE_CERT_SHA256` to the public
+signing-certificate fingerprint from the backed-up key. Both the draft-release
+and install-page workflows verify the signed APK against this fingerprint.
 You can inspect the digest locally with `keytool -list -v -keystore release.jks`
 and copy the `SHA256` fingerprint without its colons. Keep the keystore and
 passwords outside Git and back them up separately.
@@ -75,15 +75,17 @@ Mac is not an independent backup. Until this check succeeds, keep the release wo
 draft preparation and do not publish a stable APK.
 
 The manual Release workflow rebuilds SPAKE2 from the distributed source
-archive, packages that AAR, verifies all four native libraries inside the
-signed APK, then checks its signature and artwork. It attaches the APK, the
-SPAKE2 source bundle, SHA256SUMS and
-update.json to a **draft**
-pre-release. Reviewers should check the resulting APK on real Android TV
+archive, packages that AAR, then runs lint on the release variant and checks all
+four native libraries, the signature and artwork in the signed APK. Before
+creating the **draft** pre-release, it runs the same bundle check as the install
+page against the APK, the SPAKE2 source bundle, SHA256SUMS and update.json.
+Reviewers should check the resulting APK on real Android TV
 devices and approve publication only after the [publication checklist](PUBLICATION.md)
-is complete. Its tag must exactly equal `v` plus the APK's `versionName`; for
-the current `0.2.8` build, the only matching tag is `v0.2.8`. A public
-repository, stable release and update feed are separate manual decisions.
+is complete. Its tag must exactly equal `v` plus the APK's `versionName`.
+The draft workflow checks that any existing remote tag resolves to the same
+commit as the build, including annotated tags. Check that the tag still points
+to that commit when reviewing the draft for publication. A public repository,
+stable release and update feed are separate manual decisions.
 
 The [modified-library rebuild guide](RELINKING.md) documents how a recipient
 can substitute the bundled LGPL library; it does not replace the pending
@@ -92,20 +94,42 @@ distribution review.
 For the first public candidate, use the **same production key** for the draft
 and later updates. Test the downloaded draft APK as a fresh install without
 ADB: open it through a TV browser, grant the source app's install permission,
-complete first run, choose Home, launch another app, press physical Home and
-return to the stock launcher. Separately test a phone-to-TV file transfer on a
+complete first run, launch another app and use Back to return. Choosing the
+system Home app, verifying the physical Home button and restoring the stock
+launcher belong to the separate P0 test and require owner approval before starting.
+Separately test a phone-to-TV file transfer on a
 device without a browser. Record the exact receiving app and prompts. Do not
 mark the one-APK install path verified from an ADB install alone. The optional
 Shizuku setup is a separate test and is not part of the basic install path.
+
+## Offline rehearsal from an archive
+
+Use the archived unsigned APK, source ZIP and their checksum files with
+`tools/rehearse_archive_signing.py`. Supply the trusted source ZIP SHA-256
+from an independent record. The tool checks it before running any scripts
+from the archive.
+
+```sh
+python3 tools/rehearse_archive_signing.py /path/to/candidate \
+  --source-sha256 TRUSTED_SOURCE_ZIP_SHA256 \
+  --sdk /path/to/android-sdk --java-home /path/to/jdk-17
+```
+
+The rehearsal restores a disposable key from a temporary copy, signs the
+archived APK, and uses that archive's own scripts to assemble and validate
+the local release assets. It also verifies that a different valid certificate
+fails the original pin. Results describe the rehearsal. Production key
+recovery, device installation and publication remain separate steps.
 
 ## Install page for the public release
 
 `docs/index.html` is a Ukrainian/English install page designed for a TV remote
 and a phone. It includes search/social metadata, two reviewed preview screens
 and a short real transition recording. The final release-media review remains
-open; see [screenshots](screenshots/README.md). It links its main button directly to the stable
-release asset `releases/latest/download/carpe-tv.apk`, with a fallback link to
-the release list. The page uses a separate, generated background image; the app's alpine wallpaper remains a distinct asset.
+open; see [screenshots](screenshots/README.md). The published download button,
+release-file links and structured download metadata all use the exact release
+tag verified during the Pages build. The page uses a separate, generated
+background image. The app's alpine wallpaper remains a distinct asset.
 The local page has been checked at TV and phone viewport sizes, including
 keyboard focus and both languages; its download link cannot work until a
 **stable** release with exactly that asset name is public.
@@ -116,8 +140,14 @@ media, `robots.txt` and `sitemap.xml`. Pages is enabled from GitHub Actions at
 exists, it publishes a source preview without a download action. A stable
 release containing `carpe-tv.apk`, `SHA256SUMS`, `update.json` and the SPAKE2
 source archive changes the page to installation mode only after Pages downloads
-them and checks both file hashes and the update metadata. Later source pushes
-repeat the same gate against the latest stable release. Do not select branch `/docs` publishing
+them and checks both file hashes, the APK signature, and the update metadata
+against the APK's embedded application ID, version, and minimum Android SDK.
+The APK must have debugging disabled. The release workflow separately
+checks the certificate fingerprint against the repository Actions variable.
+The displayed version and download URL stay aligned if GitHub later assigns
+`latest` to a different tag.
+Later source pushes repeat the same gate against the latest stable release.
+Do not select branch `/docs` publishing
 in parallel. The live APK download, Android installer, phone transfer, both
 languages and rollback link still need final release testing. If the release
 asset name changes, update the page, workflow check and instructions together.

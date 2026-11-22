@@ -9,7 +9,7 @@ The timer runs only while Carpe TV is resumed and owns window focus. Remote inpu
 
 **Aerial Views · video landscapes** is optional and requires [Aerial Views](https://github.com/theothernt/AerialViews) installed and configured separately. Carpe TV invokes its documented preview Activity, not a private DreamService API. Its video sources, playback and caching remain managed by Aerial Views. No GPL code or third-party video collection is copied into this project. If it is removed, disabled or cannot launch, offline photos are the fallback.
 
-**Android screensaver settings** opens the system page, falling back to general Android settings if unavailable. Firmware may hide third-party screensaver selection or timeout controls. Carpe TV does not change secure settings or request write-settings access. Turning our timer Off does not turn off the Android screensaver or device sleep.
+Android manages its own screensaver and sleep timer. Access Android settings from **Settings → Device**.
 
 ## Українською
 
@@ -21,7 +21,7 @@ The timer runs only while Carpe TV is resumed and owns window focus. Remote inpu
 
 Для відеопейзажів можна вибрати окремо встановлену **Aerial Views**. Її джерела та кеш налаштовуються в самій Aerial Views. Якщо вона недоступна, відкриються наші офлайн-фото. Відео Apple та інших авторів у наш APK не включені.
 
-Кнопка **Налаштування заставки Android** відкриває системні параметри. На деяких прошивках вибір заставки й таймера прихований. Системна заставка може запускатися раніше нашої; вимкнення таймера Carpe TV не вимикає заставку Android чи сон.
+Android керує власною заставкою й переходом у сон. Відкрити налаштування Android можна через **Налаштування → Пристрій**.
 
 ## Online collection (0.2.6)
 
@@ -33,14 +33,14 @@ Online downloads are optional; disabling them keeps existing cached media availa
 
 Storage is limited to 500 MiB and 24 complete items in `cache/screensaver-media-v1`. Photos are capped at 12 MiB, videos at 80 MiB / 1080p and four minutes. HTTPS hosts and every redirect are allowlisted. Responses without a trustworthy Content-Length remain subject to the same streaming byte cap. Media is validated before publication.
 
-The default free-space reserve is 1024 MiB; 512 MiB is selectable for this device. Available bytes are checked before downloading and each MiB during transfer. Low space removes oldest unused cache entries and refuses a new file if the reserve cannot be met. Active playback and one most-recent known-good item are protected. Only this private media-cache namespace is cleaned; other apps, downloads and user files are untouched. Partial files are removed after failure/cancellation and recovered after a process restart. The bounded catalog is retained separately as small metadata, so deletion of Android cache can cause media to be downloaded again.
+The free-space reserve is 1024 MiB. Available bytes are checked before downloading and each MiB during transfer. Low space removes oldest unused cache entries and refuses a new file if the reserve cannot be met. Active playback and one most-recent known-good item are protected. Only this private media-cache namespace is cleaned; other apps, downloads and user files are untouched. Partial files are removed after failure/cancellation and recovered after a process restart. The bounded catalog is retained separately as small metadata, so deletion of Android cache can cause media to be downloaded again.
 
-Downloaded media shows attribution on screen; **Sources and credits** lists the source and license URLs. Video is muted, explicitly requests no audio focus, and disables the native player's keep-screen-on behavior. On pause, transfers are cancelled, decoding is invalidated and the video player/pins are released. Already-blocked network reads have an 8-second timeout; no new media is published after cancellation.
+Downloaded media shows attribution on screen. See **About → Authors & licenses** for source and license URLs. A damaged cached photo is skipped and the saver continues with the next available image. Video is muted, explicitly requests no audio focus, and disables the native player's keep-screen-on behavior. On pause, transfers are cancelled, decoding is invalidated and the video player/pins are released. Already-blocked network reads have an 8-second timeout; no new media is published after cancellation.
 
 ## Онлайн-добірка
 
-У **Налаштування → Заставка** можна вимкнути дозавантаження, подивитися розмір кешу й вільне місце, вибрати резерв 1024/512 МБ, очистити завантажені файли та переглянути авторів.
+У **Налаштування → Заставка** можна вимкнути дозавантаження, подивитися розмір кешу й звільнити зайняте ним місце. Джерела та умови використання є в **Про лаунчер → Автори й ліцензії**.
 
 Каталог перевіряється раз на добу під час роботи власної заставки. За один її запуск додається до трьох нових файлів; уже завантажені не качаються повторно. Без мережі працює кеш або вбудовані фото. Відео відтворюється без звуку й не перехоплює фонову музику.
 
-При нестачі місця видаляються лише старі файли нашого кешу. Поточне відео та останній придатний файл захищені. Якщо резерву все одно не вистачає, нове завантаження не починається. Завантаження зупиняються при виході із заставки.
+При нестачі місця видаляються лише старі файли нашого кешу. Поточне фото чи відео та останній придатний файл захищені під час очищення. Якщо фото в кеші пошкоджене, заставка переходить до наступного доступного зображення. Якщо резерву все одно не вистачає, нове завантаження не починається. Завантаження зупиняються при виході із заставки.

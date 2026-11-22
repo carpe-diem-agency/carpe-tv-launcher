@@ -1,6 +1,69 @@
 # Temporary signed release APK check — MiTV-AFMU1
 
-## Current release-variant UI smoke check, 2026-11-11
+## Exact 0.2.55 (62) app-list route after update, 2026-11-22
+
+On Xiaomi, the checked archives of 0.2.54 and 0.2.55 used the same disposable
+certificate and the release application ID `agency.carpediem.tv`.
+The installed APK SHA-256 values matched the signed files and their payloads
+matched the unsigned archives entry for entry. Both APKs verified v2/v3.
+
+On 0.2.54, Manage all apps opened the Android TV `AppsActivity` overview.
+An in-place ADB update to 0.2.55 preserved completed onboarding. The same
+button then opened `AllAppsActivity` directly. Back restored focus to the
+original button in both versions. The disposable package, signing key and
+signed APK files were removed and the owner preview baseline matched.
+See `exact-release-app-management-0254-to-0255.json` in the local runtime logs.
+Final signing and the in-app update through Android PackageInstaller remain
+separate release checks.
+
+## Exact 0.2.53 (60) archive signing rehearsal, 2026-11-22
+
+The local archived release APK for `agency.carpediem.tv` is from `9fbe666`.
+Its unsigned SHA-256 is
+`ee491835603337eb156a9e9f42c0e89990c4ea40e2414eb51aa31c8a4b8a0e8f`.
+The offline rehearsal verified v2/v3 signing with a restored disposable key,
+byte-identical payload in all 91 ZIP entries, alignment, the archived asset
+checks and Pages staging. The original certificate pin rejected a second
+otherwise valid signed APK. The rehearsal removed both temporary keys and APKs.
+Evidence is in `archive-signing-rehearsal-0253.json` in the local runtime logs.
+
+### Installation of the exact archived APK
+
+A separate disposable certificate signed the same unsigned APK for the Xiaomi
+MiTV-AFMU1 device test. The 91 payload entries matched again and v2/v3 signature
+and alignment checks passed. The installed APK SHA-256 matched
+`d15740578f995364831d03aaeeb29b75cfa4c964c90995f5c2cb246ce4c37e74`.
+The package ID was `agency.carpediem.tv`, version 0.2.53 (60), with debugging disabled.
+
+On fresh data, D-pad OK selected Explore first. The library displayed its search
+and app tiles. About displayed version 0.2.53 and the developer. Feedback showed
+Bug, Idea and Other, and Back returned focus to Feedback. The installed
+candidate, temporary signing key and APK were removed. Post-test checks
+confirmed the normal launcher APK, app preferences, Home holder and
+accessibility-service state matched the baseline.
+
+The test used ADB installation and a disposable signing identity. Final signing
+and the Android installer update flow remain open. Evidence is in
+`exact-release-apk-device-0253-r2.json` in the local runtime logs.
+
+### In-place update with exact releases 0.2.52 and 0.2.53
+
+On the Xiaomi, a fresh install of the exact archived 0.2.52 (59) APK used
+`agency.carpediem.tv` and a disposable certificate. Explore first completed
+onboarding, and D-pad OK set Animations off. Android rejected the exact 0.2.53
+archive signed by a second certificate with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`.
+The installed 0.2.52 APK still matched its original signed SHA-256.
+
+ADB installed 0.2.53 (60) over 0.2.52 with the matching temporary certificate.
+The installed version and APK SHA-256 matched, onboarding stayed complete and
+Animations stayed off. Android rejected an attempted reinstall of 0.2.52 with
+`INSTALL_FAILED_VERSION_DOWNGRADE` and kept the installed 0.2.53 APK.
+Cleanup removed the test package, temporary keys and APKs. The primary launcher
+APK, preferences, Home role and accessibility state matched the baseline.
+See `exact-release-upgrade-0252-to-0253.json`. Final signing and the in-app
+update through Android's PackageInstaller confirmation remain separate tests.
+
+## Historical release-variant UI smoke check, 2026-11-11
 
 The source at `d6e3dee` built an unsigned `agency.carpediem.tv` release APK.
 The artifact check found the three approved nature photos, required license
@@ -26,7 +89,7 @@ Home role still belonged to `agency.carpediem.tv.prototype`. Physical remote
 Home, projector review, installation from the GitHub asset, production signing
 and rollback on another device remain separate release gates.
 
-## Current navigation candidate, 2026-11-11
+## Historical navigation candidate, 2026-11-11
 
 ### One-APK TV Bro installation check
 
